@@ -1,2 +1,9 @@
 #Object files
 *.o
+
+#C-Lion
+*.idea
+
+# CMake
+cmake-build-debug/
+cmake-build-default/
