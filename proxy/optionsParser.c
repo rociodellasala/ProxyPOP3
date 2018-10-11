@@ -126,6 +126,7 @@ int validate_options(int argc, char ** argv) {
     if(!(strcmp("-e",aux) == 0 ||strcmp("-l",aux) == 0  || strcmp("-L",aux) == 0  || strcmp("-m",aux) == 0  || strcmp("-M",aux) == 0 
         || strcmp("-o",aux) == 0  || strcmp("-p",aux) == 0  || strcmp("-P",aux) == 0  || strcmp("-t",aux) == 0 )){
         printf("'%s' is an invalid option. Try with -e, -l, -L, -m, -M, -o, -p, -P or -t\n", aux);
+        return -1;
     }
 
     for(arg = 1; arg < size; arg++) {
@@ -136,8 +137,10 @@ int validate_options(int argc, char ** argv) {
             printf("Missing option argument for '%s'\n", argv[optind-1]);
             return -1;
         } else if (option == '?'){
-            printf("Invalid option: '%s'\n", argv[optind-1]);
+            printf("Invalid option: '%s'\n", argv[optind-2]);
             return -1;
+        }else if (option != -1){
+            printf("Option argument for '%s' is %s\n",  argv[optind-2], optarg);
         }
     }
 
