@@ -15,13 +15,19 @@ typedef struct {
     char *filter_command;          // -t
 } options;
 
+void print_help();
+
+void print_version();
+
 void print_usage();
+
+int validate_origin_server_argument(char *);
 
 int validate_options(int, char **);
 
-options initialize_values(options);
-
 options set_options_values(options, int, char **);
+
+options initialize_values(options);
 
 int parse_input(int, char **);
 

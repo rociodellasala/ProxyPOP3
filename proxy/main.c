@@ -40,17 +40,16 @@ int new_master_socket(int protocol, struct sockaddr_in * address) {
 
 /* Server ---> PROXY <--- Client/s */
 
-int main(int argc, char ** argv){
+int main(int argc, char ** argv) {
 
     options opt;
     int i;
 
-    if(parse_input(argc,argv) < 0){
+    if(parse_input(argc,argv) < 0) {
         return -1;
     }
 
     opt = initialize_values(opt);
-
     opt = set_options_values(opt, argc, argv);
 
     /* For debug, remember to take it out ! (Ale cuando corro el tp lo corro con los argumentos -m holaaaa origin_server para
