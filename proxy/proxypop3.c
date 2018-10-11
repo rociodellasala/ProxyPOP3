@@ -43,8 +43,14 @@ file_descriptor new_socket(int protocol, int port) {
     return master_socket;
 }
 
+void handle_connections(file_descriptor mua_tcp_socket) {
 
-void initialize_sockets(options opt){
+    //for(;;){
+        /* hay que hacer cosas con selector */
+    //}
+}
+
+void initialize_sockets(options opt) {
     file_descriptor mua_tcp_socket = new_socket(IPPROTO_TCP, opt.port);
     file_descriptor admin_sctp_socket = new_socket(IPPROTO_SCTP, opt.management_port);
 
@@ -67,13 +73,12 @@ void initialize_sockets(options opt){
     printf("Listening on SCTP port %d\n", opt.management_port);
 
     printf("Waiting for connections ...");
+
+    handle_connections(mua_tcp_socket);
 }
 
-
 /* Server ---> PROXY <--- Client/s */
-
 int main(int argc, char ** argv) {
-
     options opt;
     int i;
 
