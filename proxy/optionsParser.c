@@ -122,10 +122,16 @@ int validate_options(int argc, char ** argv) {
     }
 
     opterr = 0;
+    char* aux = argv[optind];
+    if(!(strcmp("-e",aux) == 0 ||strcmp("-l",aux) == 0  || strcmp("-L",aux) == 0  || strcmp("-m",aux) == 0  || strcmp("-M",aux) == 0 
+        || strcmp("-o",aux) == 0  || strcmp("-p",aux) == 0  || strcmp("-P",aux) == 0  || strcmp("-t",aux) == 0 )){
+        printf("'%s' is an invalid option. Try with -e, -l, -L, -m, -M, -o, -p, -P or -t\n", aux);
+    }
 
     for(arg = 1; arg < size; arg++) {
         /* http://man7.org/linux/man-pages/man3/getopt.3.html */
         option = getopt(size, options, ":e:l:L:m:M:o:P:p:t:");
+       // printf("ok el coso es %s\n", argv[optind-1]);
         if(option == ':'){
             printf("Missing option argument for '%s'\n", argv[optind-1]);
             return -1;
