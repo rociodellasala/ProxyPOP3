@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include "include/optionsParser.h"
-#include "include/main.h"
+#include "include/proxypop3.h"
 
 /* http://es.tldp.org/Tutoriales/PROG-SOCKETS/prog-sockets.html */
 
