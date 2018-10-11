@@ -3,7 +3,7 @@
 
 #define MAXIMUM_MUA_CONNECTIONS 20
 
-typedef const int file_descriptor;
+typedef int file_descriptor;
 
 int new_socket(int, int);
 

@@ -1,6 +1,8 @@
 #ifndef PROXYPOP3_OPTIONSPARSER_H
 #define PROXYPOP3_OPTIONSPARSER_H
 
+#define DELIM "."
+
 /* Try to check types of arguments */
 typedef struct {
     int port;                      // -p

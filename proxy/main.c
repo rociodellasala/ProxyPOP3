@@ -11,9 +11,11 @@
 #include "include/optionsParser.h"
 #include "include/main.h"
 
+/* http://es.tldp.org/Tutoriales/PROG-SOCKETS/prog-sockets.html */
+
 /* Creates a TCP/SCTP (specified in protocol) socket connection to the pop3 proxy server */
-int new_socket(int protocol, int port) {
-    int master_socket;
+file_descriptor new_socket(int protocol, int port) {
+    file_descriptor master_socket;
     struct sockaddr_in address;
 
     /* Construct local address structure */
@@ -31,7 +33,7 @@ int new_socket(int protocol, int port) {
         exit(EXIT_FAILURE);
     }
 
-    /* Binds the socket to localhost port  */
+    /* Binds the socket to the specified address (localhost port)  */
     if (bind(master_socket, (struct sockaddr*) &address, sizeof(address)) < 0) {
         perror("Unable to bind socket");
         exit(EXIT_FAILURE);
@@ -46,6 +48,7 @@ void initialize_sockets(options opt){
     file_descriptor mua_tcp_socket = new_socket(IPPROTO_TCP, opt.port);
     file_descriptor admin_sctp_socket = new_socket(IPPROTO_SCTP, opt.management_port);
 
+    /* Mark the socket as a passive one so it will listen for incoming connections */
     if(listen(mua_tcp_socket, MAXIMUM_MUA_CONNECTIONS) < 0) {
         fprintf(stderr, "Unable to listen on port %d", opt.port);
         perror("");
@@ -54,6 +57,7 @@ void initialize_sockets(options opt){
 
     printf("Listening on TCP port %d\n", opt.port);
 
+    /* Mark the socket as a passive one so it will listen for incoming connections */
     if(listen(admin_sctp_socket, 1) < 0) {
         fprintf(stderr, "Unable to listen on port %d", opt.management_port);
         perror("");
@@ -80,7 +84,7 @@ int main(int argc, char ** argv) {
     opt = initialize_values(opt);
     opt = set_options_values(opt, argc, argv);
 
-    /*initialize_sockets(opt);*/
+    initialize_sockets(opt);
 
 }
 

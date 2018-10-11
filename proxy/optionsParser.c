@@ -5,7 +5,6 @@
 #include <netinet/in.h>
 #include "include/optionsParser.h"
 
-
 /**
  * Prints help for the user
  */
@@ -39,8 +38,58 @@ void print_usage() {
     printf("<origin-server>: Address of POP3 origin server.\n");
 }
 
+
+/* return 0 if IP string is valid, else return -1 */
+int isValidIp(char * ip_str) {
+    int i, num, dots = 0;
+    char *ptr;
+
+    if (ip_str == NULL)
+        return -1;
+
+    ptr = strtok(ip_str, DELIM);
+
+    if (ptr == NULL)
+        return -1;
+
+    while (ptr) {
+
+        /* after parsing string, it must contain only digits */
+        if (!valid_digit(ptr))
+            return -1;
+
+        num = atoi(ptr);
+
+        /* check for valid IP */
+        if (num >= 0 && num <= 255) {
+            /* parse remaining string */
+            ptr = strtok(NULL, DELIM);
+            if (ptr != NULL)
+                ++dots;
+        } else
+            return -1;
+    }
+
+    /* valid IP string must contain 3 dots */
+    if (dots != 3)
+        return -1;
+    return 0;
+}
+
+
+/* return 0 if string contain only digits, else return -1 */
+int valid_digit(char *ip_str) {
+    while (*ip_str) {
+        if (*ip_str >= '0' && *ip_str <= '9')
+            ++ip_str;
+        else
+            return -1;
+    }
+    return 0;
+}
+
 int validate_origin_server_argument(char * origin_server) {
-    /* TODO: Validate origin server argument */
+    // TODO: Validate origin server argument
 
     if(origin_server == 'localhost'){
         return 0;
@@ -54,57 +103,6 @@ int validate_origin_server_argument(char * origin_server) {
 
     return -1;
 }
-
-/* return 0 if IP string is valid, else return -1 */
-int sValidIp(char *ip_str) 
-{ 
-    int i, num, dots = 0; 
-    char *ptr; 
-  
-    if (ip_str == NULL) 
-        return -1; 
-
-    ptr = strtok(ip_str, DELIM); 
-  
-    if (ptr == NULL) 
-        return -1; 
-  
-    while (ptr) { 
-  
-        /* after parsing string, it must contain only digits */
-        if (!valid_digit(ptr)) 
-            return -1; 
-  
-        num = atoi(ptr); 
-  
-        /* check for valid IP */
-        if (num >= 0 && num <= 255) { 
-            /* parse remaining string */
-            ptr = strtok(NULL, DELIM); 
-            if (ptr != NULL) 
-                ++dots; 
-        } else
-            return -1; 
-    } 
-  
-    /* valid IP string must contain 3 dots */
-    if (dots != 3) 
-        return -1; 
-    return 0; 
-} 
-
-
-/* return 0 if string contain only digits, else return -1 */
-int valid_digit(char *ip_str) 
-{ 
-    while (*ip_str) { 
-        if (*ip_str >= '0' && *ip_str <= '9') 
-            ++ip_str; 
-        else
-            return -1; 
-    } 
-    return 0; 
-} 
 
 
 /* /* TODO: Fix problems
