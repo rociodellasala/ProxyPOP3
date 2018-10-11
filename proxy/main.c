@@ -43,6 +43,7 @@ int new_master_socket(int protocol, struct sockaddr_in * address) {
 int main(int argc, char ** argv){
 
     options opt;
+    int i;
 
     if(parse_input(argc,argv) < 0){
         return -1;
@@ -53,5 +54,7 @@ int main(int argc, char ** argv){
     opt = set_options_values(opt, argc, argv);
 
     printf("%s", opt.replacement_msg);
+
+
 }
 

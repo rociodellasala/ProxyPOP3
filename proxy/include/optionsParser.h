@@ -20,6 +20,7 @@ void print_usage();
 int validate_options(int, char **);
 
 options initialize_values(options);
+
 options set_options_values(options, int, char **);
 
 int parse_input(int, char **);

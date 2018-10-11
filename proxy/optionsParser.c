@@ -41,18 +41,19 @@ int validate_origin_server_argument(char * origin_server){
 int validate_options(int argc, char ** argv){
     int arg;
     int option;
-    char ** options     = (char**)malloc((argc-1)*sizeof(char*));;
+    int size = argc-1;
+    char ** options     = (char**)malloc(size * sizeof(char*));;
 
-    for(arg = 0; arg < (argc - 1); arg++){
-        options[arg] = malloc(sizeof(char) * strlen(argv[arg]));
+    for(arg = 0; arg < size; arg++){
+        options[arg] = malloc(sizeof(char) * strlen(argv[arg]) + 1);
         strcpy(options[arg], argv[arg]);
     }
 
     opterr = 0;
 
-    for(arg = 1; arg < argc - 1; arg++){
+    for(arg = 1; arg < size; arg++){
         /* http://man7.org/linux/man-pages/man3/getopt.3.html */
-        option = getopt(argc-1, options, ":e:l:L:m:M:o:P:p:t:");
+        option = getopt(size, options, ":e:l:L:m:M:o:P:p:t:");
         if(option == ':'){
             printf("Missing option argument for '%s'\n", argv[optind-1]);
             return -1;
@@ -61,6 +62,11 @@ int validate_options(int argc, char ** argv){
             return -1;
         }
     }
+
+    for(int i = 0; i < size ; i++)
+        free(options[i]);
+
+    free(options);
 
     /* For debug, remember to take it out ! */
     printf("No errors found on input ! \n");
