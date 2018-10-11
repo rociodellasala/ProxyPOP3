@@ -9,16 +9,16 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include "include/optionsParser.h"
+#include "include/main.h"
 
-#define TRUE 1
-#define BUFFER_SIZE 1024
-#define PENDING_CONNECTIONS 3
-
-
-/* Creates a TCP socket connection to the pop3 server */
-int new_master_socket(int protocol, struct sockaddr_in * address) {
+/* Creates a TCP/SCTP socket connection to the pop3 server */
+int new_socket(int protocol, int port) {
     int master_socket;
-    struct sockaddr_in addr = * address;
+    struct sockaddr_in address;
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons((uint16_t) port);
 
     /* Creates a reliable stream master socket */
     master_socket = socket(AF_INET, SOCK_STREAM, protocol);
@@ -29,7 +29,7 @@ int new_master_socket(int protocol, struct sockaddr_in * address) {
     }
 
     /* Binds the socket to localhost port  */
-    if (bind(master_socket, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
+    if (bind(master_socket, (struct sockaddr*) &address, sizeof(address)) < 0) {
         perror("bind() failed");
         exit(EXIT_FAILURE);
     }
@@ -37,6 +37,17 @@ int new_master_socket(int protocol, struct sockaddr_in * address) {
     /* Returns the file descriptor of the socket */
     return master_socket;
 }
+
+
+void initialize_sockets(options opt){
+    struct sockaddr_in address_proxy;
+    struct sockaddr_in address_management;
+
+
+    file_descriptor mua_tcp_socket = new_socket(IPPROTO_TCP, opt.port);
+    file_descriptor admin_sctp_socket = new_socket(IPPROTO_SCTP, opt.management_port);
+}
+
 
 /* Server ---> PROXY <--- Client/s */
 
@@ -56,6 +67,7 @@ int main(int argc, char ** argv) {
      * chequear aca que se este cambiando en options ese valor */
     printf("%s", opt.replacement_msg);
 
+    /*initialize_sockets(opt);*/
 
 }
 
