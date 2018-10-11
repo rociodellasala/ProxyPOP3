@@ -145,6 +145,13 @@ options initialize_values(options opt) {
 }
 
 int parse_input(int argc, char ** argv) {
+
+    if(argc < 2){
+        printf("Program execution requires at least one parameter \n");
+        print_usage();
+        return -1;
+    }
+
     if(strcmp(argv[1], "-v") == 0) {
         print_version();
         exit(0);

@@ -65,7 +65,7 @@ int main(int argc, char ** argv) {
 
     /* For debug, remember to take it out ! (Ale cuando corro el tp lo corro con los argumentos -m holaaaa origin_server para
      * chequear aca que se este cambiando en options ese valor */
-    printf("%s", opt.replacement_msg);
+    printf("%s\n", opt.replacement_msg);
 
     /*initialize_sockets(opt);*/
 
