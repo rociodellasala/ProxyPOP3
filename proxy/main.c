@@ -53,6 +53,8 @@ int main(int argc, char ** argv){
 
     opt = set_options_values(opt, argc, argv);
 
+    /* For debug, remember to take it out ! (Ale cuando corro el tp lo corro con los argumentos -m holaaaa origin_server para
+     * chequear aca que se este cambiando en options ese valor */
     printf("%s", opt.replacement_msg);
 
 
