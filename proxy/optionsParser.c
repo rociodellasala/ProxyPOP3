@@ -57,6 +57,7 @@ int validate_origin_server_argument(char * origin_server) {
 int validate_options(int argc, char ** argv) {
     int arg;
     int option;
+    int i;
     int size            = argc-1;
     char ** options     = (char**) malloc(size * sizeof(char*));;
 
@@ -79,7 +80,7 @@ int validate_options(int argc, char ** argv) {
         }
     }
 
-    for(int i = 0; i < size ; i++)
+    for(i = 0; i < size ; i++)
         free(options[i]);
 
     free(options);
