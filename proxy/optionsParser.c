@@ -42,13 +42,70 @@ void print_usage() {
 int validate_origin_server_argument(char * origin_server) {
     /* TODO: Validate origin server argument */
 
-    /* if(validateIPv4() < 0 || validateIPv6() < 0 || validateOriginServerName() < 0) {
-        For example, for validateIPv4 (192.168.1.5) read https://www.geeksforgeeks.org/program-to-validate-an-ip-address/
-        return -1;
-     }
-    */
-    return 0;
+    if(origin_server == 'localhost'){
+        return 0;
+    }
+    else if(isValidIp(origin_server)){
+        printf("Valid IP!\n");
+        return 0;
+    }
+
+    //TODO: VALIDATE IPV6 ??
+
+    return -1;
 }
+
+/* return 0 if IP string is valid, else return -1 */
+int sValidIp(char *ip_str) 
+{ 
+    int i, num, dots = 0; 
+    char *ptr; 
+  
+    if (ip_str == NULL) 
+        return -1; 
+
+    ptr = strtok(ip_str, DELIM); 
+  
+    if (ptr == NULL) 
+        return -1; 
+  
+    while (ptr) { 
+  
+        /* after parsing string, it must contain only digits */
+        if (!valid_digit(ptr)) 
+            return -1; 
+  
+        num = atoi(ptr); 
+  
+        /* check for valid IP */
+        if (num >= 0 && num <= 255) { 
+            /* parse remaining string */
+            ptr = strtok(NULL, DELIM); 
+            if (ptr != NULL) 
+                ++dots; 
+        } else
+            return -1; 
+    } 
+  
+    /* valid IP string must contain 3 dots */
+    if (dots != 3) 
+        return -1; 
+    return 0; 
+} 
+
+
+/* return 0 if string contain only digits, else return -1 */
+int valid_digit(char *ip_str) 
+{ 
+    while (*ip_str) { 
+        if (*ip_str >= '0' && *ip_str <= '9') 
+            ++ip_str; 
+        else
+            return -1; 
+    } 
+    return 0; 
+} 
+
 
 /* /* TODO: Fix problems
  * CASOS EN LOS QUE NO ESTA FUNCIONANDO :
