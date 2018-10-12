@@ -242,11 +242,19 @@ int parse_input(int argc, char ** argv) {
     }
 
     if (strcmp(argv[1], "-v") == 0) {
+        if(argc >= 3){
+            print_usage();
+            return -1;
+        }
         print_version();
         exit(0);
     }
 
     if (strcmp(argv[1], "-h") == 0) {
+        if(argc >= 3){
+            print_usage();
+            return -1;
+        }
         print_help();
         exit(0);
     }
