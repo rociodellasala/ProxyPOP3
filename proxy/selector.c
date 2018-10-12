@@ -19,6 +19,10 @@ void handle_connections(file_descriptor mua_tcp_socket, struct sockaddr_in addre
     const struct timespec timeout={}; /* ? */
     int addrlen = sizeof(address);
 
+    //initialise all client_socket[] to 0 so not checked
+    for (i = 0; i < MAXIMUM_MUA_CONNECTIONS; i++) {
+        client_socket[i] = 0;
+    }
 
     while(1) {
         printf("ACA");
@@ -54,7 +58,7 @@ void handle_connections(file_descriptor mua_tcp_socket, struct sockaddr_in addre
 
             puts("Welcome message sent successfully");
 
-            for(i = 0; i < 20; i++){
+            for(i = 0; i < MAXIMUM_MUA_CONNECTIONS; i++){
                 if(client_socket[i] == 0){
                     client_socket[i] = new_socket;
                     printf("Adding to list of sockets as %d\n", i);
@@ -64,7 +68,7 @@ void handle_connections(file_descriptor mua_tcp_socket, struct sockaddr_in addre
 
         }
 
-        for(i = 0; i < 20; i++) {
+        for(i = 0; i < MAXIMUM_MUA_CONNECTIONS; i++) {
             int sd = client_socket[i];
             /* Clientes */
             if (FD_ISSET(sd, &readfds)) {
