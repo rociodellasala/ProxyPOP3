@@ -10,19 +10,19 @@
 #include <netinet/in.h>
 #include "include/optionsParser.h"
 #include "include/proxypop3.h"
+#include "include/selector.h"
 
 /* http://es.tldp.org/Tutoriales/PROG-SOCKETS/prog-sockets.html */
 
 /* Creates a TCP/SCTP (specified in protocol) socket connection to the pop3 proxy server */
-file_descriptor new_socket(int protocol, int port) {
+file_descriptor new_socket(int protocol, int port, struct sockaddr_in * address) {
     file_descriptor master_socket;
-    struct sockaddr_in address;
 
     /* Construct local address structure */
-    memset(&address, 0, sizeof(address));       // Zero out structure
-    address.sin_family = AF_INET;               // IPv4 address family
-    address.sin_addr.s_addr = INADDR_ANY;       // Any incoming interface
-    address.sin_port = htons((uint16_t) port);
+    memset(address, 0, sizeof(*address));       // Zero out structure
+    (*address).sin_family = AF_INET;               // IPv4 address family
+    (*address).sin_addr.s_addr = INADDR_ANY;       // Any incoming interface
+    (*address).sin_port = htons((uint16_t) port);
 
     /* Creates a reliable stream master socket */
     master_socket = socket(AF_INET, SOCK_STREAM, protocol);
@@ -34,7 +34,7 @@ file_descriptor new_socket(int protocol, int port) {
     }
 
     /* Binds the socket to the specified address (localhost port)  */
-    if (bind(master_socket, (struct sockaddr*) &address, sizeof(address)) < 0) {
+    if (bind(master_socket, (struct sockaddr*) address, sizeof(*address)) < 0) {
         perror("Unable to bind socket");
         exit(EXIT_FAILURE);
     }
@@ -44,8 +44,17 @@ file_descriptor new_socket(int protocol, int port) {
 }
 
 void initialize_sockets(options opt) {
-    file_descriptor mua_tcp_socket = new_socket(IPPROTO_TCP, opt.port);
-    file_descriptor admin_sctp_socket = new_socket(IPPROTO_SCTP, opt.management_port);
+    struct sockaddr_in mua_address;
+    struct sockaddr_in admin_address;
+
+    file_descriptor mua_tcp_socket = new_socket(IPPROTO_TCP, opt.port, &mua_address);
+    file_descriptor admin_sctp_socket = new_socket(IPPROTO_SCTP, opt.management_port, &admin_address);
+
+    if(mua_address.sin_family == AF_INET){
+        printf("Bien hecho\n");
+    } else {
+        printf("Mal\n");
+    }
 
     /* Mark the socket as a passive one so it will listen for incoming connections */
     if(listen(mua_tcp_socket, MAXIMUM_MUA_CONNECTIONS) < 0) {
@@ -67,7 +76,7 @@ void initialize_sockets(options opt) {
 
     printf("Waiting for connections ...");
 
-    /*handle_connections(mua_tcp_socket);*/
+    /*handle_connections(mua_tcp_socket, mua_address);*/
 }
 
 /* Server ---> PROXY <--- Client/s */
@@ -83,6 +92,5 @@ int main(int argc, char ** argv) {
     opt = set_options_values(opt, argc, argv);
 
     initialize_sockets(opt);
-
 }
 

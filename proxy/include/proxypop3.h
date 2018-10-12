@@ -5,6 +5,6 @@
 
 typedef int file_descriptor;
 
-int new_socket(int, int);
+int new_socket(int, int, struct sockaddr_in *);
 
 #endif //PROXYPOP3_MAIN_H
