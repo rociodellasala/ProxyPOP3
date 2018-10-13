@@ -8,7 +8,7 @@
 
 #include "selector.h"
 
-#define MAXIMUM_MUA_CONNECTIONS 20
+#define BACKLOG 10
 
 /* Typedefs */
 typedef int file_descriptor;

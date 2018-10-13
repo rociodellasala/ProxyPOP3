@@ -3,7 +3,7 @@
 
 #include "optionsParser.h"
 
-#define MAXIMUM_MUA_CONNECTIONS 20
+
 #define BUFFER_SIZE 1024
 
 typedef int file_descriptor;
