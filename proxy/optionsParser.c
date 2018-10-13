@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <ctype.h>
 #include "include/optionsParser.h"
 
 void print_help() {
@@ -92,7 +93,7 @@ int validate_origin_server_argument(char * origin_server) {
 
     if (strcmp("localhost", origin_server) == 0) {
         return 0;
-    } else if (is_valid_ip(origin_server)) {
+    } else if (is_valid_ip(origin_server) == 0) {
         printf("Valid IP!\n");
         return 0;
     }
@@ -169,6 +170,52 @@ int validate_options(int argc, char ** argv) {
             return -1;
         } else if (option != -1) {
             printf("Option argument for '%s' is %s\n", next_option, parameter);
+            if(strcmp(next_option, "-l") == 0){               
+                if(validate_address(parameter) != 0){
+                    printf("Invalid listen address\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-L") == 0){
+                if(validate_address(parameter) != 0){
+                    printf("Invalid management address\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-e") == 0){
+                if(validate_error_file(parameter) != 0){
+                    printf("Invalid error file\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-m") == 0){
+                if(validate_message(parameter) != 0){
+                    printf("Invalid message of replacement\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-M") == 0){
+                if(validate_media_type(parameter) != 0){
+                    printf("Invalid media type\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-o") == 0){
+                if(validate_port(parameter) != 0){
+                    printf("Invalid management port\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-p") == 0){
+                if(validate_port(parameter) != 0){
+                    printf("Invalid port\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-P") == 0){
+                if(validate_port(parameter) != 0){
+                    printf("Invalid origin port\n");
+                    return -1;
+                }
+            }else if(strcmp(next_option, "-t") == 0){
+                if(validate_transformation(parameter) != 0){
+                    printf("Invalid transformation\n");
+                    return -1;
+                }
+            }
         }
     }
 
@@ -176,6 +223,53 @@ int validate_options(int argc, char ** argv) {
 
     /* For debug, remember to take it out ! */
     printf("No errors found on input ! \n");
+}
+
+int validate_port(char* parameter){
+    if(strlen(parameter) == 4){
+        int i;
+        for(i = 0 ; i < 4 ; i++ ){
+            if(!isdigit(parameter[i])){
+                return -1;
+            }
+            
+        }
+        return 0;
+    }
+    return -1;
+}
+
+int validate_transformation(char* parameter){
+    return 1; //TODO
+}
+
+int validate_address(char* parameter){
+    if(strcmp(parameter, "localhost") == 0){
+        return 0;
+    }else if(is_valid_ip(parameter) == 0){
+        return 0;
+    }
+
+    return -1;
+}
+
+int validate_message(char* parameter){
+    return 0; //TODO
+}
+
+int validate_media_type(char* parameter){
+    return 0; //TODO
+}
+
+int validate_error_file(char* parameter){
+    /* no se si se podra hacer asi
+    FILE *fb = fopen("parameter","r");
+    if(fb==NULL)
+        return -1;
+    else
+        return 0;
+    */
+    return 0; //TODO
 }
 
 options set_options_values(options opt, int argc, char ** argv) {

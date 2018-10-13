@@ -33,4 +33,16 @@ options initialize_values(options);
 
 int parse_input(int, char **);
 
+int validate_port(char* parameter);
+
+int validate_transformation(char* parameter);
+
+int validate_address(char* parameter);
+
+int validate_message(char* parameter);
+
+int validate_media_type(char* parameter);
+
+int validate_error_file(char* parameter);
+
 #endif //PROXYPOP3_OPTIONSPARSER_H
