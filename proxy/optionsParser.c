@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <ctype.h>
 #include "include/optionsParser.h"
 
 void print_help() {
@@ -33,7 +27,7 @@ void print_usage() {
 }
 
 /* Returns 0 if string contain only digits, else returns -1 */
-int valid_digit(char *ip_str) {
+int valid_digit(char * ip_str) {
     while (*ip_str) {
         if ((*ip_str) >= '0' && (*ip_str) <= '9') {
             ++ip_str;
@@ -47,8 +41,10 @@ int valid_digit(char *ip_str) {
 
 /* Returns 0 if IP string is valid, else returns -1 */
 int is_valid_ip(char * ip_str) {
-    int i, num, dots = 0;
-    char *ptr;
+    int num;
+    char * ptr;
+    int dots = 0;
+
 
     if (ip_str == NULL) {
         return -1;
@@ -88,9 +84,8 @@ int is_valid_ip(char * ip_str) {
     return 0;
 }
 
+// TODO: Validate origin server argument
 int validate_origin_server_argument(char * origin_server) {
-    // TODO: Validate origin server argument
-
     if (strcmp("localhost", origin_server) == 0) {
         return 0;
     } else if (is_valid_ip(origin_server) == 0) {
@@ -99,13 +94,12 @@ int validate_origin_server_argument(char * origin_server) {
     }
 
     //TODO: VALIDATE IPV6 ??
-
     return -1;
 }
 
 
 void free_options(char ** options, int size){
-    int i = 0;
+    int i;
 
     for (i = 0; i < size ; i++) {
         free(options[i]);
@@ -114,30 +108,71 @@ void free_options(char ** options, int size){
     free(options);
 }
 
-/* /* TODO: Fix problems
- * CASOS EN LOS QUE NO ESTA FUNCIONANDO :
- * ./exe -m -p hola (es decir, el primer argumento lo pongo mal y el segundo bien) porque me toma que
- * -p es el argumento de -m */
+int validate_parameters(char * next_option, char * parameter){
+    if (strcmp(next_option, "-l") == 0) {
+        if (validate_address(parameter) != 0) {
+            printf("Invalid listen address\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-L") == 0) {
+        if (validate_address(parameter) != 0) {
+            printf("Invalid management address\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-e") == 0) {
+        if (validate_error_file(parameter) != 0){
+            printf("Invalid error file\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-m") == 0) {
+        if (validate_message(parameter) != 0) {
+            printf("Invalid message of replacement\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-M") == 0) {
+        if (validate_media_type(parameter) != 0){
+            printf("Invalid media type\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-o") == 0) {
+        if (validate_port(parameter) != 0) {
+            printf("Invalid management port\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-p") == 0) {
+        if (validate_port(parameter) != 0) {
+            printf("Invalid port\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-P") == 0) {
+        if (validate_port(parameter) != 0) {
+            printf("Invalid origin port\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-t") == 0) {
+        if (validate_transformation(parameter) != 0) {
+            printf("Invalid transformation\n");
+            return -1;
+        }
+    }
+}
+
 int validate_options(int argc, char ** argv) {
     int arg;
     int option;
-    int i;
     char * next_option;
     char * parameter;
     int size            = argc-1;
-    char ** options     = (char**) malloc(size * sizeof(char*));;
-    char * aux          = argv[optind];
+    char ** options     = (char **) malloc(size * sizeof(char *));;
 
     for (arg = 0; arg < size; arg++) {
         options[arg] = malloc(sizeof(char) * strlen(argv[arg]) + 1);
         strcpy(options[arg], argv[arg]);
     }
 
-    opterr      = 0;
+    opterr = 0;
 
     for (arg = 1; arg < size; arg++) {
-        /* http://man7.org/linux/man-pages/man3/getopt.3.html */
-
         if (optind < size) {
             next_option = options[optind];
 
@@ -170,51 +205,8 @@ int validate_options(int argc, char ** argv) {
             return -1;
         } else if (option != -1) {
             printf("Option argument for '%s' is %s\n", next_option, parameter);
-            if(strcmp(next_option, "-l") == 0){               
-                if(validate_address(parameter) != 0){
-                    printf("Invalid listen address\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-L") == 0){
-                if(validate_address(parameter) != 0){
-                    printf("Invalid management address\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-e") == 0){
-                if(validate_error_file(parameter) != 0){
-                    printf("Invalid error file\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-m") == 0){
-                if(validate_message(parameter) != 0){
-                    printf("Invalid message of replacement\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-M") == 0){
-                if(validate_media_type(parameter) != 0){
-                    printf("Invalid media type\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-o") == 0){
-                if(validate_port(parameter) != 0){
-                    printf("Invalid management port\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-p") == 0){
-                if(validate_port(parameter) != 0){
-                    printf("Invalid port\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-P") == 0){
-                if(validate_port(parameter) != 0){
-                    printf("Invalid origin port\n");
-                    return -1;
-                }
-            }else if(strcmp(next_option, "-t") == 0){
-                if(validate_transformation(parameter) != 0){
-                    printf("Invalid transformation\n");
-                    return -1;
-                }
+            if(validate_parameters(next_option, parameter) < 0){
+                return -1;
             }
         }
     }
@@ -225,43 +217,42 @@ int validate_options(int argc, char ** argv) {
     printf("No errors found on input ! \n");
 }
 
-int validate_port(char* parameter){
-    if(strlen(parameter) == 4){
-        int i;
-        for(i = 0 ; i < 4 ; i++ ){
-            if(!isdigit(parameter[i])){
+int validate_port(char * parameter){
+    int i;
+    if (strlen(parameter) == 4) {
+        for (i = 0 ; i < 4 ; i++ ) {
+            if (!isdigit(parameter[i])) {
                 return -1;
             }
-            
         }
         return 0;
     }
     return -1;
 }
 
-int validate_transformation(char* parameter){
+int validate_transformation(char * parameter){
     return 1; //TODO
 }
 
-int validate_address(char* parameter){
-    if(strcmp(parameter, "localhost") == 0){
+int validate_address(char * parameter) {
+    if (strcmp(parameter, "localhost") == 0) {
         return 0;
-    }else if(is_valid_ip(parameter) == 0){
+    } else if (is_valid_ip(parameter) == 0) {
         return 0;
     }
 
     return -1;
 }
 
-int validate_message(char* parameter){
+int validate_message(char * parameter) {
     return 0; //TODO
 }
 
-int validate_media_type(char* parameter){
+int validate_media_type(char * parameter) {
     return 0; //TODO
 }
 
-int validate_error_file(char* parameter){
+int validate_error_file(char * parameter) {
     /* no se si se podra hacer asi
     FILE *fb = fopen("parameter","r");
     if(fb==NULL)
@@ -336,7 +327,7 @@ int parse_input(int argc, char ** argv) {
     }
 
     if (strcmp(argv[1], "-v") == 0) {
-        if(argc >= 3){
+        if (argc >= 3) {
             print_usage();
             return -1;
         }

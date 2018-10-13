@@ -9,24 +9,22 @@
 #include "include/optionsParser.h"
 
 int create_server_socket(char * origin_server, int origin_port) {
-
     int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     if (sock < 0) {
-        perror("socket() failed");
+        fprintf(stderr, "Unable to create server socket");
+        perror("");
         exit(EXIT_FAILURE);
     }
 
     /* Construct the server address structure */
-    struct sockaddr_in servAddr;            /* Server address */
-    memset(&servAddr, 0, sizeof(servAddr)); /* Zero out structure */
-    servAddr.sin_family = AF_INET;          /* IPv4 address family */
-
-
-    servAddr.sin_port = htons(origin_port);    /* Server port */
+    struct sockaddr_in serverAddr;
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(origin_port);
 
     /* Establish the connection to the echo server */
-    if (connect(sock, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0) {
+    if (connect(sock, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0) {
         perror("Connection to origin server failed");
         exit(EXIT_FAILURE);
     }
@@ -36,16 +34,17 @@ int create_server_socket(char * origin_server, int origin_port) {
 
 int add_to_set(fd_set *readfds, int max_sd, const int sockets[], int max_clients) {
     int i;
-    for (i = 0 ; i < max_clients ; i++) {
-        // socket descriptor
-        int sd = sockets[i];
+    int sd;
 
-        // if valid socket descriptor then add to read list
+    for (i = 0 ; i < max_clients ; i++) {
+        sd = sockets[i];
+
+        /* If valid socket descriptor then add to read list */
         if (sd > 0) {
             FD_SET(sd, readfds);
         }
 
-        // highest file descriptor number, need it for the select function
+        // Highest file descriptor number, need it for the select function */
         if (sd > max_sd) {
             max_sd = sd;
         }
@@ -55,18 +54,14 @@ int add_to_set(fd_set *readfds, int max_sd, const int sockets[], int max_clients
 }
 
 
-void end_connection(struct sockaddr_in address, int client, int sd,
-                    int *client_socket,
-                    int *server_socket) {
+void end_connection(struct sockaddr_in address, int client, int sd, int *client_socket, int *server_socket) {
     int addrlen = sizeof(address);
-    //Somebody disconnected , get his details and print
-    getpeername(sd, (struct sockaddr*)&address,
-                (socklen_t*)&addrlen);
-    printf("Client disconnected , ip %s , port %d \n",
-           inet_ntoa(address.sin_addr),
-           ntohs(address.sin_port));
 
-    //Close the socket and mark as 0 in list for reuse
+    /* Somebody disconnected , get his details and print */
+    getpeername(sd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+    printf("Client disconnected , ip %s , port %d \n", inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+
+    /* Close the socket and mark as 0 in list for reuse */
     close(sd);
     close(server_socket[client]);
     client_socket[client] = 0;
@@ -76,15 +71,16 @@ void end_connection(struct sockaddr_in address, int client, int sd,
 void handle_connections(options opt, file_descriptor mua_tcp_socket, struct sockaddr_in address) {
     int i = 0;
     int max_sd;
-    printf("fd: %d\n", FD_SETSIZE);
-    int client_socket[FD_SETSIZE] = {0};
-    int server_socket[FD_SETSIZE] = {0};
     int activity;
     int new_socket;
     int valread;
+
+    int client_socket[FD_SETSIZE] = {0};
+    int server_socket[FD_SETSIZE] = {0};
+
     fd_set readfds;
     int max_clients = FD_SETSIZE;
-    char buffer[DATA_BUFFER];
+    char buffer[BUFFER_SIZE];
     printf("port: %d\n",address.sin_port);
     const struct timespec timeout={}; /* ? */
     int addrlen = sizeof(address);
@@ -171,7 +167,7 @@ void handle_connections(options opt, file_descriptor mua_tcp_socket, struct sock
             // if a client descriptor was set
             if (FD_ISSET(client_sd, &readfds)) {
                 //Check if it was for closing and also read the incoming message
-                if ((valread = read(client_sd, buffer, DATA_BUFFER)) == 0) {
+                if ((valread = read(client_sd, buffer, BUFFER_SIZE)) == 0) {
                     end_connection(address, i, client_sd, client_socket,
                                    server_socket);
                 }
@@ -185,7 +181,7 @@ void handle_connections(options opt, file_descriptor mua_tcp_socket, struct sock
                 // if a server descriptor was set
             } else if (FD_ISSET(server_sd, &readfds)) {
 
-                if ((valread = read(server_sd, buffer, DATA_BUFFER)) == 0) {
+                if ((valread = read(server_sd, buffer, BUFFER_SIZE)) == 0) {
                     end_connection(address, i, server_sd, client_socket,
                                    server_socket);
                 }

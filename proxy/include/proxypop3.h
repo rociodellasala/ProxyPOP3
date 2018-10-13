@@ -1,10 +1,11 @@
 #ifndef PROXYPOP3_MAIN_H
 #define PROXYPOP3_MAIN_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "selector.h"
 
 #define MAXIMUM_MUA_CONNECTIONS 20

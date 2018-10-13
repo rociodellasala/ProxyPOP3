@@ -55,7 +55,7 @@ void initialize_sockets(options opt) {
     printf("Listening on SCTP port %d\n", opt.management_port);
     printf("Waiting for connections ...\n");
 
-    /* handle_connections(opt, mua_tcp_socket, mua_address); */
+    handle_connections(opt, mua_tcp_socket, mua_address);
 }
 
 /* Server ---> PROXY <--- Client/s */
