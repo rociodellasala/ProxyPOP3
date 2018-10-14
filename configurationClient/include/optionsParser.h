@@ -3,6 +3,12 @@
 
 #include "configurationClient.h"
 
+/* Typedefs */
+typedef struct {
+    char * management_address;              // -L
+    int management_port;                    // -o
+} options;
+
 /* Functions */
 int parse_input(int, char **);
 int validate_options(int, char **);

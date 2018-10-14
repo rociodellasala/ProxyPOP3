@@ -6,16 +6,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "selector.h"
+#include "optionsParser.h"
 
 #define BACKLOG 10
+
 
 /* Typedefs */
 typedef int file_descriptor;
 
 /* Functions */
-file_descriptor new_socket(int, int, struct sockaddr_in *);
-
 void initialize_sockets(options);
+file_descriptor new_socket(int, int, struct sockaddr_in *);
 
 #endif //PROXYPOP3_MAIN_H

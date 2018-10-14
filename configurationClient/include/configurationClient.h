@@ -11,12 +11,6 @@
 
 #define MAX_BUFFER 1024
 
-/* Typedefs */
-typedef struct {
-    char * management_address;              // -L
-    int management_port;                    // -o
-} options;
-
 typedef int file_descriptor;
 
 /* Functions */

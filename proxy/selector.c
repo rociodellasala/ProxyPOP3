@@ -29,7 +29,7 @@ int create_server_socket(char * origin_server, int origin_port) {
         exit(EXIT_FAILURE);
     }
 
-    /* Establish the connection to the echo server */
+    /* Establish the connection to the server */
     if (connect(sock, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0) {
         perror("Connection to origin server failed");
         exit(EXIT_FAILURE);
