@@ -8,23 +8,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "proxypop3.h"
+#include "main.h"
 
 #define DELIM "."
-
-/* Typedefs */
-typedef struct {
-    int port;                           // -p
-    char * error_file;                  // -e
-    char * listen_address;              // -l
-    char * management_address;          // -L
-    int management_port;                // -o
-    char * replacement_msg;             // -m
-    char * filtered_media_types;        // -M
-    char * origin_server;               // This is the argument origin_server, it's not an option
-    int origin_port;                    // -P
-    char *filter_command;               // -t
-} options;
 
 /* Functions */
 int parse_input(int, char **);

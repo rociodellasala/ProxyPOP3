@@ -1,4 +1,4 @@
-#include "include/optionsParser.h"
+#include "include/input_parser.h"
 
 int parse_input(int argc, char ** argv) {
     if (validate_options(argc, argv) < 0) {

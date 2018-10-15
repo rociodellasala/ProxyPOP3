@@ -1,83 +1,143 @@
+#include <stdio.h>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <errno.h>
 #include "include/proxypop3.h"
+#include "include/input_parser.h"
+#include "include/handler.h"
+#include "include/clients.h"
+#include "include/main.h"
 
-/* Server ---> PROXY <--- Client/s */
-int main(int argc, char ** argv) {
-    int i;
-    options opt;
+void initialize_proxy(options opt, file_descriptor mua_tcp_socket, struct sockaddr_in mua_address,
+               file_descriptor admin_sctp_socket, struct sockaddr_in admin_address){
+    fd_set read_fds;
+    fd_set write_fds;
 
-    if (parse_input(argc,argv) < 0) {
-        return -1;
-    }
+    const struct timespec timeout   = {
+            .tv_sec         = 5,
+            .tv_nsec        = 0
+    };
 
-    opt = initialize_values(opt);
-    opt = set_options_values(opt, argc, argv);
+    fd_handler fd_proxy = {
+            .read_fds       = read_fds,
+            .write_fds      = write_fds
+    };
 
-    initialize_sockets(opt);
+    proxy_pop3 proxy                = {
+            .opt            = opt,
+            .mua_socket     = mua_tcp_socket,
+            .mua_addr       = mua_address,
+            .admin_socket   = admin_sctp_socket,
+            .admin_addr     = admin_address,
+            .fds            = fd_proxy
+    };
+
+    handle_connections(proxy, timeout);
 }
 
-void initialize_sockets(options opt) {
-    struct sockaddr_in mua_address;
-    struct sockaddr_in admin_address;
-
-    file_descriptor mua_tcp_socket      = new_socket(IPPROTO_TCP, opt.port, &mua_address);                  // 1110
-    file_descriptor admin_sctp_socket   = new_socket(IPPROTO_SCTP, opt.management_port, &admin_address);    // 9090
-
-    /* Mark the socket as a passive one so it will listen for incoming connections using accept */
-    if (listen(mua_tcp_socket, BACKLOG) < 0) {
-        fprintf(stderr, "Unable to listen on port %d", opt.port);
-        perror("");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Listening on TCP port %d\n", opt.port);
-
-    /* Mark the socket as a passive one so it will listen for incoming connections using accept */
-    if (listen(admin_sctp_socket, BACKLOG) < 0) {
-        fprintf(stderr, "Unable to listen on port %d", opt.management_port);
-        perror("");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Listening on SCTP port %d\n", opt.management_port);
-
-    printf("Waiting for connections ...\n");
-
-    handle_connections(opt, mua_tcp_socket, mua_address);
-}
-
-/* Creates a TCP/SCTP (specified in protocol) socket connection to the pop3 proxy server */
-file_descriptor new_socket(int protocol, int port, struct sockaddr_in * address) {
-    file_descriptor master_socket;
+int create_server_socket(char * origin_server, int origin_port) {
+    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     int optval = 1;
 
-    /* Creates a reliable stream master socket */
-    master_socket = socket(AF_INET, SOCK_STREAM, protocol);
-
-    if (master_socket < 0) {
-        fprintf(stderr, "Unable to create %s socket", protocol == IPPROTO_TCP ? "TCP" : "SCTP");
+    if (sock < 0) {
+        fprintf(stderr, "Unable to create server socket");
         perror("");
         exit(EXIT_FAILURE);
     }
 
-    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval)) < 0) {
+    /* Construct the server address structure */
+    struct sockaddr_in serverAddr;
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons((uint16_t) origin_port);
+
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval)) < 0) {
         perror("'setsockopt()' failed");
         exit(EXIT_FAILURE);
     }
 
-    /* Construct local address structure */
-    memset(address, 0, sizeof(*address));
-    (*address).sin_family       = AF_INET;
-    (*address).sin_addr.s_addr  = INADDR_ANY;
-    (*address).sin_port         = htons((uint16_t) port);
-
-    /* Binds the socket to the specified address (localhost port)  */
-    if (bind(master_socket, (struct sockaddr *) address, sizeof(*address)) < 0) {
-        perror("Unable to bind socket");
+    /* Establish the connection to the server */
+    if (connect(sock, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0) {
+        perror("Connection to origin server failed");
         exit(EXIT_FAILURE);
+    } else {
+        printf("Success! Connected to server at %s\n", origin_server);
     }
 
-    /* Returns the file descriptor of the socket */
-    return master_socket;
+    return sock;
 }
 
 
+clients_list accept_user_connection(proxy_pop3 * proxy, clients_list clients){
+    int new_socket;
+    int server_fd;
+    client c;
+    int addresslen                  = sizeof(proxy->mua_addr);
+    char * g_message                = "Welcome to Proxy POP3 1.0\r\n";
+
+    if ((new_socket = accept((*proxy).mua_socket, (struct sockaddr *)&(*proxy).mua_addr, (socklen_t *)&addresslen))<0) {
+        perror("Accept error ocurred!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("\n[USER] New connection:\n\t - Socket FD: %d \n\t - IP: %s \n\t - Port: %d \n", new_socket, inet_ntoa((*proxy).mua_addr.sin_addr), ntohs((*proxy).mua_addr.sin_port));
+
+    /* Send new connection greeting message */
+    if (send(new_socket, g_message, strlen(g_message), 0) != strlen(g_message)) {
+        perror("An error ocurred trying to send greeting messsage!");
+    } else {
+        printf("Greeting message was sent successfully to socket %d\n", new_socket);
+    }
+
+    /* Add new socket to list of sockets */
+    if ((server_fd = create_server_socket((*proxy).opt.origin_server, (*proxy).opt.origin_port)) == 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    c.client_fd = new_socket;
+    c.server_fd = server_fd;
+
+    add_client(clients, c);
+
+    return clients;
+}
+
+void remove_connection(struct sockaddr_in address, client cl, clients_list clients) {
+    int addrlen = sizeof(address);
+
+    /* Somebody disconnected, get his details and print */
+    getpeername(cl.client_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+    printf("\nClient disconnected: \n\t - Socket FD: %d \n\t - IP: %s \n\t - Port: %d \n", cl.client_fd, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+
+    remove_client(clients, cl);
+
+    /* Close the socket and mark as 0 in list for reuse */
+    close(cl.client_fd);
+    close(cl.server_fd);
+    cl.server_fd = 0;
+    cl.client_fd = 0;
+}
+
+
+void add_to_set(fd_set * readfds, clients_list clients) {
+    file_descriptor client_fd, server_fd;
+    node_c * temp = clients->first;
+    while(temp != NULL) {
+        client_fd = temp->c.client_fd;
+        server_fd = temp->c.server_fd;
+
+        /* If valid socket descriptor then add to read list */
+        if (client_fd > 0) {
+            FD_SET(client_fd, readfds);
+        }
+
+        if (server_fd > 0) {
+            FD_SET(server_fd, readfds);
+        }
+
+        temp = temp->next;
+    }
+}

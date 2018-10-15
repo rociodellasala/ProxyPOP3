@@ -3,13 +3,13 @@ project(proxypop3)                                      # Create project "proxyp
 set(CMAKE_C_STANDARD 11)                                # Enable c standard
 
 # Add .c and .h files of project root directory as source file
-set(SOURCE_FILES_CLIENT configurationClient/configurationClient.c configurationClient/include/configurationClient.h configurationClient/optionsParser.c configurationClient/include/optionsParser.h)
+set(SOURCE_FILES_CLIENT administrator/administrator.c administrator/include/administrator.h administrator/input_parser.c administrator/include/input_parser.h proxy/include/administrator.h)
 set(SOURCE_FILES_MIME mimeFilter/mimeFilter.c)
-set(SOURCE_FILES_PROXY proxy/proxypop3.c proxy/include/proxypop3.h proxy/include/optionsParser.h proxy/optionsParser.c proxy/selector.c proxy/include/selector.h)
+set(SOURCE_FILES_PROXY proxy/main.c proxy/include/main.h proxy/include/input_parser.h proxy/input_parser.c proxy/include/proxypop3.h proxy/include/handler.h proxy/handler.c proxy/proxypop3.c proxy/clients.c proxy/include/clients.h proxy/administrator.c)
 
 # ATENCION: CUANDO TENGAMOS EJECUTABLES EN CONFIGURATIONCLIENT Y MIMEFILTER HAY QUE SETEAR ESTE ARCHIVO (no se si lo que esta, está bien)
 
 # Add executable target with source files listed in SOURCE_FILES_PROXY variable
-add_executable(client ${SOURCE_FILES_CLIENT} configurationClient/include/configurationClient.h configurationClient/optionsParser.c configurationClient/include/optionsParser.h)
+add_executable(client ${SOURCE_FILES_CLIENT} )
 add_executable(mime ${SOURCE_FILES_MIME})
-add_executable(proxypop3 ${SOURCE_FILES_PROXY})
+add_executable(proxypop3 ${SOURCE_FILES_PROXY} proxy/clients.c proxy/include/clients.h proxy/administrator.c)

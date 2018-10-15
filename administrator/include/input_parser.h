@@ -1,7 +1,7 @@
 #ifndef PROXYPOP3_OPTIONSPARSER_H
 #define PROXYPOP3_OPTIONSPARSER_H
 
-#include "configurationClient.h"
+#include "administrator.h"
 
 /* Typedefs */
 typedef struct {

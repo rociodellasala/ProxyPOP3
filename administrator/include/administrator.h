@@ -7,7 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "optionsParser.h"
+#include "input_parser.h"
 
 #define MAX_BUFFER 1024
 

@@ -1,4 +1,4 @@
-#include "include/configurationClient.h"
+#include "include/administrator.h"
 
 /* UTIL VER management.c del lado del proxy */
 int main(int argc, char ** argv) {
