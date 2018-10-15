@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include "mimeList.h"
 
 //variables de entorno del manual pop3filter.8
 #define FILTER_MEDIAS 	"FILTER_MEDIAS"
@@ -15,12 +17,16 @@ int main(int argc, char ** argv) {
 
 	//char* flm = getenv("FILTER_MEDIAS");
 
-	char* flm = "image/jpeg";
+	char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
 
-	//struct  Tree* mime_tree = tree_init();
+	struct List *list = create_list();
+
+    if (list == NULL)
+        return -1;
 
 	if(flm == NULL){
 		printf("Unable to get filter medias\n");
+		free(list);
 		return -1;
 	}
 	printf("flm is %s\n", flm);
@@ -30,6 +36,7 @@ int main(int argc, char ** argv) {
 	
 	if(medias == NULL){
 		printf("bye 1\n");
+		free(list);
 		return -1;
 	}
 
@@ -49,6 +56,7 @@ int main(int argc, char ** argv) {
 	
 	current = strtok_r(medias, comma, &context);
 
+	//en este WHILE faltan hacer free! con variable error porque sino hay que destruir  el mimeparser list
 	while(current != NULL){
 		printf("INSIDE WHILE\n");
 		char *aux = malloc(strlen(current) + 1);
@@ -92,14 +100,29 @@ int main(int argc, char ** argv) {
 		printf("ok subtype es %s\n", subtype);
 		// trees
 
+		// free ?
+		int addition = add_new(type, subtype, list);
+		if(addition != -1){
+			printf("Node correctly added!\n");
+		}
+
 		free(aux);
 		current = strtok_r(NULL, comma, &context);
 	}
 	printf("outside of while\n");
 	// free(flm); no funca
 
+	print_list(list);
 	return 0;
-	//return stripmime(argc, argv, tree);
+
+	/*
+	char *message = getenv(FILTER_MSG);
+
+    if (message == NULL) {
+        message = "Parte reemplazada.";
+    }
+	*/
+	//return stripmime(list, message);
 	
 }
 

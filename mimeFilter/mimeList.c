@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "mimeList.h"
 
 #define WILDCARD "*"
@@ -8,20 +9,20 @@
 
 struct List* create_list(void){
 
-	struct List* list = malloc(sizeof(*List));
+	struct List* list = malloc(sizeof(*list));
 	if(list != NULL){
         memset(list, 0, sizeof(*list)); // copia el caracter 0 a los primeros sizeof(*list) caracteres de list
 	}
 	return list;
 }
 
-int add_new(char* type, char* subtype, List* list){
+int add_new(char* type, char* subtype,struct List* list){
 
-	if(list == null){
+	if(list == NULL){
 		return -1; //error
 	}
 
-	if(list->first != null){
+	if(list->first != NULL){
 
 		bool typeExists = false;
 		bool subtypeExists = false;
@@ -69,7 +70,7 @@ struct type_node* search_for_type(struct List* list, char* type, bool* typeExist
 	while(current->next != NULL){
 		current = current->next;
 		if(strcmp(current->name,type) == 0){
-			typeExists = true;
+			*typeExists = true;
 			return current;
 		}
 	}
@@ -133,3 +134,24 @@ struct subtype_node* create_new_subtype(char* name){
 //FALTA remover subtypes de un type_node, remover un nodo, destruir nodo
 // destrui y resetear parser
 // el tema de las * en todos lados
+
+//funcion de imprimir lista
+void print_list(struct List* list){
+	printf("Here's your list\n");
+
+	struct type_node* current = list->first;
+	struct subtype_node* currentSub; 
+
+	while(current != NULL){
+		printf("-----------------------------------------------------------\n");
+		printf("Type: %s\n", current->name);
+		currentSub = current->subtypes;
+		while(currentSub != NULL){
+			printf("-Subtype: %s \n", currentSub->name);
+			currentSub = currentSub->next;
+		}
+		printf("\n");
+		current = current->next;
+	}
+
+}

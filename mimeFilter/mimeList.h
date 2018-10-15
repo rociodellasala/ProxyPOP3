@@ -32,7 +32,7 @@ struct mime{
 
 struct List* create_list(void);
 
-int add_new(char* type, char* subtype, List* list);
+int add_new(char* type, char* subtype,struct List* list);
 
 struct type_node* search_for_type(struct List* list, char* type, bool* typeExists);
 
@@ -41,5 +41,7 @@ struct subtype_node* search_for_subtype(struct subtype_node* current, char* subt
 struct type_node* create_new_type(char* name);
 
 struct subtype_node* create_new_subtype(char* name);
+
+void print_list(struct List* list);
 
 #endif
