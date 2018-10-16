@@ -10,7 +10,9 @@
 #include "input_parser.h"
 
 #define MAX_BUFFER 1024
+#define DELIM '\n'
 
+/* Typedefs */
 typedef int file_descriptor;
 
 /* Functions */

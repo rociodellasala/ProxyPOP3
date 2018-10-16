@@ -10,6 +10,7 @@
 #include "include/handler.h"
 #include "include/clients.h"
 #include "include/main.h"
+#include "include/administrator.h"
 
 void initialize_proxy(options opt, file_descriptor mua_tcp_socket, struct sockaddr_in mua_address,
                file_descriptor admin_sctp_socket, struct sockaddr_in admin_address){
@@ -17,7 +18,7 @@ void initialize_proxy(options opt, file_descriptor mua_tcp_socket, struct sockad
     fd_set write_fds;
 
     const struct timespec timeout   = {
-            .tv_sec         = 5,
+            .tv_sec         = 10,
             .tv_nsec        = 0
     };
 
@@ -39,7 +40,7 @@ void initialize_proxy(options opt, file_descriptor mua_tcp_socket, struct sockad
 }
 
 int create_server_socket(char * origin_server, int origin_port) {
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    file_descriptor sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     int optval = 1;
 
     if (sock < 0) {
@@ -105,7 +106,7 @@ clients_list accept_user_connection(proxy_pop3 * proxy, clients_list clients){
     return clients;
 }
 
-void remove_connection(struct sockaddr_in address, client cl, clients_list clients) {
+void remove_user_connection(struct sockaddr_in address, client cl, clients_list clients) {
     int addrlen = sizeof(address);
 
     /* Somebody disconnected, get his details and print */
@@ -122,7 +123,7 @@ void remove_connection(struct sockaddr_in address, client cl, clients_list clien
 }
 
 
-void add_to_set(fd_set * readfds, clients_list clients) {
+file_descriptor add_client_to_set(fd_set * readfds, clients_list clients, file_descriptor max_fd) {
     file_descriptor client_fd, server_fd;
     node_c * temp = clients->first;
     while(temp != NULL) {
@@ -138,6 +139,31 @@ void add_to_set(fd_set * readfds, clients_list clients) {
             FD_SET(server_fd, readfds);
         }
 
+        if (client_fd > max_fd) {
+            max_fd = client_fd;
+        }
+
+        if (server_fd > max_fd) {
+            max_fd = server_fd;
+        }
+
         temp = temp->next;
     }
+
+    return max_fd;
+}
+
+file_descriptor add_admin_to_set(fd_set * readfds, admin admin, file_descriptor max_fd) {
+    file_descriptor admin_fd = admin.admin_fd;
+ 
+    /* If valid socket descriptor then add to read list */
+    if (admin_fd > 0) {
+        FD_SET(admin_fd, readfds); 
+    }
+
+    if (admin_fd > max_fd) {
+        max_fd = admin_fd; 
+    }
+
+    return max_fd;
 }

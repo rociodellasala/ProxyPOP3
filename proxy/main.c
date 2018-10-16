@@ -67,7 +67,7 @@ file_descriptor new_socket(int protocol, int port, struct sockaddr_in * address)
     /* Construct local address structure */
     memset(address, 0, sizeof(*address));
     (*address).sin_family       = AF_INET;
-    (*address).sin_addr.s_addr  = INADDR_ANY;
+    (*address).sin_addr.s_addr  = htonl(INADDR_ANY);
     (*address).sin_port         = htons((uint16_t) port);
 
     /* Binds the socket to the specified address (localhost port)  */
