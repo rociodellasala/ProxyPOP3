@@ -3,10 +3,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include "mimeList.h"
+#include "mimeFilter.h"
 
 //variables de entorno del manual pop3filter.8
 #define FILTER_MEDIAS 	"FILTER_MEDIAS"
 #define FILTER_MSG 		"FILTER_MSG"
+#define ANY (1 << 9) //cambiar esto y tmbn en la funcion
+
+static const unsigned classes[0xFF] = {0x00};
 
 int main(int argc, char ** argv) {
 
@@ -113,16 +117,139 @@ int main(int argc, char ** argv) {
 	// free(flm); no funca
 
 	print_list(list);
+	
 	return 0;
 
-	/*
+	
 	char *message = getenv(FILTER_MSG);
 
     if (message == NULL) {
         message = "Parte reemplazada.";
     }
-	*/
-	//return stripmime(list, message);
 	
+
+	const unsigned int *no_class = parser_no_classes(); // Cambiar esto
+
+    struct parser ctypeParser = create_parser_for_string("content-type");
+
+    struct parser boundaryParser = create_parser_for_string("boundary");
+
+    //inicializo estructura
+	//falta hacer
+
+	uint8_t data[4096];
+    ssize_t n;
+    int fd = STDIN_FILENO;
+    
+    do {
+        n = read(fd, data, sizeof(data));
+        for (ssize_t i = 0; i < n; i++) {
+            //pop3_multi(&ctx, data[i]); to do
+        }
+    } while (n > 0);
+
+
+    //FALTAN destroys
+
+    return 0;
+
 }
 
+
+
+const unsigned *parser_no_classes(void) {  //cambiar esto
+    return classes;
+}
+
+struct parser create_parser_for_string(const char *string) {
+
+    const size_t length = strlen(string);
+
+    struct transition **states   = calloc(n + 2, sizeof(*states)); //cambiar estos
+    size_t *nstates = calloc(n + 2, sizeof(*nstates));
+    struct transition *transitions= calloc(3 *(n + 2), sizeof(*transitions));
+
+    if(states == NULL || nstates == NULL || transitions == NULL) {
+
+        free(states);
+        free(nstates);
+        free(transitions);
+
+        struct parser ret = {
+        	.classes = parser_no_classes().
+        	.statesCant = 0,
+        	.states = NULL,
+        	.options = NULL,
+            .beginHere   = 0,
+            .state = 0,           
+            
+        };
+        return ret;
+    }
+
+    // estados fijos
+    const size_t acceptState  = length;
+    const size_t errorTrapState = length + 1;
+
+    for(size_t i = 0; i < length; i++) {
+
+        const size_t go;
+
+        if((i + 1) == length){
+        	go = acceptState;
+        }else{
+        	go = i + 1;
+        }
+
+        transitions[i * 3 + 0].received = tolower(string[i]);
+        transitions[i * 3 + 0].go = go;
+        transitions[i * 3 + 0].act1 = eq;
+        transitions[i * 3 + 1].received = toupper(string[i]);
+        transitions[i * 3 + 1].go = go;
+        transitions[i * 3 + 1].act1 = eq;
+        transitions[i * 3 + 2].received = ANY;
+        transitions[i * 3 + 2].go = errorTrapState;
+        transitions[i * 3 + 2].act1 = neq;
+        states     [i] = transitions + (i * 3 + 0);
+        nstates    [i] = 3;
+    }
+
+    // Agrego el estado EQUAL
+    transitions[(length + 0) * 3].received   = ANY;
+    transitions[(length + 0) * 3].go   = errorTrapState;
+    transitions[(length + 0) * 3].act1   = neq;
+    states     [(length + 0)] = transitions + ((length + 0) * 3 + 0);
+    nstates    [(length + 0)] = 1;
+
+    // Agrego el estado de error
+    transitions[(length + 1) * 3].received  = ANY;
+    transitions[(length + 1) * 3].go   = errorTrapState;
+    transitions[(length + 1) * 3].act1   = neq;
+    states     [(length + 1)] = transitions + ((n + 1) * 3 + 0);
+    nstates    [(length + 1)] = 1;
+
+
+    struct parser ret = {
+
+        .classes = parser_no_classes(),
+        .statesCant = length + 2,
+        .states = (const struct parser_state_transition **) states,
+        .options = (const size_t *) nstates,
+        .beginHere   = 0,
+        .state = 0, 
+    };
+
+    return ret;
+}
+
+static void eq(const uint8_t c, struct action *act) {
+    act->type    = 0; // 0 es igual
+    act->n       = 1;
+    act->data[0] = c;
+}
+
+static void neq(const uint8_t c, struct action *act) {
+    act->type    = 1; // 1 es not equal
+    act->n       = 1;
+    act->data[0] = c;
+}
