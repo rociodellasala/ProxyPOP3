@@ -81,10 +81,10 @@ int validate_port(char * parameter) {
 }
 
 void print_usage() {
-    printf("USAGE: ./pop3client [ POSIX style options ] \n");
-    printf("POSIX style options: \n");
-    printf("\t-L [management address]: Specifies the address where the management service will serve. \n");
-    printf("\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n");
+    printf("USAGE: ./configurationClient [ POSIX style options ] \n"
+           "POSIX style options: \n"
+           "\t-L [management address]: Specifies the address where the management service will serve. By default is localhost. \n"
+           "\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n");
 }
 
 options initialize_values(options opt) {

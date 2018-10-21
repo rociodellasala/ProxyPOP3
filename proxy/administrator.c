@@ -1,6 +1,11 @@
 #include <arpa/inet.h>
+#include <errno.h>
 #include "include/administrator.h"
 #include "include/main.h"
+#include "include/request.h"
+#include "include/deserializer.h"
+#include "include/response.h"
+#include "include/serializer.h"
 
 admin accept_admin_connection(proxy_pop3 * proxy){
     int new_socket;
@@ -28,7 +33,7 @@ admin accept_admin_connection(proxy_pop3 * proxy){
     return admin;
 }
 
-void administrator_read(admin * admin){
+void administrator_read(admin * admin, options opt){
     ssize_t valread;
     char buffer[BUFFER_SIZE];
     if ((valread = read((*admin).admin_fd, buffer, BUFFER_SIZE)) == 0) {
@@ -38,64 +43,62 @@ void administrator_read(admin * admin){
         /* A client data has been read correctly. Set the string terminating
          * NULL byte on the end of the data read */
         buffer[valread] = '\0';
-        printf("Mensaje del FD %d es: %s\n", (*admin).admin_fd, buffer);
-        (*admin).current_status = parse_admin_command(*admin, buffer);
+        printf("Mensaje del FD %d \n", (*admin).admin_fd);
+        admin_read_handler(admin, buffer, &opt);
     }
 }
 
-
-void administrator_write(char * cmd, file_descriptor socket){
-    if (send(socket, cmd, strlen(cmd), 0) != strlen(cmd)) {
-        perror("An error ocurred trying to send greeting messsage!");
-    } else {
-        printf("Response message '%s' was sent successfully to socket %d\n",cmd, socket);
-    }
-}
-
-void remove_administrator_connection(){
-
-}
-
-status parse_ehlo(char * cmd, admin admin){
-    printf("cmd: %s\n", cmd);
-    if(strcmp(cmd,"EHLO") == 0){
-        administrator_write("PROXY: HELLO!\r\n", admin.admin_fd);
-       
-        return WAITING_USER;
-    } else {
-        administrator_write("PROXY: TRY AGAIN\r\n", admin.admin_fd);
-        return WAITING_EHLO;
-    }
-}
-
-status parse_user(char * cmd, admin admin){
-    printf("cmd: %s\n", cmd);
-    if(strcmp(cmd,"ADMINISTRATOR") == 0){
-        administrator_write("PROXY: OK\r\n", admin.admin_fd);
-        return WAITING_PASS;
-    } else {
-        administrator_write("PROXY: TRY AGAIN\r\n", admin.admin_fd);
-        return WAITING_USER;
-    }
-}
-
-
-status parse_admin_command(admin admin, char ** cmd){
-    status new_status;
-    status current_status = admin.current_status;
-    printf("aca status: %d\n",admin.current_status );
-    switch (current_status) {
-        case WAITING_EHLO:
-            new_status = parse_ehlo(cmd, admin);
+void admin_read_handler(admin * admin, char * buffer, options * opt){
+    int status;
+    request * request = malloc(sizeof(request));
+    
+    deserialize_request(buffer, request);
+    
+    switch(request->cmd){
+        case AUTH:
+            printf("PIDIENDO EL COMANDO AUTH\n");
+            check_password(request, &status);
+            send_response_without_data(admin->admin_fd, status);
             break;
-        case WAITING_USER:
-            new_status =  parse_user(cmd, admin);
+        case SET_TRANSF:
+            printf("PIDIENDO EL COMANDO SET_TRANSF\n");
+            send_response_without_data(admin->admin_fd, status);
             break;
-        case WAITING_PASS:
-            //parse_pass();
+        case GET_TRANSF:
+            printf("PIDIENDO EL COMANDO GET_TRANSF\n");
+            send_response_without_data(admin->admin_fd, status);
             break;
-        default:
+        case SWITCH_TRANSF:
+            printf("PIDIENDO EL COMANDO SWITCH_TRANSF\n");
+            send_response_without_data(admin->admin_fd, status);
+            break;
+        case GET_METRIC:
+            printf("PIDIENDO EL COMANDO GET_METRIC\n");
+            check_password(request, &status);
+            send_response_without_data(admin->admin_fd, status);
+            break;
+        case GET_MIME:
+            printf("PIDIENDO EL COMANDO GET_MIME\n");
+            status = 1;
+            send_response_with_data(opt->filtered_media_types, admin->admin_fd, status);
+            break;
+        case ALLOW_MIME:
+            printf("PIDIENDO EL COMANDO ALLOW_MIME\n");
+            //allow_mime(request, &status, opt->filtered_media_types);
+            send_response_without_data(admin->admin_fd, status);
+            break;
+        case FORBID_MIME:
+            printf("PIDIENDO EL COMANDO FORBID_MIME\n");
+            //forbid_mime(request, &status, opt->filtered_media_types);
+            send_response_without_data(admin->admin_fd, status);
+            break;
+        case QUIT:
+            printf("PIDIENDO EL COMANDO QUIT\n");
+            //liberar_todos_los_recursos_del_admin();
+            send_response_without_data(admin->admin_fd, status);
             break;
     }
+
 }
+
 

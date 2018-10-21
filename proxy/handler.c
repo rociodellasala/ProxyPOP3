@@ -31,7 +31,7 @@ void handle_connections(proxy_pop3 proxy, struct timespec timeout) {
             max_sd = proxy.admin_socket;
         /* Add client sockets to read set */
         max_sd = add_client_to_set(&proxy.fds.read_fds, clients, max_sd);
-        /* Add administrator socket to read set */
+        /* Add configurationClient socket to read set */
         if(administrators != 0) {
             max_sd = add_admin_to_set(&proxy.fds.read_fds, administrator, max_sd);
         }
@@ -50,8 +50,9 @@ void handle_connections(proxy_pop3 proxy, struct timespec timeout) {
 
         /* If something happened on the ADMIN socket, its an incoming connection of a client */
         if (FD_ISSET(proxy.admin_socket, &proxy.fds.read_fds)) {
-          administrator = accept_admin_connection(&proxy);
-          administrators++;
+            printf("Se conecto el admin\n");
+            administrator = accept_admin_connection(&proxy);
+            administrators++;
         }
 
         temp = clients->first;
@@ -82,7 +83,7 @@ void handle_connections(proxy_pop3 proxy, struct timespec timeout) {
         }
 
         if(FD_ISSET(administrator.admin_fd, &proxy.fds.read_fds)) {
-            administrator_read(&administrator);
+            administrator_read(&administrator, proxy.opt);
         }
 
     }

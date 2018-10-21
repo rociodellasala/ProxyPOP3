@@ -178,7 +178,7 @@ int validate_parameters(char * next_option, char * parameter) {
     }
 }
 
-/* Ale: Si cambias algo en esta funcion o en validate_port --> en clients esta copypasteada la misma, cambiar ahi tmb */
+/* TODO Ale: Si cambias algo en esta funcion o en validate_port --> en clients esta copypasteada la misma, cambiar ahi tmb */
 int validate_address(char * parameter) {
     if (strcmp(parameter, "localhost") == 0) {
         return 0;
@@ -190,7 +190,7 @@ int validate_address(char * parameter) {
 }
 
 int validate_error_file(char * parameter) {
-    /* no se si se podra hacer asi
+    /* TODO no se si se podra hacer asi
     FILE *fb = fopen("parameter","r");
     if(fb==NULL)
         return -1;
@@ -208,7 +208,7 @@ int validate_media_type(char * parameter) {
     return 0; //TODO
 }
 
-/* Ale: Si cambias algo en esta funcion o en validate_address --> en clients esta copypasteada la misma, cambiar ahi tmb */
+/* TODO Ale: Si cambias algo en esta funcion o en validate_address --> en clients esta copypasteada la misma, cambiar ahi tmb */
 int validate_port(char * parameter) {
     int i;
     if (strlen(parameter) == 4) {
@@ -303,8 +303,8 @@ options initialize_values(options opt) {
     opt.management_address     = "127.0.0.1";
     opt.management_port        = 9090;
     opt.listen_address         = INADDR_ANY;
-    opt.replacement_msg        = "Parte reemplazada..";
-    opt.filtered_media_types   = "text/plain,image/*"; /* Default value ?? */
+    opt.replacement_msg        = "Parte reemplazada.";
+    opt.filtered_media_types   = "text/plain"; /* Default value ?? */
     opt.origin_port            = 110;
 
     return opt;
