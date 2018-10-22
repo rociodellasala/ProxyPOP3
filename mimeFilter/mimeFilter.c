@@ -130,12 +130,37 @@ int main(int argc, char ** argv) {
 
 	const unsigned int *no_class = parser_no_classes(); // Cambiar esto
 
-    struct parser ctypeParser = create_parser_for_string("content-type");
+    struct parser_definition ctypeParser = parser_init(no_class, create_parser_def_for_string("content-type")); 
 
-    struct parser boundaryParser = create_parser_for_string("boundary");
+    struct parser_definiton boundaryParser = parser_init(no_class, create_parser_def_for_string("boundary")); 
+
+    struct parser_definition messageParser = parser_init(init_char_class(), mime_message_parser()); 
+
+    struct parser_definiton multiParser =parser_init(no_class, pop3_multi_parser());  
+
+    struct parser mimeTypeParser = parser_init(init_char_class(), mime_type_parser());  //falta este -- cambiarlo!
 
     //inicializo estructura
 	//falta hacer
+
+    struct currentSituation currSitutation = {
+            .multi                  = multiParser,
+            .msg                    = messageParser,
+            .ctype_header           = ctypeParser,
+            .mime_type              = mimeTypeParser,
+            .boundary               = boundaryParser,
+            .mime_list              = list,
+            .boundary_frontier      = stack_new(),
+            .filtered_msg_detected  = NULL,
+            .boundary_detected      = NULL,
+            .frontier_end_detected  = NULL,
+            .frontier_detected      = NULL,
+            .filter_msg             = filter_msg,
+            .replace                = false,
+            .replaced               = false,
+            .buffer                 = {0},
+            .i                      = 0,
+    };
 
 	uint8_t data[4096];
     ssize_t n;
@@ -161,7 +186,7 @@ const unsigned *parser_no_classes(void) {  //cambiar esto
     return classes;
 }
 
-struct parser create_parser_for_string(const char *string) {
+struct parser_definition create_parser_def_for_string(const char *string) {
 
     const size_t length = strlen(string);
 
@@ -175,14 +200,11 @@ struct parser create_parser_for_string(const char *string) {
         free(nstates);
         free(transitions);
 
-        struct parser ret = {
-        	.classes = parser_no_classes().
-        	.statesCant = 0,
-        	.states = NULL,
-        	.options = NULL,
-            .beginHere   = 0,
-            .state = 0,           
-            
+        struct parser_definition ret = {
+        	.start_state   = 0,
+            .states_count  = 0,
+            .states        = NULL,
+            .states_n      = NULL,                  
         };
         return ret;
     }
@@ -229,14 +251,13 @@ struct parser create_parser_for_string(const char *string) {
     nstates    [(length + 1)] = 1;
 
 
-    struct parser ret = {
+    struct parser_definition ret = {
 
-        .classes = parser_no_classes(),
-        .statesCant = length + 2,
-        .states = (const struct parser_state_transition **) states,
-        .options = (const size_t *) nstates,
-        .beginHere   = 0,
-        .state = 0, 
+        .start_state   = 0,
+        .states_count  = n + 2,
+        .states        = (const struct parser_state_transition **) states,
+        .states_n      = (const size_t *) nstates,
+
     };
 
     return ret;
