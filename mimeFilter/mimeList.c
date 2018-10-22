@@ -155,3 +155,148 @@ void print_list(struct List* list){
 	}
 
 }
+
+
+
+
+void removeNode(struct List* list, char* type, char*subtype){
+	struct type_node* nodeType = list->first;
+	struct type_node* tmpType;
+	struct subtype_node* tmpSubType;
+	struct subtype_node* nodeSubType;
+	if(nodeType == NULL){
+		return;
+	}
+	if(strcmp(nodeType->name,type) == 0){
+			nodeSubType = nodeType->subtypes;
+			if(strcmp(nodeSubType->name,subtype) == 0){
+				nodeType->subtypes = nodeSubType->next;
+				free(nodeSubType);
+			}
+			while(nodeSubType->next != NULL){
+				tmpSubType = nodeSubType;
+				nodeSubType = nodeSubType->next;
+				if(strcmp(nodeSubType->name,subtype)==0){
+					tmpSubType->next = nodeSubType->next;
+					free(nodeSubType);
+				}
+			}
+			if(nodeType->subtypes == NULL){
+				tree->first = nodeType->next;
+				free(nodeType);
+				return;
+			}
+		while(nodeType->next!= NULL){
+			tmpType = nodeType;
+			nodeType = nodeType->next;
+			if(strcmp(nodeType->name,type) == 0){
+				nodeSubType = nodeType->subtypes;
+				if(strcmp(nodeSubType->name,subtype) == 0){
+					nodeType->subtypes = nodeSubType->next;
+					free(nodeSubType);
+				}
+				while(nodeSubType->next != NULL){
+					tmpSubType = nodeSubType;
+					nodeSubType = nodeSubType->next;
+					if(strcmp(nodeSubType->name,subtype)==0){
+						tmpSubType->next = nodeSubType->next;
+						free(nodeSubType);
+					}
+				}
+				if(nodeType->subtypes == NULL){
+					tmpType->next = nodeType->next;
+					free(nodeType);
+					return;
+				}
+			}
+		}
+	}
+}
+
+void destroy_list(struct List *list){
+    struct type_node* node = list->first;
+    struct subtype_node* subtypes;
+    struct type_node* currType;
+    struct subtype_node* currSubtype;
+
+    while(node != NULL){
+        subtypes = node->subtypes;
+        while(subtypes != NULL){
+            currSubtype = subtypes;
+            if(subtypes->parser != NULL){
+                parser_destroy(subtypes->parser);
+                parser_utils_strcmpi_destroy(subtypes->def);
+				free(subtypes->def);
+            }
+			if (!subtypes->wildcard)
+				free((void*)subtypes->name);
+            subtypes = subtypes->next;
+            free(currSubtype);
+        }
+        currType = node;
+        parser_destroy(node->parser);
+        parser_utils_strcmpi_destroy(node->def);
+		free(node->def);
+		if (!node->wildcard)
+			free((void*)node->name);
+        node = node->next;
+        free(currType);
+    }
+    free(list);
+}
+
+void clean_list(struct List* list){
+    struct type_node* node = list->first;
+    struct subtype_node* subtypes;
+    while(node != NULL){
+        subtypes = node->subtypes;
+        while(subtypes != NULL){
+			if (!subtypes->wildcard) {
+				parser_reset(subtypes->parser);
+			}
+            subtypes = subtypes->next;
+        }
+        parser_reset(node->parser);
+        node = node->next;
+    }
+}
+
+struct subtype_node* newNodeWildcard(){
+	struct subtype_node* node = malloc(sizeof(*node));
+	if(node != NULL){
+		memset(node,0,sizeof(*node));
+		node->parser = NULL;
+		node->def = NULL;
+		node->next = NULL;
+		node->name = WILDCARD;
+		node->event = NULL;
+		node->wildcard = true;
+	}
+	return node;
+}
+
+static void destroy_node(struct type_node *node) {
+	if (node->name != NULL && node->wildcard) {
+		free((void *) node->name);
+	}
+	if (node->def != NULL) {
+		parser_utils_strcmpi_destroy(node->def);
+		free(node->def);
+	}
+	if (node->parser != NULL) {
+		parser_destroy(node->parser);
+	}
+}
+
+static void destroy_node(struct subtype_node *node) {
+	if (node->name != NULL && node->wildcard) {
+		free((void *) node->name);
+	}
+	if (node->def != NULL) {
+		parser_utils_strcmpi_destroy(node->def);
+		free(node->def);
+	}
+	if (node->parser != NULL) {
+		parser_destroy(node->parser);
+	}
+}
