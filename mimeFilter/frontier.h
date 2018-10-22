@@ -1,5 +1,5 @@
-#ifndef TPE_PROTOS_FRONTIER_H
-#define TPE_PROTOS_FRONTIER_H
+#ifndef FRONTIER_H
+#define FRONTIER_H
 
 #include <stdint.h>
 
@@ -27,4 +27,4 @@ void frontier_reset(struct Frontier *frontier);
 void frontier_destroy(struct Frontier * frontier);
 
 
-#endif //TPE_PROTOS_STACK_H
+#endif 

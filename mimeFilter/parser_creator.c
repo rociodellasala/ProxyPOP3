@@ -1,7 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
+
 #include "parser_creator.h"
 #include "mimeList.h"
 #include "mimeFilter.h"
@@ -61,6 +58,13 @@ const struct parser_event *parser_feed(struct parser *p, const uint8_t c) {
         }
     }
     return &p->e1;
+}
+
+static const unsigned classes[0xFF] = {0x00};
+
+const unsigned *
+parser_no_classes(void) {
+    return classes;
 }
 
 

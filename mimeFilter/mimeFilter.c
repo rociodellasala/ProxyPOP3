@@ -2,11 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <memory.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "mimeList.h"
 #include "mimeFilter.h"
 #include "mime_type.h"
 #include "parser_utils.h"
-#include "pop3_multi.h"
+#include "parser_creator.h"
+#include "multi_pop3_parser.h"
 #include "mime_chars.h"
 #include "mime_msg.h"
 #include "frontier.h"
@@ -18,7 +22,10 @@
 #define FILTER_MSG 		"FILTER_MSG"
 #define ANY (1 << 9) //cambiar esto y tmbn en la funcion
 
-static const unsigned classes[0xFF] = {0x00};
+
+static bool T = true;
+static bool F = false;
+
 
 int main(int argc, char ** argv) {
 
@@ -110,7 +117,7 @@ int main(int argc, char ** argv) {
 
 		strcpy(subtype, mime);
 		printf("ok subtype es %s\n", subtype);
-		// trees
+		
 
 		// free ?
 		int addition = add_new(type, subtype, list);
@@ -138,20 +145,24 @@ int main(int argc, char ** argv) {
 
 	const unsigned int *no_class = parser_no_classes(); // Cambiar esto
 
-    struct parser_definition ctypeParser = parser_init(no_class,  parser_utils_strcmpi("content-type")); 
+    struct parser_definition media_header_def= parser_utils_strcmpi("content-type");
 
-    struct parser_definiton boundaryParser = parser_init(no_class,  parser_utils_strcmpi("boundary")); 
+    struct parser_definition boundary_def = parser_utils_strcmpi("boundary");
 
-    struct parser_definition messageParser = parser_init(init_char_class(), mime_message_parser()); 
+    struct parser *ctypeParser = parser_init(no_class,  &media_header_def); 
 
-    struct parser_definiton multiParser =parser_init(no_class, pop3_multi_parser());  
+    struct parser *boundaryParser = parser_init(no_class,  &boundary_def); 
 
-    struct parser mimeTypeParser = parser_init(init_char_class(), mime_type_parser());  //falta este -- cambiarlo!
+    struct parser *messageParser = parser_init(init_char_class(), mime_message_parser()); 
+
+    struct parser *multiParser =parser_init(no_class, pop3_multi_parser());  
+
+    struct parser *mimeTypeParser = parser_init(init_char_class(), mime_type_parser());  //falta este -- cambiarlo!
 
     //inicializo estructura
 	//falta hacer
 
-    struct currentSituation ctx = {
+    struct ctx ctx = {
             .multi                  = multiParser,
             .msg                    = messageParser,
             .ctype_header           = ctypeParser,
@@ -163,7 +174,7 @@ int main(int argc, char ** argv) {
             .boundary_detected      = NULL,
             .frontier_end_detected  = NULL,
             .frontier_detected      = NULL,
-            .filter_msg             = filter_msg,
+            .filter_msg             = message,
             .replace                = false,
             .replaced               = false,
             .buffer                 = {0},
@@ -182,7 +193,6 @@ int main(int argc, char ** argv) {
     } while (n > 0);
 
 
-    //FALTAN destroys
 
     parser_destroy(ctx.multi);
     parser_destroy(ctx.msg);
@@ -191,7 +201,7 @@ int main(int argc, char ** argv) {
     parser_destroy(ctx.mime_type);
     parser_destroy(ctx.boundary);
     parser_utils_strcmpi_destroy(&boundary_def);
-    destroy_list(ctx.list);
+    destroy_list(ctx.mime_list);
 
     while(!stack_is_empty(ctx.boundary_frontier)) {
         struct Frontier *f = stack_pop(ctx.boundary_frontier);
@@ -228,18 +238,12 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c) {
 }
 
 
-
-const unsigned *parser_no_classes(void) {  
-    return classes;
-}
-
-
 /**
  * Procesa un mensaje `tipo-rfc822'.
  * Si reconoce un al field-header-name Content-Type lo interpreta.
  *
  */
-static void mime_msg(struct currentSituation *ctx, const uint8_t c) {
+static void mime_msg(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(ctx->msg, c);
 
     bool printed = false;
@@ -286,7 +290,7 @@ static void mime_msg(struct currentSituation *ctx, const uint8_t c) {
                 }
                 end_frontier(stack_peek(ctx->boundary_frontier));
                 parser_reset(ctx->mime_type);
-                clean_list(ctx->mime_tree);
+                clean_list(ctx->mime_list);
                 parser_reset(ctx->boundary);
                 ctx->msg_content_type_field_detected = 0;
                 ctx->filtered_msg_detected = &F;
@@ -328,7 +332,7 @@ static void mime_msg(struct currentSituation *ctx, const uint8_t c) {
                     ctx->subtype = NULL;
                     ctx->msg_content_type_field_detected = NULL;
                     parser_reset(ctx->msg);
-                    clean_list(ctx->list);
+                    clean_list(ctx->mime_list);
                     parser_reset(ctx->mime_type);
                     parser_reset(ctx->boundary);
                     parser_reset(ctx->ctype_header);
@@ -365,28 +369,27 @@ static void mime_msg(struct currentSituation *ctx, const uint8_t c) {
 
 }
 
-static bool T = true;
-static bool F = false;
+
 
 
 void setContextType(struct ctx *ctx) {
-    struct TreeNode *node = ctx->mime_tree->first;
+    struct type_node *node = ctx->mime_list->first;
     if (node->event->type == STRING_CMP_EQ) {
-        ctx->subtype = node->children;
+        ctx->subtype = node->subtypes;
         return;
     }
 
     while (node->next != NULL) {
         node = node->next;
         if (node->event->type == STRING_CMP_EQ) {
-            ctx->subtype = node->children;
+            ctx->subtype = node->subtypes;
             return;
         }
     }
 }
 
-const struct parser_event * parser_feed_type(struct Tree *mime_tree, const uint8_t c) {
-    struct TreeNode *node = mime_tree->first;
+const struct parser_event * parser_feed_type(struct List *mime_list, const uint8_t c) {
+    struct type_node *node = mime_list->first;
     const struct parser_event *global_event;
     node->event = parser_feed(node->parser, c);
     global_event = node->event;
@@ -402,7 +405,7 @@ const struct parser_event * parser_feed_type(struct Tree *mime_tree, const uint8
 
 bool global_e = false;
 
-const struct parser_event * parser_feed_subtype(struct TreeNode *node, const uint8_t c) {
+const struct parser_event * parser_feed_subtype(struct subtype_node *node, const uint8_t c) {
     struct parser_event *global_event;
 
     if (node->wildcard) {
@@ -515,7 +518,7 @@ static void content_type_subtype(struct ctx *ctx, const uint8_t c) {
 
 
 static void content_type_type(struct ctx *ctx, const uint8_t c) {
-    const struct parser_event *e = parser_feed_type(ctx->mime_tree, c);
+    const struct parser_event *e = parser_feed_type(ctx->mime_list, c);
     do {
         //debug("4.type", parser_utils_strcmpi_event, e);
         switch (e->type) {

@@ -1,24 +1,24 @@
 #ifndef MIMELIST_H_
 #define MIMELIST_H_
-
+#include "parser_creator.h"
 
 struct type_node{
-	//struct parser* parser;
-	//struct parser_definition *def;
+	struct parser* parser;
+	struct parser_definition *def;
 	struct type_node *next;
 	struct subtype_node *subtypes;
 	const char* name;
-	//const struct parser_event* event;
-	//bool wildcard;
+	const struct parser_event* event;
+	bool wildcard;
 };
 
 struct subtype_node{
-	//struct parser* parser;
-	//struct parser_definition *def;
+	struct parser* parser;
+	struct parser_definition *def;
 	struct subtype_node *next;
 	const char* name;
-	//const struct parser_event* event;
-	//bool wildcard;
+	const struct parser_event* event;
+	bool wildcard;
 };
 
 struct List{
@@ -43,5 +43,19 @@ struct type_node* create_new_type(char* name);
 struct subtype_node* create_new_subtype(char* name);
 
 void print_list(struct List* list);
+
+void removeNode(struct List* list, char* type, char*subtype);
+
+void destroy_list(struct List *list);
+
+void clean_list(struct List* list);
+
+struct subtype_node* newNodeWildcard();
+
+//static void destroy_node(struct type_node *node);
+
+static void destroy_node(struct subtype_node *node);
+
+void addWildcard(struct type_node* node, char* type, bool typeExists);
 
 #endif
