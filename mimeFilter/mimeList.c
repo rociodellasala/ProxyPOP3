@@ -139,13 +139,21 @@ struct subtype_node* create_new_subtype(char* name){
 	if(node != NULL){
 		memset(node,0,sizeof(*node)); 
 		
+		struct parser_definition * def = malloc(sizeof(*def));
+		if (def == NULL) {
+			free(node);
+			return NULL;
+		}
 
-		//node->parser = parser_init(parser_no_classes(), def);
-		//node->def	= def;
+		struct parser_definition aux = parser_utils_strcmpi(name);
+		memcpy(def, &aux, sizeof(aux));
+
+		node->parser = parser_init(parser_no_classes(), def);
+		node->def	= def;
 		node->next = NULL;
 		node->name = name;
-		//node->event = NULL;
-		//node->wildcard = false;		
+		node->event = NULL;
+		node->wildcard = false;		
 	}
 	return node;
 }
@@ -269,12 +277,16 @@ void clean_list(struct List* list){
     struct subtype_node* subtypes;
     while(node != NULL){
         subtypes = node->subtypes;
+        printf("hey while\n");
         while(subtypes != NULL){
 			if (!subtypes->wildcard) {
-				parser_reset(subtypes->parser);
+				printf("en if\n");
+				parser_reset(subtypes->parser); //  ESTO TIRA SEGMENTATION FAULT
+				printf("fuera de reset\n");
 			}
             subtypes = subtypes->next;
         }
+        printf("bye while\n");
         parser_reset(node->parser);
         node = node->next;
     }

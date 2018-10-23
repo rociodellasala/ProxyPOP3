@@ -34,7 +34,7 @@ const struct parser_event *parser_feed(struct parser *p, const uint8_t c) {
     const size_t n                              = p->def->states_n[p->state];
     
     bool matched   = false;
-
+    printf("antes de for en feed\n");
     for(unsigned i = 0; i < n ; i++) {
         const int when = state[i].when;
         if (state[i].when <= 0xFF) {

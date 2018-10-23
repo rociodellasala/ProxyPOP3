@@ -34,9 +34,9 @@ int main(int argc, char ** argv) {
 	* pointed to by name and returns the associated value to the string. 
 	*/
 
-	//char* flm = getenv("FILTER_MEDIAS");
+	char* flm = getenv("FILTER_MEDIAS");
 
-	char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
+	//char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
 
 	struct List *list = create_list();
 
@@ -90,12 +90,14 @@ int main(int argc, char ** argv) {
 		mime = strtok_r(aux, slash, &context_b);
 		if(mime == NULL){
 			printf("bye mime\n");
+            free(aux);
 			return -1;
 		}
 
 		char *type = malloc(strlen(mime) + 1);
 		if(type == NULL){
 			printf("bye type\n");
+            free(aux);
 			return -1;
 		}
 		strcpy(type, mime);
@@ -105,13 +107,17 @@ int main(int argc, char ** argv) {
 		mime = strtok_r(NULL, slash, &context_b);
 		if(mime == NULL){
 			printf("bye mime2\n");
+            free(aux);
+            free(type);
 			return -1;
 		}
 
 		char *subtype = malloc(strlen(mime) + 1);
 
 		if(subtype == NULL){
-			printf("bye subtpe\n");
+			printf("bye subtype\n");
+            free(aux);
+            free(type);
 			return -1;
 		}
 
@@ -119,8 +125,11 @@ int main(int argc, char ** argv) {
 		printf("ok subtype es %s\n", subtype);
 		
 
-		// free ?
+		
 		int addition = add_new(type, subtype, list);
+        // free ?
+
+
 		if(addition != -1){
 			printf("Node correctly added!\n");
 		}
@@ -131,9 +140,10 @@ int main(int argc, char ** argv) {
 	printf("outside of while\n");
 	// free(flm); no funca
 
+
 	print_list(list);
 	
-	return 0;
+	
 
 	
 	char *message = getenv(FILTER_MSG);
@@ -184,6 +194,8 @@ int main(int argc, char ** argv) {
 	uint8_t data[4096];
     ssize_t n;
     int fd = STDIN_FILENO;
+
+    printf("Antes de leer todo OK\n");
     
     do {
         n = read(fd, data, sizeof(data));
@@ -192,7 +204,7 @@ int main(int argc, char ** argv) {
         }
     } while (n > 0);
 
-
+    printf("Despues de leer todo OK\n");
 
     parser_destroy(ctx.multi);
     parser_destroy(ctx.msg);
@@ -220,6 +232,7 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c) {
         //debug("0. multi", pop3_multi_event, e);
         switch (e->type) {
             case POP3_MULTI_BYTE:
+
                 for (int i = 0; i < e->n; i++) {
                     mime_msg(ctx, e->data[i]);
                 }
@@ -229,7 +242,9 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c) {
                 break;
             case POP3_MULTI_FIN:
                 // arrancamos de vuelta
+                printf("otro reset \n");
                 parser_reset(ctx->msg);
+                printf("BYE el otro reset \n");
                 ctx->msg_content_type_field_detected = NULL;
                 break;
         }
@@ -259,23 +274,32 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 }
                 break;
             case MIME_MSG_NAME_END:
+                printf("im here at name end\n");
                 // lo dejamos listo para el próximo header
                 parser_reset(ctx->ctype_header);
+                printf("bye here at name end\n");
                 break;
             case MIME_MSG_VALUE:
+                printf("en MIME MSG VALUE\n");
                 for (int i = 0; i < e->n; i++) {
                     ctx->buffer[ctx->i++] = e->data[i];
+                    printf("acaaa\n");
                     if (ctx->i >= CONTENT_TYPE_VALUE_SIZE) {
+                        printf("aqui\n");
                         abort();
                     }
 
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
-                        content_type_value(ctx, e->data[i]);
+                        printf("aqui2\n");
+                        content_type_value(ctx, e->data[i]); //esto tira SEGMENTATION FAULT
+                        printf("cerrando aqui2\n");
                     }
                 }
+                printf("bye MIME MSG VALUE\n");
                 break;
             case MIME_MSG_VALUE_END:
+                printf("Entrando a value_end\n");
                 if (ctx->filtered_msg_detected != 0 && *ctx->filtered_msg_detected) {
                     ctx->replace = true;
                     printf("text/plain\r\n");
@@ -290,12 +314,16 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 }
                 end_frontier(stack_peek(ctx->boundary_frontier));
                 parser_reset(ctx->mime_type);
+                printf("Antes de clean list\n");
                 clean_list(ctx->mime_list);
+                printf("Despss de clean list\n");
                 parser_reset(ctx->boundary);
                 ctx->msg_content_type_field_detected = 0;
                 ctx->filtered_msg_detected = &F;
+                printf("Bye value_end\n");
                 break;
             case MIME_MSG_BODY:
+                printf("Entrando a body\n");
                 if (ctx->replace && !ctx->replaced) {
                     printf("%s\r\n", ctx->filter_msg);
                     ctx->replaced = true;
@@ -313,8 +341,10 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                         }
                     }
                 }
+                printf("Bye body\n");
                 break;
             case MIME_MSG_BODY_NEWLINE:
+                printf("Me juego a q viene de aca\n");
                 if (ctx->frontier_detected != 0 && ctx->frontier_end_detected != 0
                     && (*ctx->frontier_end_detected && !*ctx->frontier_detected)) {
                     struct Frontier *f = stack_pop(ctx->boundary_frontier);
@@ -342,14 +372,17 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     parser_reset(((struct Frontier *) stack_peek(ctx->boundary_frontier))->frontier_parser);
                     parser_reset(((struct Frontier *) stack_peek(ctx->boundary_frontier))->frontier_end_parser);
                 }
+                printf("OK NO VIENE DE ACA. TODO JOYA\n");
                 break;
             case MIME_MSG_VALUE_FOLD:
+
                 for (int i = 0; i < e->n; i++) {
                     ctx->buffer[ctx->i++] = e->data[i];
                     if (ctx->i >= CONTENT_TYPE_VALUE_SIZE) {
                         abort();
                     }
                 }
+
                 break;
             default:
                 break;
@@ -414,6 +447,7 @@ const struct parser_event * parser_feed_subtype(struct subtype_node *node, const
         if (global_event == NULL) {
             return NULL;
         }
+        printf("sth\n");
         memset(global_event, 0, sizeof(*global_event));
         global_event->type = STRING_CMP_EQ;
         global_event->next = NULL;
@@ -421,10 +455,12 @@ const struct parser_event * parser_feed_subtype(struct subtype_node *node, const
         global_event->data[0] = c;
         return global_event;
     }
+    printf("sth2\n");
     global_e = false;
-    node->event = parser_feed(node->parser, c);
-    global_event = (struct parser_event *) node->event;
-
+    node->event = parser_feed(node->parser, c); //esto tira segmentation fault
+     printf("sth2.2\n");
+    global_event = (struct parser_event *) node->event; 
+    printf("sth3\n");
     while (node->next != NULL) {
         node = node->next;
         node->event = parser_feed(node->parser, c);
@@ -492,6 +528,7 @@ static void parameter_boundary(struct ctx *ctx, const uint8_t c) {
 
 static void content_type_subtype(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed_subtype(ctx->subtype, c);
+    printf("ok contruyo\n");
     if (e == NULL) {
         //TODO destro ctx
         return;
@@ -539,27 +576,36 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
         //debug("3.typeval", mime_type_event, e);
         switch (e->type) {
             case MIME_TYPE_TYPE:
+                printf("here 1\n");
                 if (ctx->filtered_msg_detected != 0
                     || *ctx->filtered_msg_detected)
                     for (int i = 0; i < e->n; i++) {
                         content_type_type(ctx, e->data[i]);
                     }
+                printf("bye 1\n");
                 break;
             case MIME_TYPE_SUBTYPE:
+                printf("here 2\n");
                 if (ctx->filtered_msg_detected != 0
                     && *ctx->filtered_msg_detected)
                     content_type_subtype(ctx, c);
+                printf("bye 2\n");
                 break;
             case MIME_TYPE_TYPE_END:
+                printf("here 3\n");
                 if (ctx->filtered_msg_detected != 0
                     || *ctx->filtered_msg_detected) {
                     setContextType(ctx);
                 }
+                printf("bye 3\n");
                 break;
             case MIME_PARAMETER:
+                printf("here 4\n");
                 parameter_boundary(ctx, c);
+                printf("bye 4\n");
                 break;
             case MIME_FRONTIER_START:
+                printf("here 5\n");
                 if (ctx->boundary_detected != 0
                     && *ctx->boundary_detected) {
                     struct Frontier *f = frontier_init();
@@ -568,14 +614,17 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                     }
                     stack_push(ctx->boundary_frontier, f);
                 }
+                printf("bye 5\n");
                 break;
             case MIME_FRONTIER:
+                printf("here 6\n");
                 if (ctx->boundary_detected != 0
                     && *ctx->boundary_detected) {
                     for (int i = 0; i < e->n; i++) {
                         store_boundary_parameter(ctx, e->data[i]);
                     }
                 }
+                printf("hbyee 6\n");
                 break;
         }
         e = e->next;
