@@ -42,7 +42,8 @@ struct admin * admin_new(const int client_fd) {
     }
 
     ret->client_fd     = client_fd;
-
+    
+        /* ME PA Q HAY Q BORRAR ESTO PORQUE NO ESTOY USANDO LOS BUFFERS DE ADMIN */
     buffer_init(&ret->buffer_write, N(ret->raw_buffer_write),ret->raw_buffer_write);
     buffer_init(&ret->buffer_read , N(ret->raw_buffer_read) ,ret->raw_buffer_read);
 
