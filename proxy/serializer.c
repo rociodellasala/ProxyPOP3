@@ -3,8 +3,6 @@
 #include <printf.h>
 #include <stdio.h>
 #include <string.h>
-#include "include/request.h"
-#include "include/response.h"
 
 unsigned char * serialize_int(unsigned char * buffer, unsigned int value) {
     buffer[0] = (unsigned char)(value >> 24 & 0xFF);

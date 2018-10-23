@@ -1,7 +1,7 @@
 #ifndef PROXYPOP3_DESERIALIZER_H
 #define PROXYPOP3_DESERIALIZER_H
 
-#include "response.h"
+#include "request_admin.h"
 
 /* Functions */
 

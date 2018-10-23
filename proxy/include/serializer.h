@@ -1,8 +1,8 @@
 #ifndef PROXYPOP3_SERIALIZER_H
 #define PROXYPOP3_SERIALIZER_H
 
-#include "request.h"
-#include "response.h"
+#include "request_admin.h"
+#include "response_admin.h"
 
 /* Functions */
 

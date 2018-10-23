@@ -1,3 +1,10 @@
+#include <ctype.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "include/input_parser.h"
 
 int parse_input(int argc, char ** argv) {
@@ -34,24 +41,24 @@ int parse_input(int argc, char ** argv) {
 }
 
 void print_usage() {
-    printf("USAGE: ./pop3filter [ POSIX style options ] <origin-server> \n");
-    printf("POSIX style options: \n");
-    printf("\t-e [error file]: Specifies the file where to redirect stderr. By default is '\\dev\\null'. \n");
-    printf("\t-h : Prints out help and ends. \n");
-    printf("\t-l [listen address]: Specifies the address where the proxy will serve. \n");
-    printf("\t-L [management address]: Specifies the address where the management service will serve. \n");
-    printf("\t-m [message of replacement]: Specifies the message to replace filtered text(option -M). \n");
-    printf("\t-M [filtered media-type]: Specifies a media types to be censored. \n");
-    printf("\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n");
-    printf("\t-p [port]: Specifies TCP port where to listen for incoming POP3 connections. By default is 1110. \n");
-    printf("\t-P [origin port]: Specifies TCP port where the POP3 server is located on the server. By default is 110. \n");
-    printf("\t-t [filtered command]: Command used for external transformations. By default applies no transofrmations. \n");
-    printf("\t-v : Prints out the proxy version and ends. \n");
-    printf("<origin-server>: Address of POP3 origin server.\n");
+    printf("USAGE: ./pop3filter [ POSIX style options ] <origin-server> \n"
+            "POSIX style options: \n"
+            "\t-e [error file]: Specifies the file where to redirect stderr. By default is '\\dev\\null'. \n"
+            "\t-h : Prints out help and ends. \n"
+            "\t-l [listen address]: Specifies the address where the proxy will serve. \n"
+            "\t-L [management address]: Specifies the address where the management service will serve. \n"
+            "\t-m [message of replacement]: Specifies the message to replace filtered text(option -M). \n"
+            "\t-M [filtered media-type]: Specifies a media types to be censored. \n"
+            "\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n"
+            "\t-p [port]: Specifies TCP port where to listen for incoming POP3 connections. By default is 1110. \n"
+            "\t-P [origin port]: Specifies TCP port where the POP3 server is located on the server. By default is 110. \n"
+            "\t-t [filtered command]: Command used for external transformations. By default applies no transofrmations. \n"
+            "\t-v : Prints out the proxy version and ends. \n"
+            "<origin-server>: Address of POP3 origin server.\n");
 }
 
 void print_help() {
-    printf(" --- HELP ---\n");
+    printf("\n-------------------------- HELP --------------------------\n");
     print_usage();
 }
 
@@ -114,9 +121,7 @@ int validate_options(int argc, char ** argv) {
     }
 
     free_options(options, size);
-
-    /* For debug, remember to take it out ! */
-    printf("No errors found on input ! \n");
+    printf("No errors found on input\n");
 }
 
 void free_options(char ** options, int size) {
@@ -226,6 +231,19 @@ int validate_transformation(char * parameter) {
     return 1; //TODO
 }
 
+// TODO: Validate origin server argument
+int validate_origin_server_argument(char * origin_server) {
+    if (strcmp("localhost", origin_server) == 0) {
+        return 0;
+    } else if (is_valid_ip(origin_server) == 0) {
+        printf("Valid IP!\n");
+        return 0;
+    }
+
+    //TODO: VALIDATE IPV6 ??
+    return -1;
+}
+
 /* Returns 0 if IP string is valid, else returns -1 */
 int is_valid_ip(char * ip_str) {
     int num;
@@ -284,76 +302,59 @@ int valid_digit(char * ip_str) {
     return 0;
 }
 
-// TODO: Validate origin server argument
-int validate_origin_server_argument(char * origin_server) {
-    if (strcmp("localhost", origin_server) == 0) {
-        return 0;
-    } else if (is_valid_ip(origin_server) == 0) {
-        printf("Valid IP!\n");
-        return 0;
-    }
+options initialize_values() {
+    parameters                         = malloc(sizeof(*parameters));
+    parameters->port                   = 1110;
+    parameters->error_file             = "/dev/null";
+    parameters->management_address     = "127.0.0.1";
+    parameters->management_port        = 9090;
+    parameters->listen_address         = INADDR_ANY;
+    parameters->replacement_msg        = "Parte reemplazada.";
+    parameters->filtered_media_types   = "text/plain"; /* Default value ?? */
+    parameters->origin_port            = 110;
 
-    //TODO: VALIDATE IPV6 ??
-    return -1;
+    return parameters;
 }
 
-options initialize_values(options opt) {
-    opt.port                   = 1110;
-    opt.error_file             = "/dev/null";
-    opt.management_address     = "127.0.0.1";
-    opt.management_port        = 9090;
-    opt.listen_address         = INADDR_ANY;
-    opt.replacement_msg        = "Parte reemplazada.";
-    opt.filtered_media_types   = "text/plain"; /* Default value ?? */
-    opt.origin_port            = 110;
-
-    return opt;
-}
-
-options set_options_values(options opt, int argc, char ** argv) {
+options set_options_values(int argc, char ** argv) {
     int c;
 
-    opt.origin_server   = argv[argc-1];
-    optind              = 1;
+    parameters->origin_server  = argv[argc-1];
+    optind                     = 1;
 
     while ((c = getopt(argc, argv, "e:l:L:m:M:o:p:P:t:")) != -1) {
         switch (c) {
             case 'e':
-                opt.error_file = optarg;
+                parameters->error_file = optarg;
                 break;
             case 'l':
-                opt.listen_address = optarg;
+                parameters->listen_address = optarg;
                 break;
             case 'L':
-                opt.management_address = optarg;
+                parameters->management_address = optarg;
                 break;
             case 'm':
-                opt.replacement_msg = optarg;
+                parameters->replacement_msg = optarg;
                 break;
             case 'M':
-                opt.filtered_media_types = optarg;
+                parameters->filtered_media_types = optarg;
                 break;
             case 'o':
-                opt.management_port = atoi(optarg);
+                parameters->management_port = atoi(optarg);
                 break;
             case 'p':
-                opt.port = atoi(optarg);
+                parameters->port = atoi(optarg);
                 break;
             case 'P':
-                opt.origin_port = atoi(optarg);
+                parameters->origin_port = atoi(optarg);
                 break;
             case 't':
-                opt.filter_command = optarg;
+                parameters->filter_command = optarg;
                 break;
             default: /* If validate_option works correctly, it won't enter here */
                 break;
         }
     }
 
-    return opt;
+    return parameters;
 }
-
-
-
-
-

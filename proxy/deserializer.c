@@ -1,6 +1,6 @@
 #include <malloc.h>
-#include "include/response.h"
-#include "include/request.h"
+#include "include/response_admin.h"
+#include "include/request_admin.h"
 
 unsigned char * deserialize_int(unsigned char * buffer, unsigned int * value) {
     printf("buffer %s\n", buffer);

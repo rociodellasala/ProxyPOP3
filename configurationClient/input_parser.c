@@ -50,9 +50,8 @@ int validate_options(int argc, char ** argv) {
             }
         }
     }
-
-    /* For debug, remember to take it out ! */
-    printf("No errors found on input ! \n");
+    
+    printf("No errors found on input\n");
 }
 
 int validate_parameters(char * next_option, char * parameter) {
