@@ -1,62 +1,76 @@
 #ifndef MIMEFILTER_H_
 #define MIMEFILTER_H_
 
-
-struct parser {
-
-    const unsigned  *classes; 
-
-    const unsigned  statesCant;
-
-    const struct transition **states;
-
-    const size_t  *options; //estados para una transicion
-
-    const unsigned beginHere; //estado domde empiezo
-
-    unsigned state; //estado actual
-
-    struct action ac1;
-
-    struct action ac2;
-};
+#include <stdint.h>
+#include "mimeList.h"
+#define CONTENT_TYPE_VALUE_SIZE 2048
 
 
-/**
- * Evento que retorna el parser.
- * Cada tipo de evento tendrá sus reglas en relación a data.
- */
-struct action {
-    /** tipo de evento */
-    unsigned type;
-    /** caracteres asociados al evento */
-    uint8_t  data[3];
-    /** cantidad de datos en el buffer `data' */
-    uint8_t  n;
+struct ctx {
+    /* delimitador respuesta multi-línea POP3 */
+    struct parser *multi;
+    /* delimitador mensaje "tipo-rfc 822" */
+    struct parser *msg;
+    /* detector de field-name "Content-Type" */
+    struct parser *ctype_header;
+    /* parser de mime type "tipo rfc 2045" */
+    struct parser *mime_type;
+    /* estructura que contiene los tipos filtrados*/
+    struct List *mime_list;
+    /* estructura que contiene los subtipos del tipo encontrado */
+    struct subtype_node *subtype;
+    /* detector de parametro boundary en un header Content-Type */
+    struct parser *boundary;
+    /* stack de frontiers que permite tener boundaries anidados */
+    struct stack *boundary_frontier;
 
-    /** lista de eventos: si es diferente de null ocurrieron varios eventos */
-    struct action *next;
-};
+    char * filter_msg;
+    bool replace, replaced;
 
-/** describe una transición entre estados  */
-struct transition {
-    /* condición: un caracter o una clase de caracter. Por ej: '\r' */
-    int       received;
-    /** descriptor del estado destino cuando se cumple la condición */
-    unsigned  go;
-    /** acción 1 que se ejecuta cuando la condición es verdadera. requerida. */
-    void    (*act1)(struct action *ret, const uint8_t c);
-    /** otra acción opcional */
-    void    (*act2)(struct action *ret, const uint8_t c);
+    /* ¿hemos detectado si el field-name que estamos procesando refiere
+     * a Content-Type?. Utilizando dentro msg para los field-name.
+     */
+    bool *msg_content_type_field_detected;
+    bool *frontier_end_detected;
+    bool *frontier_detected;
+    bool *filtered_msg_detected;
+    bool *boundary_detected;
+
+    // content type value
+    char buffer[CONTENT_TYPE_VALUE_SIZE];
+    unsigned i;
 };
 
 const unsigned *parser_no_classes(void);
 
-struct parser create_parser_for_string(const char *string);
+static void pop3_multi(struct ctx *ctx, const uint8_t c);
 
-static void eq(const uint8_t c, struct action *act);
+static void mime_msg(struct ctx *ctx, const uint8_t c);
 
-static void neq(const uint8_t c, struct action *act);
+void setContextType(struct ctx *ctx) ;
+
+const struct parser_event * parser_feed_subtype(struct subtype_node *node, const uint8_t c);
+
+static void check_end_of_frontier(struct ctx *ctx, const uint8_t c);
+
+static void boundary_frontier_check(struct ctx *ctx, const uint8_t c);
+
+static void store_boundary_parameter(struct ctx *ctx, const uint8_t c);
+
+static void parameter_boundary(struct ctx *ctx, const uint8_t c);
+
+static void content_type_subtype(struct ctx *ctx, const uint8_t c);
+
+static void content_type_type(struct ctx *ctx, const uint8_t c);
+
+static void content_type_value(struct ctx *ctx, const uint8_t c);
+
+static void content_type_header(struct ctx *ctx, const uint8_t c);
+
+bool should_print(const struct parser_event *e);
+
+
+
 
 
 #endif
