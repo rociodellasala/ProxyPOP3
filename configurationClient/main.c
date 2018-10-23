@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <stdint-gcc.h>
+#include <netinet/sctp.h>
 #include "include/administrator.h"
 
 int main(int argc, char ** argv) {
@@ -22,8 +23,8 @@ int main(int argc, char ** argv) {
 
     socket = initialize_sctp_socket(opt);
 
-    /* Receives the greeting message from proxy */
-    recv(socket, recv_buffer, MAX_BUFFER, 0);
+    /* Recibe el mensaje de bienvenida del proxy */
+    sctp_recvmsg(socket, (void *) recv_buffer, MAX_BUFFER, NULL, 0, 0, 0);
     printf("\nMessage from proxy: %s", recv_buffer);
     
     communicate_with_proxy(socket);
@@ -41,7 +42,7 @@ file_descriptor initialize_sctp_socket(options opt) {
         exit(EXIT_FAILURE);
     }
 
-    /* Construct the proxy address structure */
+    /* Construye la direccion */
     struct sockaddr_in proxyAddr;
     memset(&proxyAddr, 0, sizeof(proxyAddr));
     proxyAddr.sin_family    = AF_INET;
@@ -54,7 +55,7 @@ file_descriptor initialize_sctp_socket(options opt) {
     }
     proxyAddr.sin_port     = htons((uint16_t) opt.management_port);
 
-    /* Establish the connection to proxy */
+    /* Establece la conexion al proxy */
     if (connect(configuration_socket, (struct sockaddr *) &proxyAddr, sizeof(proxyAddr)) < 0) {
         perror("Connection to POP3 proxy failed");
         exit(EXIT_FAILURE);

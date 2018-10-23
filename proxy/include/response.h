@@ -1,11 +1,11 @@
-#ifndef PROXYPOP3_RESPONSE_H
-#define PROXYPOP3_RESPONSE_H
+#ifndef PROXYPOP3_RESPONSE_H_
+#define PROXYPOP3_RESPONSE_H_
 
-typedef struct {
-    unsigned char   version;
-    unsigned char   status;
-    unsigned int    length;
-    unsigned char * data;
-}response;
+enum pop3_response_status {
+    OK,
+    ERR,
+};
 
-#endif //PROXYPOP3_RESPONSE_H
+enum pop3_response_status parse_response(const char *);
+
+#endif //PROXYPOP3_RESPONSE_H_

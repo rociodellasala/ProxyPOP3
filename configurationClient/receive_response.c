@@ -10,7 +10,7 @@ ssize_t receive_response(file_descriptor socket, response * response, int * stat
     ssize_t read_quan;
     unsigned char buffer[40];
     
-    read_quan = recv(socket, buffer, 40, 0);
+    read_quan = sctp_recvmsg(socket, buffer, 40, NULL,0,0,0);
 
     if (read_quan < 0) {
         printf("%s\n", strerror(errno));

@@ -1,4 +1,3 @@
-
 #include "include/administrator.h"
 #include "include/request.h"
 #include "include/send_request.h"
@@ -8,13 +7,13 @@
 
 void communicate_with_proxy(file_descriptor socket) {
     int i, j;
-    unsigned char status = 0;
-    char buffer_option[MAX_BUFFER];
-    char param[MAX_BUFFER];
     enum cmd c;
     int correct_option;
-    int running                  = 1;
-    int flag_quit_option              = 0;
+    char buffer_option[MAX_BUFFER];
+    char param[MAX_BUFFER];
+    unsigned char status                = 0;
+    int running                         = 1;
+    int flag_quit_option                = 0;
 
     show_menu();
 
