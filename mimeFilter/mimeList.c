@@ -277,16 +277,12 @@ void clean_list(struct List* list){
     struct subtype_node* subtypes;
     while(node != NULL){
         subtypes = node->subtypes;
-        printf("hey while\n");
         while(subtypes != NULL){
 			if (!subtypes->wildcard) {
-				printf("en if\n");
 				parser_reset(subtypes->parser); //  ESTO TIRA SEGMENTATION FAULT
-				printf("fuera de reset\n");
 			}
             subtypes = subtypes->next;
         }
-        printf("bye while\n");
         parser_reset(node->parser);
         node = node->next;
     }
@@ -354,7 +350,6 @@ void addWildcard(struct type_node* node, char* type, bool typeExists){
 	}else{
 		node->next = create_new_type(type);
 		node->next->subtypes = newNodeWildcard();
-		//fprintf(stderr,"Created new Node: %s/*\n", type);
 	}
 	return;
 }
