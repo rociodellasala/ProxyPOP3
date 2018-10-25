@@ -144,7 +144,7 @@ int main(int argc, char ** argv) {
     }
 	
 
-	const unsigned int *no_class = parser_no_classes(); // Cambiar esto
+	const unsigned int *no_class = parser_no_classes(); 
 
     struct parser_definition media_header_def= parser_utils_strcmpi("content-type");
 
@@ -275,7 +275,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
-                        content_type_value(ctx, e->data[i]); //esto tira SEGMENTATION FAULT
+                        content_type_value(ctx, e->data[i]); 
                     }
                 }
                 break;
