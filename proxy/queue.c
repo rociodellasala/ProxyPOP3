@@ -1,86 +1,126 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "include/queue.h"
-
-struct queue {
-    struct queue_node 	*first, *last;
-    int 				size;
-};
+#include <stdbool.h>
 
 struct queue_node {
-    void *data;
-    struct queue_node *next;
+    void *                  data;
+    struct queue_node *     next;
+};
+
+struct queue {
+    struct queue_node *     first,
+                      *     last,
+                      *     current;
+    int 				    size;
 };
 
 struct queue * new_queue() {
-    struct queue *ret = malloc(sizeof(*ret));
+    struct queue * new_q = malloc(sizeof(*new_q));
 
-    if (ret == NULL) {
+    if (new_q == NULL) {
         return NULL;
     }
 
-    ret->first = ret->last = NULL;
-    ret->size = 0;
+    new_q->first = new_q->last = NULL;
+    new_q->current    = NULL;
+    new_q->size = 0;
 
-    return ret;
+    return new_q;
 }
 
-static struct queue_node * new_node(void *data) {
-    struct queue_node *ret = malloc(sizeof(*ret));
+static struct queue_node * new_node(void * data) {
+    struct queue_node * new_n = malloc(sizeof(*new_n));
 
-    if (ret == NULL) {
+    if (new_n == NULL) {
         return NULL;
     }
 
-    ret->data = data;
-    ret->next = NULL;
+    new_n->data = data;
+    new_n->next = NULL;
 
-    return ret;
+    return new_n;
 }
 
-//todo checkear null
-void enqueue(struct queue *q, void *data) {
-    struct queue_node *last = q->last;
+void enqueue(struct queue * queue, void * data) {
+    struct queue_node * last = queue->last;
 
+    if(data == NULL){
+        return ;
+    }
     if (last == NULL) {
-        last = new_node(data);	// queue vacia
-        q->first = q->last = last;
+        last = new_node(data);
+        queue->first = queue->last = last;
+        queue->current =  queue->first;
     } else {
         last->next = new_node(data);
-        q->last = last->next;
+        queue->last = last->next;
     }
 
-    q->size++;
+    queue->size++;
 }
 
-void * dequeue(struct queue *q) {
-    if (is_empty(q)) {
+
+bool is_empty(struct queue * queue) {
+    return queue->size == 0;
+}
+
+void * dequeue(struct queue * queue) {
+    if (is_empty(queue)) {
         return NULL;
     }
 
-    struct queue_node *first = q->first;
+    struct queue_node *first = queue->first;
     void * ret = first->data;
 
-    q->first = first->next;
+    queue->first = first->next;
     free(first);
-    q->size--;
+    queue->size--;
 
-    if (q->first == NULL) {
-        q->last = NULL;
+    if (queue->first == NULL) {
+        queue->last = NULL;
+        queue->current = NULL;
     }
 
     return ret;
 }
 
-bool is_empty(struct queue *q) {
-    return q->size == 0;
+int size(struct queue * queue) {
+    return queue->size;
 }
 
-int size(struct queue *q) {
-    return q->size;
+void * peek_data(struct queue * queue) {
+    void * ret = NULL;
+
+    if (queue->first != NULL) {
+        ret = queue->first->data;
+    }
+
+    return ret;
 }
 
-void destroy_queue(struct queue *q) {
-    //TODO free nodes
-    free(q);
+void * queue_get_next(struct queue * queue) {
+    void * ret;
+
+    if (queue->current != NULL) {
+        ret = queue->current->data;
+        queue->current = queue->current->next;
+    } else {    // termine de recorrer o la queue estaba vacia
+        queue->current = queue->first;
+        ret = NULL;
+    }
+
+    return ret;
+}
+
+void destroy_queue(struct queue * queue) {
+    struct queue_node *first = queue->first;
+    struct queue_node *aux;
+
+    while (first != NULL) {
+        aux = first->next;
+        free(first);
+        first = aux;
+    }
+
+    free(queue);
 }

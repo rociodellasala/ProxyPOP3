@@ -1,5 +1,4 @@
 #include <malloc.h>
-#include "include/response_admin.h"
 #include "include/request_admin.h"
 
 unsigned char * deserialize_int(unsigned char * buffer, unsigned int * value) {
@@ -22,18 +21,20 @@ unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, 
 }
 
 unsigned char * deserialize_request(unsigned char * buffer, request_admin * request) {
-
     /** deserialization of type */
     buffer = deserialize_char(buffer, &request->version);
+
     /** buffer size deserialization */
     buffer = deserialize_char(buffer, &request->cmd);
+
     /** buffer size deserialization */
     buffer = deserialize_int(buffer, &request->length);
 
     if (request->length > 0) {
         request->data = malloc((size_t)request->length);
-        if (request->data == NULL)
+        if (request->data == NULL) {
             return NULL;
+        }
         buffer = deserialize_string(buffer, request->data, request->length);
     }
     
