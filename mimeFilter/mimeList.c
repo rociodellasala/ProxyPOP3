@@ -175,63 +175,6 @@ void print_list(struct List* list){
 
 }
 
-
-
-
-void removeNode(struct List* list, char* type, char*subtype){
-	struct type_node* nodeType = list->first;
-	struct type_node* tmpType;
-	struct subtype_node* tmpSubType;
-	struct subtype_node* nodeSubType;
-	if(nodeType == NULL){
-		return;
-	}
-	if(strcmp(nodeType->name,type) == 0){
-			nodeSubType = nodeType->subtypes;
-			if(strcmp(nodeSubType->name,subtype) == 0){
-				nodeType->subtypes = nodeSubType->next;
-				free(nodeSubType);
-			}
-			while(nodeSubType->next != NULL){
-				tmpSubType = nodeSubType;
-				nodeSubType = nodeSubType->next;
-				if(strcmp(nodeSubType->name,subtype)==0){
-					tmpSubType->next = nodeSubType->next;
-					free(nodeSubType);
-				}
-			}
-			if(nodeType->subtypes == NULL){
-				list->first = nodeType->next;
-				free(nodeType);
-				return;
-			}
-		while(nodeType->next!= NULL){
-			tmpType = nodeType;
-			nodeType = nodeType->next;
-			if(strcmp(nodeType->name,type) == 0){
-				nodeSubType = nodeType->subtypes;
-				if(strcmp(nodeSubType->name,subtype) == 0){
-					nodeType->subtypes = nodeSubType->next;
-					free(nodeSubType);
-				}
-				while(nodeSubType->next != NULL){
-					tmpSubType = nodeSubType;
-					nodeSubType = nodeSubType->next;
-					if(strcmp(nodeSubType->name,subtype)==0){
-						tmpSubType->next = nodeSubType->next;
-						free(nodeSubType);
-					}
-				}
-				if(nodeType->subtypes == NULL){
-					tmpType->next = nodeType->next;
-					free(nodeType);
-					return;
-				}
-			}
-		}
-	}
-}
-
 void destroy_list(struct List *list){
     struct type_node* node = list->first;
     struct subtype_node* subtypes;
