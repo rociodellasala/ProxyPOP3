@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 
-/**
+/*
  * selector.c - un muliplexor de entrada salida
  *
  * Un selector permite manejar en un único hilo de ejecución la entrada salida
@@ -44,44 +44,44 @@
  */
 typedef struct fdselector * fd_selector;
 
-/** valores de retorno. */
+/* Valores de retorno */
 typedef enum {
-    /** llamada exitosa */
+    /* Llamada exitosa */
             SELECTOR_SUCCESS  = 0,
-    /** no pudimos alocar memoria */
+    /* No pudimos alocar memoria */
             SELECTOR_ENOMEM   = 1,
-    /** llegamos al límite de descriptores que la plataforma puede manejar */
+    /* Llegamos al límite de descriptores que la plataforma puede manejar */
             SELECTOR_MAXFD    = 2,
-    /** argumento ilegal */
+    /* Argumento ilegal */
             SELECTOR_IARGS    = 3,
-    /** descriptor ya está en uso */
+    /* Descriptor ya está en uso */
             SELECTOR_FDINUSE  = 4,
-    /** I/O error check errno */
+    /* I/O error check errno */
             SELECTOR_IO       = 5,
 } selector_status;
 
-/** retorna una descripción humana del fallo */
-const char * selector_error(const selector_status);
+/* Retorna una descripción humana del fallo */
+const char * selector_error(selector_status);
 
-/** opciones de inicialización del selector */
+/* Opciones de inicialización del selector */
 struct selector_init {
-    /** señal a utilizar para notificaciones internas */
+    /* Señal a utilizar para notificaciones internas */
     const int signal;
 
-    /** tiempo máximo de bloqueo durante `selector_iteratate' */
+    /* Tiempo máximo de bloqueo durante `selector_iteratate' */
     struct timespec select_timeout;
 };
 
-/** inicializa la librería */
+/* Inicializa la librería */
 selector_status selector_init(const struct selector_init *);
 
-/** deshace la incialización de la librería */
+/* Deshace la incialización de la librería */
 selector_status selector_close(void);
 
-/* instancia un nuevo selector. returna NULL si no puede instanciar  */
-fd_selector selector_new(const size_t);
+/* Instancia un nuevo selector. Retorna NULL si no puede instanciar  */
+fd_selector selector_new(size_t);
 
-/** destruye un selector creado por _new. Tolera NULLs */
+/* Destruye un selector creado por _new. Tolera NULLs */
 void selector_destroy(fd_selector);
 
 /**
@@ -98,14 +98,10 @@ typedef enum {
     OP_WRITE   = 1 << 2,
 } fd_interest;
 
-/**
- * Quita un interés de una lista de intereses
- */
+/* Quita un interés de una lista de intereses */
 #define INTEREST_OFF(FLAG, MASK)  ( (FLAG) & ~(MASK) )
 
-/**
- * Argumento de todas las funciones callback del handler
- */
+/* Argumento de todas las funciones callback del handler */
 struct selector_key {
     /** el selector que dispara el evento */
     fd_selector s;
@@ -115,24 +111,19 @@ struct selector_key {
     void *      data;
 };
 
-/**
- * Manejador de los diferentes eventos..
- */
+/* Manejador de los diferentes eventos.. */
 typedef struct fd_handler {
     void (*handle_read)      (struct selector_key * key);
     void (*handle_write)     (struct selector_key * key);
     void (*handle_block)     (struct selector_key * key);
 
-    /**
-     * llamado cuando se se desregistra el fd
-     * Seguramente deba liberar los recusos alocados en data.
-     */
+    /* Llamado cuando se se desregistra el fd. Seguramente deba liberar los recusos alocados en data */
     void (*handle_close)     (struct selector_key * key);
 
 } fd_handler;
 
 /**
- * registra en el selector `s' un nuevo file descriptor `fd'.
+ * Registra en el selector `s' un nuevo file descriptor `fd'.
  *
  * Se especifica un `interest' inicial, y se pasa handler que manejará
  * los diferentes eventos. `data' es un adjunto que se pasa a todos
@@ -142,24 +133,19 @@ typedef struct fd_handler {
  *
  * @return 0 si fue exitoso el registro.
  */
-selector_status selector_register(fd_selector, const int, const fd_handler *, const fd_interest, void *);
+selector_status selector_register(fd_selector, int, const fd_handler *, fd_interest, void *);
 
-/**
- * desregistra un file descriptor del selector
- */
-selector_status selector_unregister_fd(fd_selector, const int);
+/* Desregistra un file descriptor del selector */
+selector_status selector_unregister_fd(fd_selector, int);
 
-/** permite cambiar los intereses para un file descriptor */
+/* Permite cambiar los intereses para un file descriptor */
 selector_status selector_set_interest(fd_selector, int, fd_interest);
 
-/** permite cambiar los intereses para un file descriptor */
+/* Permite cambiar los intereses para un file descriptor */
 selector_status selector_set_interest_key(struct selector_key *, fd_interest);
 
 
-/**
- * se bloquea hasta que hay eventos disponible y los despacha.
- * Retorna luego de cada iteración, o al llegar al timeout.
- */
+/* Se bloquea hasta que hay eventos disponible y los despacha. Retorna luego de cada iteración, o al llegar al timeout */
 selector_status selector_select(fd_selector);
 
 /**
@@ -167,10 +153,10 @@ selector_status selector_select(fd_selector);
  *
  * retorna -1 ante error, y deja detalles en errno.
  */
-int selector_fd_set_nio(const int);
+int selector_fd_set_nio(int);
 
-/** notifica que un trabajo bloqueante terminó */
-selector_status selector_notify_block(fd_selector, const int);
+/* Notifica que un trabajo bloqueante terminó */
+selector_status selector_notify_block(fd_selector, int);
 
 #endif //PROXYPOP3_SELECTOR_H
 

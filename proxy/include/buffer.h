@@ -88,26 +88,27 @@ typedef struct buffer buffer;
 struct buffer {
     uint8_t * data;
 
-    /* límite superior del buffer. inmutable */
+    /* Límite superior del buffer. inmutable */
     uint8_t * limit;
 
-    /* puntero de lectura */
+    /* Puntero de lectura */
     uint8_t * read;
 
-    /* puntero de escritura */
+    /* Puntero de escritura */
     uint8_t * write;
 };
 
 /* Inicializa el buffer sin utilizar el heap */
-void buffer_init(buffer *, const size_t, uint8_t *);
+void buffer_init(buffer *, size_t, uint8_t *);
 
 /* Retorna un puntero donde se pueden escribir hasta `*nbytes`.
  * Se debe notificar mediante la función `buffer_write_adv' */
 uint8_t * buffer_write_ptr(buffer *, size_t *);
-void buffer_write_adv(buffer *, const ssize_t);
+
+void buffer_write_adv(buffer *, ssize_t);
 
 uint8_t * buffer_read_ptr(buffer *, size_t *);
-void buffer_read_adv(buffer *, const ssize_t);
+void buffer_read_adv(buffer *, ssize_t);
 
 /* Obtiene un byte del buffer */
 uint8_t buffer_read(buffer *);

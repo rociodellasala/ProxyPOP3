@@ -1,18 +1,14 @@
 #include <stdio.h>
-#include <string.h>   //strlen
+#include <string.h>
 #include <stdlib.h>
-#include <unistd.h>   //close
-#include <arpa/inet.h>    //close
 #include <errno.h>
-#include <ctype.h>
-#include <stdbool.h>
 #include <signal.h>
-
 #include "include/selector.h"
 #include "include/pop3.h"
 #include "include/admin.h"
 #include "include/input_parser.h"
 #include "include/metrics.h"
+#include "include/utils.h"
 
 metrics program_metrics;
 
@@ -99,7 +95,6 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
     }
 
     for (;;) {
-        err_msg  = NULL;
         ss  = selector_select(selector);
         if(ss != SELECTOR_SUCCESS) {
             err_msg = "serving";
@@ -171,13 +166,13 @@ int initialize_sockets(options opt) {
 
 void initialize_metrics() {
     program_metrics                             = malloc(sizeof(*program_metrics));
-    program_metrics->concurrent_connections     = 10;  /* TODO: CAMBIAR */
+    program_metrics->concurrent_connections     = 10;  /* TODO: CAMBIAR , NUMERO DE PRUEBA PARA EL ADMIN*/
     program_metrics->historical_access          = 11; /* TODO: CAMBIAR */
     program_metrics->transferred_bytes          = 12; /* TODO: CAMBIAR */
 }
 
 
-int main (int argc, char ** argv) {
+int main(int argc, char ** argv) {
     options opt;
 
     if (parse_input(argc, argv) < 0) {
@@ -185,7 +180,7 @@ int main (int argc, char ** argv) {
     }
 
     initialize_metrics();
-    opt = initialize_values();
+    initialize_values();
     opt = set_options_values(argc, argv);
     printf("%s\n", opt->origin_server);
 
