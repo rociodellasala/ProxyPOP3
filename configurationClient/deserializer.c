@@ -30,7 +30,7 @@ unsigned char * deserialize_response(unsigned char * buffer, response * response
     buffer = deserialize_int(buffer, &response->length);
 
     if (response->length > 0) {
-        response->data = malloc((size_t)response->length);
+        response->data = malloc(response->length * sizeof(char *));
         if (response->data == NULL)
             return NULL;
         buffer = deserialize_string(buffer, response->data, response->length);

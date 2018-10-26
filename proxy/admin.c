@@ -71,7 +71,6 @@ void admin_accept_connection(struct selector_key * key) {
     }
 
     memcpy(&state->admin_addr, &client_addr, client_addr_len);
-    state->admin_addr_len = client_addr_len;
 
     if(SELECTOR_SUCCESS != selector_register(key->s, client, &admin_handler, OP_WRITE, state)) {
         goto fail;
@@ -98,11 +97,11 @@ void admin_read(struct selector_key * key){
 }
 
 void reset_admin_status(struct admin * admin){
-    admin->current_request = NULL;
-    admin->resp_length = 0;
-    admin->resp_data = NULL;
-    admin->req_status     = REQ_PARSE_OK;
-    admin->resp_status    = RESP_PARSE_OK;
+    admin->current_request  = NULL;
+    admin->resp_length      = 0;
+    admin->resp_data        = NULL;
+    admin->req_status       = REQ_PARSE_OK;
+    admin->resp_status      = RESP_PARSE_OK;
 }
 
 void admin_write(struct selector_key * key){
@@ -123,7 +122,6 @@ void admin_write(struct selector_key * key){
 }
 
 void admin_close(struct selector_key * key) {
-    printf("HANDLER\n");
     struct admin * admin = ATTACHMENT(key);
     print_connection_status("[ADMIN]: Connection disconnected", admin->admin_addr);
     free(admin);

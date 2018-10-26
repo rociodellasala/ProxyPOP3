@@ -8,6 +8,18 @@
 
 #define BUFFER_SIZE 1024
 
+enum cmd {
+    A           = '1',
+    SET_T       = '2',
+    GET_T       = '3',
+    SWITCH_T    = '4',
+    GET_ME      = '5',
+    GET_MI      = '6',
+    ALLOW_MI    = '7',
+    FORBID_MI   = '8',
+    Q           = '9',
+};
+
 typedef enum admin_status {
     ST_EHLO     = 0,
     ST_AUTH     = 1,
@@ -30,7 +42,6 @@ typedef enum parse_resp_status {
 
 struct admin {
     struct sockaddr_storage       admin_addr;
-    socklen_t                     admin_addr_len;
     int                           fd;
 
     admin_status                  a_status;

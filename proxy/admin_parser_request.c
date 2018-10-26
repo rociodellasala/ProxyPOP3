@@ -42,51 +42,52 @@ static struct parse_action * action_list[] = {
 void authenticate(struct admin * admin){
     request_admin * r = admin->current_request;
 
-    if(r->cmd == AUTH){
+    if(r->cmd == A){
         if(check_password(r->data) == 1){
             admin->a_status = ST_TRANS;
         } else {
             admin->req_status = INCORRECT_PASS;
         }
+    } else if(r->cmd == Q) {
+        admin->quit = 1;
     } else {
         admin->req_status = INCORRECT_COMMAND_STATUS;
     }
 
 }
 
-
 void transaction(struct admin * admin){
     request_admin * r = admin->current_request;
     switch(r->cmd){
-        case SET_TRANSF:
+        case SET_T:
             /* TODO: Algun chequeo necesario ? */
             parameters->filter_command->program_name = r->data ;
             break;
-        case GET_TRANSF:
+        case GET_T:
             admin->resp_data = parameters->filter_command->program_name;
             admin->resp_length = strlen(admin->resp_data);
             break;
-        case SWITCH_TRANSF:
+        case SWITCH_T:
             if(parameters->filter_command->switch_program == 0){
                 parameters->filter_command->switch_program = 1;
             } else {
                 parameters->filter_command->switch_program = 0;
             }
             break;
-        case GET_METRIC:
+        case GET_ME:
             return_metric(admin, r->data);
             break;
-        case GET_MIME:
+        case GET_MI:
             admin->resp_data = parameters->filtered_media_types;
             admin->resp_length = strlen(admin->resp_data);
             break;
-        case ALLOW_MIME:
+        case ALLOW_MI:
             //allow_mime()
             break;
-        case FORBID_MIME:
+        case FORBID_MI:
             //forbid_mime()
             break;
-        case QUIT:
+        case Q:
             admin->quit = 1;
             break;
         default:

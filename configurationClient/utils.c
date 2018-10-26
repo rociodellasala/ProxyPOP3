@@ -3,15 +3,16 @@
 #include "include/response.h"
 
 void print_msg(int status, response response) {
+    int i; /*todo:ver que onda esto que lee mal si no agrego \0 */
     char msg[response.length + 1];
-    int i;
-    for( i = 0; i < response.length; i++){
+
+    for (i = 0; i < response.length; i++) {
         msg[i] = response.data[i];
     }
     
     msg[i] = '\0';
     
-    if(response.length > 0 && response.data != NULL) {
+    if (response.length > 0 && response.data != NULL) {
         response.data;
 
         if (status) {
@@ -26,7 +27,6 @@ void print_msg(int status, response response) {
             printf("Answer from proxy: -ERR\n");
         }
     }
-    
 }
 
 void show_menu() {

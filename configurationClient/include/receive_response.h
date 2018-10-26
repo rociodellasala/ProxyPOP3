@@ -1,11 +1,9 @@
 #ifndef PROXYPOP3_RECEIVE_RESPONSE_H
 #define PROXYPOP3_RECEIVE_RESPONSE_H
 
-#include <monetary.h>
-#include "administrator.h"
+#include "utils.h"
 #include "response.h"
 
-/* Functions */
-ssize_t receive_response(file_descriptor, response *, int *);
+ssize_t receive_response(unsigned char *, response *, const file_descriptor);
 
 #endif //PROXYPOP3_RECEIVE_RESPONSE_H
