@@ -12,6 +12,9 @@
 #include "include/pop3.h"
 #include "include/admin.h"
 #include "include/input_parser.h"
+#include "include/metrics.h"
+
+metrics program_metrics;
 
 /* Crea una conexión TCP o SCTP */
 file_descriptor new_socket(int protocol, int port, struct sockaddr_in * address) {
@@ -166,6 +169,14 @@ int initialize_sockets(options opt) {
     return initialize_selector(mua_tcp_socket, admin_sctp_socket);
 }
 
+void initialize_metrics() {
+    program_metrics                             = malloc(sizeof(*program_metrics));
+    program_metrics->concurrent_connections     = 10;  /* TODO: CAMBIAR */
+    program_metrics->historical_access          = 11; /* TODO: CAMBIAR */
+    program_metrics->transferred_bytes          = 12; /* TODO: CAMBIAR */
+}
+
+
 int main (int argc, char ** argv) {
     options opt;
 
@@ -173,6 +184,7 @@ int main (int argc, char ** argv) {
         return -1;
     }
 
+    initialize_metrics();
     opt = initialize_values();
     opt = set_options_values(argc, argv);
     printf("%s\n", opt->origin_server);

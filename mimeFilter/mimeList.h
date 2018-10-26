@@ -44,16 +44,18 @@ struct subtype_node* create_new_subtype(char* name);
 
 void print_list(struct List* list);
 
-//void removeNode(struct List* list, char* type, char*subtype);
+void removeNode(struct List* list, char* type, char*subtype);
 
 void destroy_list(struct List *list);
 
 void clean_list(struct List* list);
 
-struct subtype_node* create_new_wildcard_subtype();
+struct subtype_node* newNodeWildcard();
+
+//static void destroy_node(struct type_node *node);
 
 static void destroy_node(struct subtype_node *node);
 
-void make_subtype_wildcard(struct type_node* node, char* type, bool typeExists);
+void addWildcard(struct type_node* node, char* type, bool typeExists);
 
 #endif

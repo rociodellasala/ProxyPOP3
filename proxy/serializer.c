@@ -29,7 +29,7 @@ unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, un
 /**
  * Serializes the corresponding fields for the type of the msg
  */
-unsigned char * serialize_response(unsigned char * buffer, response * response) {
+unsigned char * serialize_response(unsigned char * buffer, response_admin * response) {
 
     /** version serialization */
     buffer = serialize_char(buffer, response->version);

@@ -16,9 +16,6 @@
 * gets serialized in contiguous memory
 */
 
-unsigned char * serialize_int(unsigned char *, unsigned int);
-unsigned char * serialize_char(unsigned char *, unsigned char);
-unsigned char * serialize_string(unsigned char *, unsigned char *, unsigned int);
-unsigned char * serialize_response(unsigned char *, response *);
+unsigned char * serialize_response(unsigned char *, response_admin *);
 
 #endif //PROXYPOP3_SERIALIZER_H

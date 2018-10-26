@@ -1,9 +1,6 @@
 #ifndef PROXYPOP3_REQUEST_H
 #define PROXYPOP3_REQUEST_H
 
-
-/* Typedefs */
-
 enum req_cmd {
     AUTH            = 1,
     SET_TRANSF      = 2,
@@ -18,10 +15,9 @@ enum req_cmd {
 
 typedef struct {
     unsigned char   version;
-    unsigned char    cmd;
+    unsigned char   cmd;
     unsigned int    length;
     unsigned char * data;
 } request;
-
 
 #endif //PROXYPOP3_REQUEST_H
