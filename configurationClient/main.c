@@ -3,6 +3,7 @@
 #include <netinet/sctp.h>
 #include "include/administrator.h"
 
+/* todo: VER CASO DONDE SE ROMPA EL PROXY, DESCONECTAR AL ADMIN */
 int main(int argc, char ** argv) {
     int i;
     options opt;

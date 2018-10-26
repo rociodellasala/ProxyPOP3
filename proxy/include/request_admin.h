@@ -22,7 +22,7 @@ typedef struct {
     unsigned char    cmd;
     unsigned int    length;
     unsigned char * data;
-}request;
+}request_admin;
 
 
 #endif //PROXYPOP3_REQUEST_H

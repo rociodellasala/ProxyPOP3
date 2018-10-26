@@ -3,16 +3,28 @@
 #include "include/response.h"
 
 void print_msg(int status, response response) {
-    char * msg;
-    
-    if(response.length > 0) {
-        msg = response.data;
+    char msg[response.length + 1];
+    int i;
+    for( i = 0; i < response.length; i++){
+        msg[i] = response.data[i];
     }
     
-    if (status) {
-        printf("Answer from proxy: +OK: %s\n", msg);
+    msg[i] = '\0';
+    
+    if(response.length > 0 && response.data != NULL) {
+        response.data;
+
+        if (status) {
+            printf("Answer from proxy: +OK: %s\n", msg);
+        } else {
+            printf("Answer from proxy: -ERR: %s\n", msg);
+        }
     } else {
-        printf("Answer from proxy: +OK: %s\n", msg);
+        if (status) {
+            printf("Answer from proxy: +OK\n");
+        } else {
+            printf("Answer from proxy: -ERR\n");
+        }
     }
     
 }
@@ -24,7 +36,7 @@ void show_menu() {
             " - AUTENTHICATION:                1 pass\n"
             " - SET TRANSFORMATION PROGRAM:    2 transformationprogram\n"
             " - GET TRANSFORMATION PROGRAM:    3 \n"
-            " - SWITCH TRANSFORMATION PROGRAM: 4 transformationprogram\n"
+            " - SWITCH TRANSFORMATION PROGRAM: 4 \n"
             " - GET METRIC:                    5 metric\n"
             " - GET MIME:                      6 \n"
             " - ALLOW MIME:                    7 mime\n"

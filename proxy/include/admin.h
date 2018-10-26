@@ -1,7 +1,6 @@
 #ifndef PROXYPOP3_ADMIN_H
 #define PROXYPOP3_ADMIN_H
 
-#include <netinet/in.h>
 #include "selector.h"
 #include "buffer.h"
 #include "request_admin.h"
@@ -9,25 +8,49 @@
 
 #define BUFFER_SIZE 1024
 
-typedef enum parse_status {
+typedef enum admin_status {
+    ST_EHLO     = 0,
     ST_AUTH     = 1,
-    ST_TRANS = 2
-} parse_status;
+    ST_TRANS    = 2,
+} admin_status;
+
+typedef enum parse_req_status {
+    REQ_PARSE_OK                = 0,
+    INCORRECT_PASS              = 1,
+    INCORRECT_COMMAND_STATUS    = 2,
+    COULD_NOT_READ_REQUEST      = 3,
+    INCORRECT_METRIC            = 4,
+} parse_req_status;
+
+typedef enum parse_resp_status {
+    RESP_PARSE_OK               = 0,
+    COULD_NOT_SEND_WELCOME      = 1,
+    COULD_NOT_SEND_RESPONSE     = 2,
+} parse_resp_status;
 
 struct admin {
-    struct sockaddr_storage       client_addr;
-    socklen_t                     client_addr_len;
-    int                           client_fd;
+    struct sockaddr_storage       admin_addr;
+    socklen_t                     admin_addr_len;
+    int                           fd;
 
-    buffer                        buffer_write, buffer_read;
-    uint8_t                       raw_buffer_write[BUFFER_SIZE], raw_buffer_read[BUFFER_SIZE];
+    admin_status                  a_status;
 
-    parse_status                  status;
-    int                           argc;
+    request_admin *               current_request;
+    parse_req_status              req_status;
+
+    parse_resp_status             resp_status;
+    unsigned int                  resp_length;
+    unsigned char *               resp_data;
+
+    unsigned int                  quit;
+
 };
 
+void admin_read(struct selector_key * key);
+void admin_write(struct selector_key * key);
+void admin_close(struct selector_key * key);
+
 void admin_accept_connection(struct selector_key *);
-int parse_commands(struct admin *);
 
 
 #endif  //PROXYPOP3_ADMIN_H
