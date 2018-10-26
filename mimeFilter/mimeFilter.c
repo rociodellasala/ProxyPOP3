@@ -34,9 +34,9 @@ int main(int argc, char ** argv) {
 	* pointed to by name and returns the associated value to the string. 
 	*/
 
-	char* flm = getenv("FILTER_MEDIAS");
+	//char* flm = getenv("FILTER_MEDIAS");
 
-	//char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
+	char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
 
 	struct List *list = create_list();
 
@@ -77,8 +77,10 @@ int main(int argc, char ** argv) {
 
 	//en este WHILE faltan hacer free! con variable error porque sino hay que destruir  el mimeparser list
 	while(current != NULL){
+		printf("INSIDE WHILE\n");
 		char *aux = malloc(strlen(current) + 1);
 		if(aux == NULL){
+			printf("bye aux\n");
 			return -1;
 		}
 		strcpy(aux, current);
@@ -87,41 +89,38 @@ int main(int argc, char ** argv) {
 		
 		mime = strtok_r(aux, slash, &context_b);
 		if(mime == NULL){
-            free(aux);
+			printf("bye mime\n");
 			return -1;
 		}
 
 		char *type = malloc(strlen(mime) + 1);
 		if(type == NULL){
-            free(aux);
+			printf("bye type\n");
 			return -1;
 		}
 		strcpy(type, mime);
+		printf("Ok type es %s\n", type);
 		/*getting subtype*/
 		
 		mime = strtok_r(NULL, slash, &context_b);
 		if(mime == NULL){
-            free(aux);
-            free(type);
+			printf("bye mime2\n");
 			return -1;
 		}
 
 		char *subtype = malloc(strlen(mime) + 1);
 
 		if(subtype == NULL){
-            free(aux);
-            free(type);
+			printf("bye subtpe\n");
 			return -1;
 		}
 
 		strcpy(subtype, mime);
+		printf("ok subtype es %s\n", subtype);
 		
 
-		
+		// free ?
 		int addition = add_new(type, subtype, list);
-        // free ?
-
-
 		if(addition != -1){
 			printf("Node correctly added!\n");
 		}
@@ -129,12 +128,12 @@ int main(int argc, char ** argv) {
 		free(aux);
 		current = strtok_r(NULL, comma, &context);
 	}
+	printf("outside of while\n");
 	// free(flm); no funca
-
 
 	print_list(list);
 	
-	
+	return 0;
 
 	
 	char *message = getenv(FILTER_MSG);
@@ -144,7 +143,7 @@ int main(int argc, char ** argv) {
     }
 	
 
-	const unsigned int *no_class = parser_no_classes(); 
+	const unsigned int *no_class = parser_no_classes(); // Cambiar esto
 
     struct parser_definition media_header_def= parser_utils_strcmpi("content-type");
 
@@ -185,8 +184,6 @@ int main(int argc, char ** argv) {
 	uint8_t data[4096];
     ssize_t n;
     int fd = STDIN_FILENO;
-
-
     
     do {
         n = read(fd, data, sizeof(data));
@@ -194,6 +191,7 @@ int main(int argc, char ** argv) {
             pop3_multi(&ctx, data[i]); 
         }
     } while (n > 0);
+
 
 
     parser_destroy(ctx.multi);
@@ -222,7 +220,6 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c) {
         //debug("0. multi", pop3_multi_event, e);
         switch (e->type) {
             case POP3_MULTI_BYTE:
-
                 for (int i = 0; i < e->n; i++) {
                     mime_msg(ctx, e->data[i]);
                 }
@@ -232,7 +229,6 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c) {
                 break;
             case POP3_MULTI_FIN:
                 // arrancamos de vuelta
-
                 parser_reset(ctx->msg);
                 ctx->msg_content_type_field_detected = NULL;
                 break;
@@ -275,7 +271,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
-                        content_type_value(ctx, e->data[i]); 
+                        content_type_value(ctx, e->data[i]);
                     }
                 }
                 break;
@@ -348,14 +344,12 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 }
                 break;
             case MIME_MSG_VALUE_FOLD:
-
                 for (int i = 0; i < e->n; i++) {
                     ctx->buffer[ctx->i++] = e->data[i];
                     if (ctx->i >= CONTENT_TYPE_VALUE_SIZE) {
                         abort();
                     }
                 }
-
                 break;
             default:
                 break;
@@ -428,8 +422,9 @@ const struct parser_event * parser_feed_subtype(struct subtype_node *node, const
         return global_event;
     }
     global_e = false;
-    node->event = parser_feed(node->parser, c); //esto tira segmentation fault
-    global_event = (struct parser_event *) node->event; 
+    node->event = parser_feed(node->parser, c);
+    global_event = (struct parser_event *) node->event;
+
     while (node->next != NULL) {
         node = node->next;
         node->event = parser_feed(node->parser, c);

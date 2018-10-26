@@ -3,7 +3,6 @@
 #include "include/request_admin.h"
 
 unsigned char * deserialize_int(unsigned char * buffer, unsigned int * value) {
-    printf("buffer %s\n", buffer);
     *value = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];
     return buffer + 4;
 }
@@ -22,7 +21,7 @@ unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, 
     return buffer;
 }
 
-unsigned char * deserialize_request(unsigned char * buffer, request * request) {
+unsigned char * deserialize_request(unsigned char * buffer, request_admin * request) {
 
     /** deserialization of type */
     buffer = deserialize_char(buffer, &request->version);

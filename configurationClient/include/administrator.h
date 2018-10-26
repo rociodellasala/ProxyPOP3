@@ -28,12 +28,13 @@ enum cmd {
     GET_MI = '6',
     ALLOW_MI = '7',
     FORBID_MI = '8',
-    Q = '9'
+    Q = '9',
+    HELP = '0',
 };
 
 /* Functions */
 void communicate_with_proxy(file_descriptor);
 file_descriptor initialize_sctp_socket(options);
-void fun(int i, int j, unsigned char *, unsigned char *, int *, file_descriptor, enum cmd);
+void assemble_req(int, int, unsigned char *, int *, file_descriptor, enum cmd);
 
 #endif //PROXYPOP3_CONFIGURATIONCLIENT_H

@@ -10,7 +10,6 @@ void communicate_with_proxy(file_descriptor socket) {
     enum cmd c;
     int correct_option;
     char buffer_option[MAX_BUFFER];
-    char param[MAX_BUFFER];
     unsigned char status                = 0;
     int running                         = 1;
     int flag_quit_option                = 0;
@@ -37,10 +36,10 @@ void communicate_with_proxy(file_descriptor socket) {
 
         switch (c){
             case A:
-                fun(i, j, buffer_option, param, &correct_option, socket, AUTH);
+                assemble_req(i, j, buffer_option, &correct_option, socket, AUTH);
                 break;
             case SET_T:
-                fun(i, j, buffer_option, param, &correct_option, socket, SET_TRANSF);
+                assemble_req(i, j, buffer_option, &correct_option, socket, SET_TRANSF);
                 break;
             case GET_T:
                 i++;
@@ -52,10 +51,16 @@ void communicate_with_proxy(file_descriptor socket) {
                     break;
                 }
             case SWITCH_T:
-                fun(i, j, buffer_option, param, &correct_option, socket, SWITCH_TRANSF);
-                break;
+                i++;
+                if(buffer_option[i] != NEWLINE){
+                    correct_option = 0;
+                    break;
+                } else {
+                    send_request_without_param(SWITCH_TRANSF, socket);
+                    break;
+                }
             case GET_ME:
-                fun(i, j, buffer_option, param, &correct_option, socket, GET_METRIC);
+                assemble_req(i, j, buffer_option, &correct_option, socket, GET_METRIC);
                 break;
             case GET_MI:
                 i++;
@@ -67,12 +72,12 @@ void communicate_with_proxy(file_descriptor socket) {
                     break;
                 }
             case ALLOW_MI:
-                fun(i, j, buffer_option, param, &correct_option, socket, ALLOW_MIME);
+                assemble_req(i, j, buffer_option, &correct_option, socket, ALLOW_MIME);
                 break;
             case FORBID_MI:
-                fun(i, j, buffer_option, param, &correct_option, socket, FORBID_MIME);
+                assemble_req(i, j, buffer_option, &correct_option, socket, FORBID_MIME);
                 break;
-            case Q:
+            case Q: /* TODO : QUIT EN EL CASO QUE TODAVIA NO AUNTENTIQUE, COMANDOS POR STATUS EN SHOW */
                 i++;
                 if(buffer_option[i] != NEWLINE){
                     correct_option = 0;
@@ -82,8 +87,13 @@ void communicate_with_proxy(file_descriptor socket) {
                     send_request_without_param(QUIT, socket);
                     break;
                 }
+            case HELP:
+                show_menu();
+                correct_option = 0;
+                break;
             default:
                 correct_option = 0;
+                printf("The entered command does not exist.\n");
                 break;
         }
 
@@ -96,6 +106,8 @@ void communicate_with_proxy(file_descriptor socket) {
                 return;
             }
             print_msg(status, response);
+        } else {
+            printf("Incorrect sintax of command. Press HELP option (0) to display menu again.\n");
         }
 
         if(flag_quit_option == 1 && status == 1){
@@ -107,7 +119,8 @@ void communicate_with_proxy(file_descriptor socket) {
 
 }
 
-void fun(int i, int j, unsigned char * buffer_option, unsigned char * param, int * correct_option, file_descriptor socket, enum cmd command) {
+void assemble_req(int i, int j, unsigned char * buffer_option, int * correct_option, file_descriptor socket, enum cmd command) {
+    char param[MAX_BUFFER] = {0};
     i++;
     if(buffer_option[i] != SPACE){
         *correct_option = 0;

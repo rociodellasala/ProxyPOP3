@@ -6,22 +6,41 @@
 #include <netinet/sctp.h>
 #include "include/serializer.h"
 #include "include/response_admin.h"
+#include "include/admin.h"
 #include "include/admin_actions.h"
+#include "include/metrics.h"
+#include "include/admin_parser.h"
 
-int check_password(request * request, int * status) {
-    unsigned char * data = request->data;
+int check_password(const unsigned char * pass) {
     unsigned char * password = "1234";
-    int password_length = strlen(password);
-    int data_length = strlen(data);
-    
-    if(password_length != data_length){
-        *status = 0;
+    if(strcmp(pass, password) == 0){
+        return 1;
     } else {
-        *status = 1;
+        return 0;
     }
 }
 
-void forbid_mime(request * request, int * status, char * media_types){
+void return_metric(struct admin * admin, const char * data){
+    metrics metrics = program_metrics;
+    char * aux = malloc(30 * sizeof(char)); /*TODO:CAMBIAR*/
+
+    if(strcmp(data, "cc") == 0 ){
+        sprintf(aux, "%d", metrics->concurrent_connections);
+    } else if(strcmp(data, "ha") == 0){
+        sprintf(aux, "%d", metrics->historical_access);
+    } else if(strcmp(data, "tb") == 0){
+        sprintf(aux, "%d", metrics->transferred_bytes);
+    } else {
+        admin->req_status =  INCORRECT_METRIC;
+        return;
+    }
+
+    admin->resp_data = aux;
+    admin->resp_length = strlen(admin->resp_data);
+}
+
+/* TODO: creo que hay que llamar a lo que hicimos en el tp2 para saber si el mime no esta ya incluido
+void forbid_mime(request_admin * request, int * status, char * media_types){
     int ret; //check_mime_not_in(request->data, media_types);
     if(ret == -1) {
         //add_mime();
@@ -30,9 +49,8 @@ void forbid_mime(request * request, int * status, char * media_types){
     }
 }
 
-void allow_mime(request * request, int * status, char * media_types){
+void allow_mime(request_admin * request, int * status, char * media_types){
     int ret; //check_mime_not_in(request->data, media_types);
-    printf("ret: %d\n", ret);
     if(ret == -1) {
         //remove_mime();
     } else {
@@ -40,37 +58,10 @@ void allow_mime(request * request, int * status, char * media_types){
     }
 }
 
-void send_response_with_data(char * parameter, file_descriptor socket, int status) {
-    response * response = malloc(sizeof(response));
-    response->version = VERSION;
-    response->status = status;
-    response->length = (unsigned int) strlen(parameter);
-    response->data = (unsigned char *) malloc(response->length * sizeof(char *));
-    strncpy((char *)response->data, parameter, response->length);
-
-    send_response(socket, response);
-}
-
-void send_response_without_data(file_descriptor socket, int status) {
-    response * response = malloc(sizeof(response));
-    response->version = VERSION;
-    response->status = status;
-    response->length = 0;
-    response->data = 0;
-    send_response(socket, response);
-}
+*/
 
 
-ssize_t send_response(file_descriptor socket, response * response) {
-    ssize_t sent_bytes;
-    unsigned char buffer_response[40];
-    unsigned char * pointer = serialize_response(buffer_response, response);
-
-    sent_bytes = sctp_sendmsg(socket, buffer_response, pointer-buffer_response, NULL, 0, 0, 0, 0, 0, 0);
-
-    if (sent_bytes <= 0) {
-        printf("%s\n", strerror(errno));
-    }
-
-    return sent_bytes;
+void quit(struct admin * admin){
+    send_response_without_data(admin->fd, 1);
+    close(admin->fd);
 }

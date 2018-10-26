@@ -303,15 +303,18 @@ int valid_digit(char * ip_str) {
 }
 
 options initialize_values() {
-    parameters                         = malloc(sizeof(*parameters));
-    parameters->port                   = 1110;
-    parameters->error_file             = "/dev/null";
-    parameters->management_address     = "127.0.0.1";
-    parameters->management_port        = 9090;
-    parameters->listen_address         = INADDR_ANY;
-    parameters->replacement_msg        = "Parte reemplazada.";
-    parameters->filtered_media_types   = "text/plain"; /* Default value ?? */
-    parameters->origin_port            = 110;
+    parameters                                  = malloc(sizeof(*parameters));
+    parameters->port                            = 1110;
+    parameters->error_file                      = "/dev/null";
+    parameters->management_address              = "127.0.0.1";
+    parameters->management_port                 = 9090;
+    parameters->listen_address                  = INADDR_ANY;
+    parameters->replacement_msg                 = "Parte reemplazada.";
+    parameters->filtered_media_types            = "text/plain"; /* Default value ?? */
+    parameters->origin_port                     = 110;
+    parameters->filter_command                  = malloc(sizeof(*e_transformation));
+    parameters->filter_command->switch_program  = 0;
+    parameters->filter_command->program_name    = "cat";
 
     return parameters;
 }

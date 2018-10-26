@@ -2,6 +2,7 @@
 #define PROXYPOP3_BUFFER_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <unistd.h>  // size_t, ssize_t
 
 /**

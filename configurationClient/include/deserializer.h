@@ -15,9 +15,6 @@
  * continue to deserialize
  */
 
-unsigned char * deserialize_int(unsigned char *, unsigned int *);
-unsigned char * deserialize_char(unsigned char *, unsigned char * );
-unsigned char * deserialize_string(unsigned char *, unsigned char *, unsigned int);
 unsigned char * deserialize_response(unsigned char *, response *);
 
 #endif //PROXYPOP3_DESERIALIZER_H

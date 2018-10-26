@@ -4,6 +4,15 @@
 #define DELIM "."
 #define BACKLOG 10
 
+struct extern_transformation {
+    int switch_program; /* TODO: Dudoso el tipo */
+    char * program_name;
+};
+
+typedef struct extern_transformation * transformation;
+
+extern transformation e_transformation;
+
 struct options{
     int port;                           // -p
     char * error_file;                  // -e
@@ -14,7 +23,7 @@ struct options{
     char * filtered_media_types;        // -M
     char * origin_server;               // This is the argument origin_server, it's not an option
     int origin_port;                    // -P
-    char * filter_command;              // -t
+    transformation filter_command;      // -t
 };
 
 typedef struct options * options;

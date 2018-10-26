@@ -5,7 +5,7 @@
 #include "mimeList.h"
 #include "parser_utils.h"
 
-#define WILDCARD "*" // Podemos tener un wildcard como subtype
+#define WILDCARD "*"
 
 
 struct List* create_list(void){
@@ -30,11 +30,9 @@ int add_new(char* type, char* subtype,struct List* list){
 
 		struct type_node*  tpnode = search_for_type(list,type,&typeExists);
 
-		
+		//FALTA VER QUE PASA SI subtype es *
 		if(strcmp(subtype,WILDCARD) == 0){
-
-			//ahora el subtype pasa a ser una wildcard y saco todos los que tenia
-			make_subtype_wildcard(tpnode,type,typeExists);
+			addWildcard(tpnode,type,typeExists);
 			return 0;
 		}
 
@@ -61,12 +59,13 @@ int add_new(char* type, char* subtype,struct List* list){
 		//tengo que inicializar 
 
 			if(strcmp(subtype,WILDCARD)==0){
-				list->first->subtypes = create_new_wildcard_subtype();			
+				list->first->subtypes = newNodeWildcard();			
 				return 0;
 			}
 
 			list->first = create_new_type(type);
-			list->first->subtypes = create_new_subtype(subtype);			
+			list->first->subtypes = create_new_subtype(subtype);
+			//FALTA VER QUE PASA SI subtype es *				
 			return 0;
 	}
 }
@@ -140,25 +139,20 @@ struct subtype_node* create_new_subtype(char* name){
 	if(node != NULL){
 		memset(node,0,sizeof(*node)); 
 		
-		struct parser_definition * def = malloc(sizeof(*def));
-		if (def == NULL) {
-			free(node);
-			return NULL;
-		}
 
-		struct parser_definition aux = parser_utils_strcmpi(name);
-		memcpy(def, &aux, sizeof(aux));
-
-		node->parser = parser_init(parser_no_classes(), def);
-		node->def	= def;
+		//node->parser = parser_init(parser_no_classes(), def);
+		//node->def	= def;
 		node->next = NULL;
 		node->name = name;
-		node->event = NULL;
-		node->wildcard = false;		
+		//node->event = NULL;
+		//node->wildcard = false;		
 	}
 	return node;
 }
 
+//FALTA remover subtypes de un type_node, remover un nodo, destruir nodo
+// destrui y resetear parser
+// el tema de las * en todos lados
 
 //funcion de imprimir lista
 void print_list(struct List* list){
@@ -182,7 +176,7 @@ void print_list(struct List* list){
 }
 
 
-/*
+
 
 void removeNode(struct List* list, char* type, char*subtype){
 	struct type_node* nodeType = list->first;
@@ -236,10 +230,9 @@ void removeNode(struct List* list, char* type, char*subtype){
 			}
 		}
 	}
-}*/
+}
 
 void destroy_list(struct List *list){
-
     struct type_node* node = list->first;
     struct subtype_node* subtypes;
     struct type_node* currType;
@@ -272,15 +265,13 @@ void destroy_list(struct List *list){
 }
 
 void clean_list(struct List* list){
-
     struct type_node* node = list->first;
     struct subtype_node* subtypes;
-
     while(node != NULL){
         subtypes = node->subtypes;
         while(subtypes != NULL){
 			if (!subtypes->wildcard) {
-				parser_reset(subtypes->parser); 
+				parser_reset(subtypes->parser);
 			}
             subtypes = subtypes->next;
         }
@@ -289,21 +280,32 @@ void clean_list(struct List* list){
     }
 }
 
-struct subtype_node* create_new_wildcard_subtype(){
-
-	struct subtype_node* subtype = malloc(sizeof(*subtype));
-
-	if(subtype != NULL){
-		memset(subtype,0,sizeof(*subtype));
-		subtype->parser = NULL;
-		subtype->def = NULL;
-		subtype->next = NULL;
-		subtype->name = WILDCARD;
-		subtype->event = NULL;
-		subtype->wildcard = true;
+struct subtype_node* newNodeWildcard(){
+	struct subtype_node* node = malloc(sizeof(*node));
+	if(node != NULL){
+		memset(node,0,sizeof(*node));
+		node->parser = NULL;
+		node->def = NULL;
+		node->next = NULL;
+		node->name = WILDCARD;
+		node->event = NULL;
+		node->wildcard = true;
 	}
-	return subtype;
+	return node;
 }
+
+/*static void destroy_node(struct type_node *node) {
+	if (node->name != NULL && node->wildcard) {
+		free((void *) node->name);
+	}
+	if (node->def != NULL) {
+		parser_utils_strcmpi_destroy(node->def);
+		free(node->def);
+	}
+	if (node->parser != NULL) {
+		parser_destroy(node->parser);
+	}
+}*/
 
 struct type_node *removeSubtypes(struct type_node* node){
 	struct subtype_node* aux = node->subtypes;
@@ -333,14 +335,14 @@ static void destroy_node(struct subtype_node *node) {
 	}
 }
 
-void make_subtype_wildcard(struct type_node* node, char* type, bool typeExists){	
-
+void addWildcard(struct type_node* node, char* type, bool typeExists){	
 	if(typeExists){
 		removeSubtypes(node);
-		node->subtypes = create_new_wildcard_subtype();
+		node->subtypes = newNodeWildcard();
 	}else{
 		node->next = create_new_type(type);
-		node->next->subtypes = create_new_wildcard_subtype();
+		node->next->subtypes = newNodeWildcard();
+		//fprintf(stderr,"Created new Node: %s/*\n", type);
 	}
 	return;
 }
