@@ -170,7 +170,7 @@ int main(int argc, char ** argv) {
             .mime_type              = mimeTypeParser,
             .boundary               = boundaryParser,
             .mime_list              = list,
-            .boundary_frontier      = stack_new(),
+            .boundary_frontier      = stack_init(),
             .filtered_msg_detected  = NULL,
             .boundary_detected      = NULL,
             .frontier_end_detected  = NULL,
@@ -205,7 +205,7 @@ int main(int argc, char ** argv) {
     parser_utils_strcmpi_destroy(&boundary_def);
     destroy_list(ctx.mime_list);
 
-    while(!stack_is_empty(ctx.boundary_frontier)) {
+    while(!(ctx.boundary_frontier.size == 0)) {
         struct Frontier *f = stack_pop(ctx.boundary_frontier);
         frontier_destroy(f);
     }
@@ -308,7 +308,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     printed = true;
                 }
                 if ((ctx->boundary_detected != 0
-                     && *ctx->boundary_detected) || !stack_is_empty(ctx->boundary_frontier)) {
+                     && *ctx->boundary_detected) || !(ctx->boundary_frontier.size == 0)) {
                     for (int i = 0; i < e->n; i++) {
                         boundary_frontier_check(ctx, e->data[i]);
                         check_end_of_frontier(ctx, e->data[i]);
@@ -428,7 +428,7 @@ const struct parser_event * parser_feed_subtype(struct subtype_node *node, const
         return global_event;
     }
     global_e = false;
-    node->event = parser_feed(node->parser, c); //esto tira segmentation fault
+    node->event = parser_feed(node->parser, c); 
     global_event = (struct parser_event *) node->event; 
     while (node->next != NULL) {
         node = node->next;

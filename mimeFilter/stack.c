@@ -3,30 +3,31 @@
 #include "stack.h"
 
 struct stack {
-    struct stack_node *first, *last;
+    struct element *last;
     int size;
 };
 
-struct stack_node {
+struct element {
+    struct element *prev;
     void *data;
-    struct stack_node *prev;
 };
 
-struct stack * stack_new() {
-    struct stack *ret = malloc(sizeof(*ret));
+struct stack * stack_init() {
 
-    if (ret == NULL) {
+    struct stack *s = malloc(sizeof(*s));
+
+    if (s == NULL) {
         return NULL;
     }
 
-    ret->first = ret->last = NULL;
-    ret->size = 0;
+    s->last = NULL;
+    s->size = 0;
 
-    return ret;
+    return s;
 }
 
-static struct stack_node * new_node(void * data) {
-    struct stack_node * node = malloc(sizeof(*node));
+static struct element * create_element(void * data) {
+    struct element * node = malloc(sizeof(*node));
 
     if (node == NULL) {
         return NULL;
@@ -43,16 +44,16 @@ void * stack_push(struct stack *s, void * data) {
         return NULL;
     }
 
-    struct stack_node *node = new_node(data);
+    struct element *node = create_element(data);
 
     if (node == NULL) {
         return NULL;
     }
 
-    if (s->first == NULL) {
-        s->first = s->last = node;
+    if (s->last == NULL) {
+        s->last = node;
     } else {
-        struct stack_node * prev_last = s->last;
+        struct element * prev_last = s->last;
         s->last = node;
         node->prev = prev_last;
     }
@@ -63,20 +64,16 @@ void * stack_push(struct stack *s, void * data) {
 }
 
 void * stack_pop(struct stack *s) {
-    if (stack_is_empty(s)) {
+    if (s->size == 0) {
         return NULL;
     }
 
     void * ret = s->last->data;
-    struct stack_node *node = s->last;
+    struct element *node = s->last;
 
     s->last = s->last->prev;
 
     free(node);
-
-    if (s->last == NULL) {
-        s->first = NULL;
-    }
 
     s->size--;
 
@@ -91,22 +88,15 @@ void * stack_peek(struct stack *s) {
     return s->last->data;
 }
 
-bool stack_is_empty(struct stack *s) {
-    return s->size == 0;
-}
-
-int stack_size(struct stack *s) {
-    return s->size;
-}
-
 void stack_destroy(struct stack *s) {
-    struct stack_node *node = s->last;
-    struct stack_node *aux;
 
-    while (node != NULL) {
-        aux = node->prev;
-        free(node);
-        node = aux;
+    struct element *curr = s->last;
+    struct element *aux;
+
+    while (curr != NULL) {
+        aux = curr->prev;
+        free(curr);
+        curr = aux;
     }
 
     free(s);

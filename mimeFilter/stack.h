@@ -17,4 +17,4 @@ int stack_size(struct stack *s);
 
 void stack_destroy(struct stack *s);
 
-#endif //TPE_PROTOS_STACK_H
+#endif
