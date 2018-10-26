@@ -1,19 +1,16 @@
 /**
  * selector.c - un muliplexor de entrada salida
  */
-#include <stdio.h>  // perror
-#include <stdlib.h> // malloc
-#include <string.h> // memset
-#include <assert.h> // :)
-#include <errno.h>  // :)
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <errno.h>
 #include <pthread.h>
-
-#include <stdint.h> // SIZE_MAX
-#include <unistd.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/select.h>
 #include <sys/signal.h>
 #include "include/selector.h"
 
@@ -296,12 +293,12 @@ fd_selector selector_new(const size_t initial_elements) {
 }
 
 void selector_destroy(fd_selector s) {
-    // lean ya que se llama desde los casos fallidos de _new.
+    size_t i;
     if(s != NULL) {
         if(s->fds != NULL) {
-            for(size_t i = 0; i < s->fd_size ; i++) {
+            for(i = 0; i < s->fd_size ; i++) {
                 if(ITEM_USED(s->fds + i)) {
-                    selector_unregister_fd(s, i);
+                    selector_unregister_fd(s, (const int) i);
                 }
             }
             pthread_mutex_destroy(&s->resolution_mutex);

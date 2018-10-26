@@ -68,11 +68,8 @@ void transaction(struct admin * admin){
             admin->resp_length = strlen(admin->resp_data);
             break;
         case SWITCH_T:
-            if(parameters->filter_command->switch_program == 0){
-                parameters->filter_command->switch_program = 1;
-            } else {
-                parameters->filter_command->switch_program = 0;
-            }
+            /* Deberiamos enviar un mensaje */
+            parameters->filter_command->switch_program != parameters->filter_command->switch_program;
             break;
         case GET_ME:
             return_metric(admin, r->data);
