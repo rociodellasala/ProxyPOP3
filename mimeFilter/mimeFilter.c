@@ -13,7 +13,7 @@
 #include "multi_pop3_parser.h"
 #include "mime_chars.h"
 #include "mime_msg.h"
-#include "frontier.h"
+#include "delimiter.h"
 #include "stack.h"
 
 
@@ -143,7 +143,7 @@ int main(int argc, char ** argv) {
     }
 	
 
-	const unsigned int *no_class = parser_no_classes(); // Cambiar esto
+	const unsigned int *no_class = parser_no_classes(); 
 
     struct parser_definition media_header_def= parser_utils_strcmpi("content-type");
 
@@ -157,10 +157,7 @@ int main(int argc, char ** argv) {
 
     struct parser *multiParser =parser_init(no_class, pop3_multi_parser());  
 
-    struct parser *mimeTypeParser = parser_init(init_char_class(), mime_type_parser());  //falta este -- cambiarlo!
-
-    //inicializo estructura
-	//falta hacer
+    struct parser *mimeTypeParser = parser_init(init_char_class(), mime_type_parser());  
 
     struct ctx ctx = {
             .multi                  = multiParser,
@@ -204,8 +201,8 @@ int main(int argc, char ** argv) {
     destroy_list(ctx.mime_list);
 
     while(!(ctx.boundary_frontier.size == 0)) {
-        struct Frontier *f = stack_pop(ctx.boundary_frontier);
-        frontier_destroy(f);
+        struct delimiter_st dlm = stack_pop(ctx.boundary_frontier);
+        delimiter_destroy(dlm);
     }
     stack_destroy(ctx.boundary_frontier);
 
@@ -288,7 +285,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 for (int i = 0; i < CONTENT_TYPE_VALUE_SIZE; i++) {
                     ctx->buffer[i]  = 0;
                 }
-                end_frontier(stack_peek(ctx->boundary_frontier));
+                close_delimiter(stack_peek(ctx->boundary_frontier));
                 parser_reset(ctx->mime_type);
                 clean_list(ctx->mime_list);
                 parser_reset(ctx->boundary);
@@ -317,9 +314,9 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
             case MIME_MSG_BODY_NEWLINE:
                 if (ctx->frontier_detected != 0 && ctx->frontier_end_detected != 0
                     && (*ctx->frontier_end_detected && !*ctx->frontier_detected)) {
-                    struct Frontier *f = stack_pop(ctx->boundary_frontier);
-                    if (f != NULL) {
-                        frontier_destroy(f);
+                    struct delimiter_st *dlm = stack_pop(ctx->boundary_frontier);
+                    if (dlm != NULL) {
+                        delimiter_destroy(dlm);
                     }
                 }
                 if (ctx->frontier_detected != 0 && *ctx->frontier_detected) {
@@ -336,11 +333,11 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     parser_reset(ctx->mime_type);
                     parser_reset(ctx->boundary);
                     parser_reset(ctx->ctype_header);
-                    frontier_reset(stack_peek(ctx->boundary_frontier));
+                    delimiter_reset(stack_peek(ctx->boundary_frontier));
                 }
                 if (stack_peek(ctx->boundary_frontier) != NULL) {
-                    parser_reset(((struct Frontier *) stack_peek(ctx->boundary_frontier))->frontier_parser);
-                    parser_reset(((struct Frontier *) stack_peek(ctx->boundary_frontier))->frontier_end_parser);
+                    parser_reset(((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_parser);
+                    parser_reset(((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_end_parser);
                 }
                 break;
             case MIME_MSG_VALUE_FOLD:
@@ -437,7 +434,7 @@ const struct parser_event * parser_feed_subtype(struct subtype_node *node, const
 
 static void check_end_of_frontier(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(
-            ((struct Frontier *) stack_peek(ctx->boundary_frontier))->frontier_end_parser, c);
+            ((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_end_parser, c);
     do {
         //debug("7.Body", parser_utils_strcmpi_event, e);
         switch (e->type) {
@@ -455,7 +452,7 @@ static void check_end_of_frontier(struct ctx *ctx, const uint8_t c) {
 
 static void boundary_frontier_check(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(
-            ((struct Frontier *) stack_peek(ctx->boundary_frontier))->frontier_parser, c);
+            ((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_parser, c);
     do {
         //debug("6.Body", parser_utils_strcmpi_event, e);
         switch (e->type) {
@@ -470,7 +467,7 @@ static void boundary_frontier_check(struct ctx *ctx, const uint8_t c) {
 }
 
 static void store_boundary_parameter(struct ctx *ctx, const uint8_t c) {
-    add_character(stack_peek(ctx->boundary_frontier), c);
+    extend(c, stack_peek(ctx->boundary_frontier));
 }
 
 
@@ -562,11 +559,11 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
             case MIME_FRONTIER_START:
                 if (ctx->boundary_detected != 0
                     && *ctx->boundary_detected) {
-                    struct Frontier *f = frontier_init();
-                    if (f == NULL) {
+                    struct delimiter_st *dlm = delimiter_init();
+                    if (dlm == NULL) {
                         abort();
                     }
-                    stack_push(ctx->boundary_frontier, f);
+                    stack_push(ctx->boundary_frontier, dlm);
                 }
                 break;
             case MIME_FRONTIER:
