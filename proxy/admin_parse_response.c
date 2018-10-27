@@ -6,6 +6,7 @@
 #include <errno.h>
 #include "include/admin.h"
 #include "include/serializer.h"
+#include "include/utils.h"
 
 typedef int file_descriptor;
 
@@ -24,7 +25,7 @@ void ehlo(struct admin * admin){
 
 ssize_t send_response(struct admin * admin, response_admin * response) {
     ssize_t sent_bytes;
-    unsigned char buffer_response[100]; // TODO ARREGLAR SMASHING STACK SI MANDO ALGO MAYOR A ESE NUMERO 100
+    unsigned char buffer_response[MAX_ADMIN_BUFFER]; 
     unsigned char * pointer = serialize_response(buffer_response, response);
 
     sent_bytes = sctp_sendmsg(admin->fd, buffer_response, pointer-buffer_response, NULL, 0, 0, 0, 0, 0, 0);

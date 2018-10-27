@@ -7,11 +7,9 @@
 #include "include/serializer.h"
 #include "include/administrator.h"
 
-#define VERSION 1 /* TODO: esta bien ?*/
-
 ssize_t send_request(request * request) {
     ssize_t sent_bytes;
-    unsigned char buffer[100];
+    unsigned char buffer[MAX_BUFFER];
     unsigned char * pointer = serialize_request(buffer, request);
 
     sent_bytes = sctp_sendmsg(socket_fd, buffer, pointer-buffer, NULL, 0, 0, 0, 0, 0, 0);
@@ -25,7 +23,7 @@ ssize_t send_request(request * request) {
 
 void send_request_one_param(const char * parameter, cmd cmd) {
     request * request   = malloc(sizeof(*request));
-    
+
     request->version    = VERSION;
     request->cmd        = cmd;
     request->length     = (unsigned int) strlen(parameter) + 1;

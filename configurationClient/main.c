@@ -10,26 +10,25 @@
 
 options parameters;
 
-
-
-/* todo: VER CASO DONDE SE ROMPA EL PROXY, DESCONECTAR AL ADMIN */
+/* TODO: VER CASO DONDE SE ROMPA EL PROXY, DESCONECTAR AL ADMIN ?????? */
 
 struct addrinfo * resolution(){
     struct addrinfo * list_result = 0;
-    char mgmt_buff[10];
-    snprintf(mgmt_buff, sizeof(mgmt_buff), "%hu", parameters->management_port);
+    char service[5];
+
+    snprintf(service, sizeof(service), "%hu", parameters->management_port);
 
     struct addrinfo hints = {
-            .ai_family    = AF_UNSPEC,    /* Allow IPv4 or IPv6 */
-            .ai_socktype  = SOCK_STREAM,  /* Datagram socket */
-            .ai_flags     = AI_PASSIVE,   /* For wildcard IP address */
-            .ai_protocol  = 0,            /* Any protocol */
+            .ai_family    = AF_UNSPEC,
+            .ai_socktype  = SOCK_STREAM,
+            .ai_flags     = AI_PASSIVE,
+            .ai_protocol  = 0,
             .ai_canonname = NULL,
             .ai_addr      = NULL,
             .ai_next      = NULL,
     };
 
-    if (getaddrinfo(parameters->management_address, mgmt_buff, &hints, &list_result) != 0){
+    if (getaddrinfo(parameters->management_address, service, &hints, &list_result) != 0){
         fprintf(stderr,"Domain Name System (DNS) resolution error\n");
     }
 

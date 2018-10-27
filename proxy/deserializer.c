@@ -1,5 +1,5 @@
 #include <malloc.h>
-#include "include/request_admin.h"
+#include "include/admin_request.h"
 
 unsigned char * deserialize_int(unsigned char * buffer, unsigned int * value) {
     *value = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];

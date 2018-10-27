@@ -5,8 +5,6 @@
 #include "utils.h"
 #include <stdbool.h>
 
-#define MAX_BUFFER 1024
-#define MAX_READ MAX_BUFFER
 #define SPACE ' '
 #define NEWLINE '\n'
 
@@ -32,7 +30,8 @@ typedef enum cmd_status {
     BAD_SINTAXIS    = 0,
     INEXISTENT_CMD  = 1,
     HELP_CMD        = 2,
-    WELL_WRITTEN    = 3,
+    PARAM_TOO_LONG  = 3,
+    WELL_WRITTEN    = 4,
 } cmd_status;
 
 extern file_descriptor socket_fd;

@@ -2,11 +2,16 @@ cmake_minimum_required(VERSION 3.6)                     # CMake version check
 project(proxypop3)                                      # Create project "proxypop3"
 set(CMAKE_C_STANDARD 11)                                # Enable c standard
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
-add_compile_options("-lsctp")
+#add_compile_options("-lsctp")
 #add_compile_options("-Wall")
 #add_compile_options("-pedantic")
 #add_compile_options("-Werror")
 #add_compile_options("-Wextra")
+#add_compile_options("--std=c99")
+#add_compile_options("-ansi")
+#add_compile_options("--pedantic-errors")
+#add_compile_options("-Wno-used-parameters")
+#add_compile_options("-Wno-used-parameters")
 
 link_libraries("-lsctp")
 
@@ -15,7 +20,7 @@ set(SOURCE_FILES_CLIENT configurationClient/administrator.c configurationClient/
 set(SOURCE_FILES_MIME mimeFilter/mimeFilter.c)
 set(SOURCE_FILES_PROXY proxy/buffer.c proxy/external_transformation.c  proxy/main.c proxy/admin.c proxy/pop3.c proxy/response.c proxy/request.c
         proxy/stm.c proxy/utils.c proxy/selector.c proxy/include/buffer.h proxy/include/external_transformation.h proxy/include/admin.h proxy/include/pop3.h proxy/include/request.h proxy/include/response.h proxy/include/selector.h
-        proxy/include/stm.h proxy/include/utils.h proxy/queue.c proxy/request_parser.c proxy/response_parser.c proxy/include/request_parser.h proxy/include/response_parser.h proxy/pop3_session.c proxy/include/pop3_session.h proxy/include/queue.h proxy/input_parser.c proxy/include/input_parser.h proxy/deserializer.c proxy/serializer.c proxy/include/serializer.h proxy/include/deserializer.h proxy/include/response_admin.h proxy/include/request_admin.h proxy/admin_actions.c proxy/include/admin_actions.h proxy/admin_parser_request.c proxy/include/admin_parser.h proxy/admin_parse_response.c proxy/include/metrics.h proxy/metrics.c)
+        proxy/include/stm.h proxy/include/utils.h proxy/queue.c proxy/request_parser.c proxy/response_parser.c proxy/include/request_parser.h proxy/include/response_parser.h proxy/pop3_session.c proxy/include/pop3_session.h proxy/include/queue.h proxy/input_parser.c proxy/include/input_parser.h proxy/deserializer.c proxy/serializer.c proxy/include/serializer.h proxy/include/deserializer.h proxy/include/admin_response.h proxy/include/admin_request.h proxy/admin_actions.c proxy/include/admin_actions.h proxy/admin_parser_request.c proxy/include/admin_parser.h proxy/admin_parse_response.c proxy/include/metrics.h proxy/metrics.c)
 
 # ATENCION: CUANDO TENGAMOS EJECUTABLES EN CONFIGURATIONCLIENT Y MIMEFILTER HAY QUE SETEAR ESTE ARCHIVO (no se si lo que esta, está bien)
 

@@ -9,9 +9,9 @@
 
 ssize_t receive_response(response_status * status, response * response) {
     ssize_t read_quan;
-    unsigned char buffer[100];
+    unsigned char buffer[MAX_BUFFER];
     
-    read_quan = sctp_recvmsg(socket_fd, buffer, 100, NULL, 0, 0, 0);
+    read_quan = sctp_recvmsg(socket_fd, buffer, MAX_BUFFER, NULL, 0, 0, 0);
 
     if (read_quan < 0) {
         printf("%s\n", strerror(errno));

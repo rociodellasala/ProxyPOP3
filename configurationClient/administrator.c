@@ -52,7 +52,7 @@ void handle_receive_msg(response_status * r_status) {
 }
 
 cmd_status assemble_req(int i, const char * buffer_option, const cmd command) {
-    char param[MAX_BUFFER]  = {0};
+    char param[MAX_PARAM]  = {0};
     int j                   = 0;
 
     if(buffer_option[i] != SPACE){
@@ -60,8 +60,12 @@ cmd_status assemble_req(int i, const char * buffer_option, const cmd command) {
     } else {
         i++;
 
-        for (; i < MAX_READ && buffer_option[i] != '\n'; i++) {
+        for (; j < MAX_PARAM && buffer_option[i] != '\n'; i++) {
             param[j++] = buffer_option[i];
+        }
+       
+        if(j == MAX_PARAM){
+            return PARAM_TOO_LONG;
         }
 
         send_request_one_param(param, command);
@@ -73,7 +77,7 @@ cmd_status assemble_req(int i, const char * buffer_option, const cmd command) {
 cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_option_on) {
     int i = 0;
     cmd_status cmd_status;
-   
+
     switch (c) {
         case A:
             cmd_status = assemble_req(++i, buffer_option, A);
@@ -104,7 +108,7 @@ cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_opt
 cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_option_on) {
     int i = 0;
     cmd_status cmd_status;
-    
+
     switch (c) {
         case SET_T:
             cmd_status = assemble_req(++i, buffer_option, SET_T);
@@ -180,6 +184,10 @@ void parse_cmd_status(cmd_status cmd_status, response_status * r_status) {
                 break;
         case INEXISTENT_CMD:
                 printf("The entered command does not exist or it's invalid for current status.\n");
+                *r_status = NOT_SEND;
+                break;
+        case PARAM_TOO_LONG:
+                printf("The entered parameter is too long to be sent. Maximum of 99 characters.\n");
                 *r_status = NOT_SEND;
                 break;
         case WELL_WRITTEN:

@@ -5,7 +5,7 @@
 
 typedef struct {
     unsigned char   version;
-    unsigned char    cmd;
+    unsigned char   cmd;
     unsigned int    length;
     unsigned char * data;
 }request_admin;

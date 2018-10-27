@@ -3,8 +3,8 @@
 
 #include "selector.h"
 #include "buffer.h"
-#include "request_admin.h"
-#include "response_admin.h"
+#include "admin_request.h"
+#include "admin_response.h"
 
 enum cmd {
     A           = '1',

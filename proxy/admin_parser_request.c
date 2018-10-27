@@ -8,9 +8,9 @@
 #include "include/deserializer.h"
 #include "include/admin.h"
 #include "include/serializer.h"
-#include "include/request_admin.h"
+#include "include/admin_request.h"
 #include "include/admin_actions.h"
-#include "include/response_admin.h"
+#include "include/admin_response.h"
 #include "include/utils.h"
 
 void parse_action(struct admin * admin){
@@ -43,6 +43,9 @@ void parse_action(struct admin * admin){
             admin->resp_length = strlen((const char *) admin->resp_data);
             break;
         case ALLOW_MI:
+            /* TODO: Ale cuidado cuando agregues un mime a la lista porque las respuestas tienen un maximo de
+             * 100 caracteres para la parte de data y entonces si despues agregamos tantos que eso se sobrepasa
+             * y hacemos el comando 6 para pedir, va a explotar toodo */
             //allow_mime()
             break;
         case FORBID_MI:
@@ -77,10 +80,10 @@ void parse_req_commands(struct admin * admin){
 
 int parse_admin_request(struct admin * admin) {
     int read_bytes;
-    unsigned char buffer[100]; /* TODO VER TAMAÑO BUFFER */
+    unsigned char buffer[MAX_ADMIN_BUFFER];
     request_admin * request     = malloc(sizeof(*request));
 
-    read_bytes = sctp_recvmsg(admin->fd, buffer, 100, NULL, 0, 0, 0);
+    read_bytes = sctp_recvmsg(admin->fd, buffer, MAX_ADMIN_BUFFER, NULL, 0, 0, 0);
 
     if (read_bytes <= 0) {
         admin->req_status = COULD_NOT_READ_REQUEST;

@@ -3,6 +3,10 @@
 
 #include "response.h"
 
+#define VERSION 1 /* TODO: esta bien ?*/
+#define MAX_PARAM 100
+#define MAX_BUFFER 9 + MAX_PARAM /* 3 version (uchar), 3 cmd (uchar), 3 length y 100 max data (definido por nosotros) */
+
 typedef int file_descriptor;
 
 void show_menu_authentication();
