@@ -2,15 +2,7 @@
 
 #include "stack.h"
 
-struct stack {
-    struct element *last;
-    int size;
-};
 
-struct element {
-    struct element *prev;
-    void *data;
-};
 
 struct stack * stack_init() {
 

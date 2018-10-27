@@ -1,0 +1,46 @@
+flm is image/png,image/jpeg
+INSIDE WHILE
+Node correctly added!
+INSIDE WHILE
+Node correctly added!
+Here's your list
+-----------------------------------------------------------
+Type: image
+-Subtype: png 
+-Subtype: jpeg 
+
+Date: Sun, 5 Nov 2017 18:59:10 -0300
+From: juan <juan@juan-virtual-machine>
+To: juan
+Subject: ii
+Message-ID: <20171105185910.5bec39ca@juan-virtual-machine>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/XAkM/CBycDJWEUGbQ_LLaw3"
+
+--MP_/XAkM/CBycDJWEUGbQ_LLaw3
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Un png, un jpgeg
+--MP_/XAkM/CBycDJWEUGbQ_LLaw3
+Content-Type:text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=favicon.png
+
+Parte reemplazada.
+--MP_/XAkM/CBycDJWEUGbQ_LLaw3
+Content-Type:text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=favicon.jpg
+
+Parte reemplazada.
+--MP_/XAkM/CBycDJWEUGbQ_LLaw3
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=hola.txt
+
+hola mundo!
+
+--MP_/XAkM/CBycDJWEUGbQ_LLaw3--
+

@@ -3,6 +3,16 @@
 
 #include <stdbool.h>
 
+struct stack {
+    struct element *last;
+    int size;
+};
+
+struct element {
+    struct element *prev;
+    void *data;
+};
+
 struct stack * stack_init();
 
 static struct element * create_element(void * data);

@@ -20,7 +20,7 @@
 //variables de entorno del manual pop3filter.8
 #define FILTER_MEDIAS 	"FILTER_MEDIAS"
 #define FILTER_MSG 		"FILTER_MSG"
-#define ANY (1 << 9) //cambiar esto y tmbn en la funcion
+#define ANY (1 << 9) 
 
 
 static bool T = true;
@@ -48,13 +48,13 @@ int main(int argc, char ** argv) {
 		free(list);
 		return -1;
 	}
-	printf("flm is %s\n", flm);
+	//printf("flm is %s\n", flm);
 	
 	
 	char* medias = malloc(strlen(flm) + 1);
 	
 	if(medias == NULL){
-		printf("bye 1\n");
+		//printf("bye 1\n");
 		free(list);
 		return -1;
 	}
@@ -77,10 +77,10 @@ int main(int argc, char ** argv) {
 
 	//en este WHILE faltan hacer free! con variable error porque sino hay que destruir  el mimeparser list
 	while(current != NULL){
-		printf("INSIDE WHILE\n");
+		//printf("INSIDE WHILE\n");
 		char *aux = malloc(strlen(current) + 1);
 		if(aux == NULL){
-			printf("bye aux\n");
+			//printf("bye aux\n");
 			return -1;
 		}
 		strcpy(aux, current);
@@ -89,7 +89,7 @@ int main(int argc, char ** argv) {
 		
 		mime = strtok_r(aux, slash, &context_b);
 		if(mime == NULL){
-			printf("bye mime\n");
+			//printf("bye mime\n");
 			return -1;
 		}
 
@@ -99,7 +99,7 @@ int main(int argc, char ** argv) {
 		}
 		strcpy(type, mime);
 		/*getting subtype*/
-		
+
 		mime = strtok_r(NULL, slash, &context_b);
 		if(mime == NULL){
 			return -1;
@@ -112,21 +112,20 @@ int main(int argc, char ** argv) {
 		}
 
 		strcpy(subtype, mime);
-		
+        printf("-- before agregado --\n");
 		int addition = add_new(type, subtype, list);
+        printf("-- agregado --\n");
 		if(addition != -1){
-			printf("Node correctly added!\n");
+			//printf("Node correctly added!\n");
 		}
 
 		free(aux);
 		current = strtok_r(NULL, comma, &context);
-	}free
+	}
 	// free(flm); no funca
 
-	print_list(list);
-	
-	return 0;
-
+	//print_list(list);
+    printf("lista creada\n");
 	
 	char *message = getenv(FILTER_MSG);
 
@@ -192,8 +191,8 @@ int main(int argc, char ** argv) {
     parser_utils_strcmpi_destroy(&boundary_def);
     destroy_list(ctx.mime_list);
 
-    while(!(ctx.boundary_delimiter.size == 0)) {
-        struct delimiter_st dlm = stack_pop(ctx.boundary_delimiter);
+    while(!(ctx.boundary_delimiter->size == 0)) {
+        struct delimiter_st *dlm = stack_pop(ctx.boundary_delimiter);
         delimiter_destroy(dlm);
     }
     stack_destroy(ctx.boundary_delimiter);
@@ -260,7 +259,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
-                        content_type_st(ctx, e->data[i]);
+                        content_type_value(ctx, e->data[i]);
                     }
                 }
                 break;
@@ -293,7 +292,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     printed = true;
                 }
                 if ((ctx->boundary_detected != 0
-                     && *ctx->boundary_detected) || !(ctx->boundary_delimiter.size == 0)) {
+                     && *ctx->boundary_detected) || !(ctx->boundary_delimiter->size == 0)) {
                     for (int i = 0; i < e->n; i++) {
                         boundary_delimiter_detection(ctx, e->data[i]);
                         detect_delimiter_ending(ctx, e->data[i]);
@@ -521,7 +520,7 @@ static void content_type_type(struct ctx *ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
-static void content_type_st(struct ctx *ctx, const uint8_t c) {
+static void content_type_value(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(ctx->mime_type, c);
     do {
         switch (e->type) {
