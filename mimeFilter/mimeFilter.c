@@ -158,11 +158,11 @@ int main(int argc, char ** argv) {
             .mime_type              = mimeTypeParser,
             .boundary               = boundaryParser,
             .mime_list              = list,
-            .boundary_frontier      = stack_init(),
+            .boundary_delimiter      = stack_init(),
             .filtered_msg_detected  = NULL,
             .boundary_detected      = NULL,
-            .frontier_end_detected  = NULL,
-            .frontier_detected      = NULL,
+            .delimiter_end_detected  = NULL,
+            .delimiter_detected      = NULL,
             .filter_msg             = message,
             .replace                = false,
             .replaced               = false,
@@ -192,11 +192,11 @@ int main(int argc, char ** argv) {
     parser_utils_strcmpi_destroy(&boundary_def);
     destroy_list(ctx.mime_list);
 
-    while(!(ctx.boundary_frontier.size == 0)) {
-        struct delimiter_st dlm = stack_pop(ctx.boundary_frontier);
+    while(!(ctx.boundary_delimiter.size == 0)) {
+        struct delimiter_st dlm = stack_pop(ctx.boundary_delimiter);
         delimiter_destroy(dlm);
     }
-    stack_destroy(ctx.boundary_frontier);
+    stack_destroy(ctx.boundary_delimiter);
 
     return 0;
 
@@ -260,7 +260,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
-                        content_type_value(ctx, e->data[i]);
+                        content_type_st(ctx, e->data[i]);
                     }
                 }
                 break;
@@ -277,7 +277,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 for (int i = 0; i < CONTENT_TYPE_VALUE_SIZE; i++) {
                     ctx->buffer[i]  = 0;
                 }
-                close_delimiter(stack_peek(ctx->boundary_frontier));
+                close_delimiter(stack_peek(ctx->boundary_delimiter));
                 parser_reset(ctx->mime_type);
                 clean_list(ctx->mime_list);
                 parser_reset(ctx->boundary);
@@ -293,31 +293,31 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     printed = true;
                 }
                 if ((ctx->boundary_detected != 0
-                     && *ctx->boundary_detected) || !(ctx->boundary_frontier.size == 0)) {
+                     && *ctx->boundary_detected) || !(ctx->boundary_delimiter.size == 0)) {
                     for (int i = 0; i < e->n; i++) {
-                        boundary_frontier_check(ctx, e->data[i]);
-                        check_end_of_frontier(ctx, e->data[i]);
-                        if (!printed && ctx->frontier_end_detected != NULL && *ctx->frontier_end_detected) {
+                        boundary_delimiter_detection(ctx, e->data[i]);
+                        detect_delimiter_ending(ctx, e->data[i]);
+                        if (!printed && ctx->delimiter_end_detected != NULL && *ctx->delimiter_end_detected) {
                             putchar(c);
                         }
                     }
                 }
                 break;
             case MIME_MSG_BODY_NEWLINE:
-                if (ctx->frontier_detected != 0 && ctx->frontier_end_detected != 0
-                    && (*ctx->frontier_end_detected && !*ctx->frontier_detected)) {
-                    struct delimiter_st *dlm = stack_pop(ctx->boundary_frontier);
+                if (ctx->delimiter_detected != 0 && ctx->delimiter_end_detected != 0
+                    && (*ctx->delimiter_end_detected && !*ctx->delimiter_detected)) {
+                    struct delimiter_st *dlm = stack_pop(ctx->boundary_delimiter);
                     if (dlm != NULL) {
                         delimiter_destroy(dlm);
                     }
                 }
-                if (ctx->frontier_detected != 0 && *ctx->frontier_detected) {
+                if (ctx->delimiter_detected != 0 && *ctx->delimiter_detected) {
                     ctx->replace = false;
                     ctx->replaced = false;
                     ctx->filtered_msg_detected = &F;
                     ctx->boundary_detected = &F;
-                    ctx->frontier_detected = NULL;
-                    ctx->frontier_end_detected = NULL;
+                    ctx->delimiter_detected = NULL;
+                    ctx->delimiter_end_detected = NULL;
                     ctx->subtype = NULL;
                     ctx->msg_content_type_field_detected = NULL;
                     parser_reset(ctx->msg);
@@ -325,11 +325,11 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     parser_reset(ctx->mime_type);
                     parser_reset(ctx->boundary);
                     parser_reset(ctx->ctype_header);
-                    delimiter_reset(stack_peek(ctx->boundary_frontier));
+                    delimiter_reset(stack_peek(ctx->boundary_delimiter));
                 }
-                if (stack_peek(ctx->boundary_frontier) != NULL) {
-                    parser_reset(((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_parser);
-                    parser_reset(((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_end_parser);
+                if (stack_peek(ctx->boundary_delimiter) != NULL) {
+                    parser_reset(((struct delimiter_st *) stack_peek(ctx->boundary_delimiter))->delimiter_parser);
+                    parser_reset(((struct delimiter_st *) stack_peek(ctx->boundary_delimiter))->delimiter_end_parser);
                 }
                 break;
             case MIME_MSG_VALUE_FOLD:
@@ -344,9 +344,10 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 break;
         }
 
-        if (should_print(e) && !printed) {
+        if (e->type != MIME_MSG_BODY && e->type != MIME_MSG_VALUE && e->type != MIME_MSG_VALUE_END
+           && e->type != MIME_MSG_WAIT && e->type != MIME_MSG_VALUE_FOLD && !printed) {
             if ((c == '\r' || c== '\n') && (e->type == MIME_MSG_BODY_NEWLINE || e->type == MIME_MSG_BODY_CR) && ctx->replaced) {
-                // nada por hacer
+                // nothing
             } else {
                 putchar(c);
                 printed = true;
@@ -361,7 +362,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
 
 
-void setContextType(struct ctx *ctx) {
+void context_setter(struct ctx *ctx) {
     struct type_node *node = ctx->mime_list->first;
     if (node->event->type == STRING_CMP_EQ) {
         ctx->subtype = node->subtypes;
@@ -377,64 +378,68 @@ void setContextType(struct ctx *ctx) {
     }
 }
 
-const struct parser_event * parser_feed_type(struct List *mime_list, const uint8_t c) {
+const struct parser_event * feed_types(struct List *mime_list, const uint8_t c) {
+
     struct type_node *node = mime_list->first;
-    const struct parser_event *global_event;
+    const struct parser_event *curr;
     node->event = parser_feed(node->parser, c);
-    global_event = node->event;
+    curr = node->event;
+
     while (node->next != NULL) {
         node = node->next;
         node->event = parser_feed(node->parser, c);
         if (node->event->type == STRING_CMP_EQ) {
-            global_event = node->event;
+            curr = node->event;
         }
     }
-    return global_event;
+
+    return curr;
 }
 
-bool global_e = false;
+bool isWildcard = false;
 
-const struct parser_event * parser_feed_subtype(struct subtype_node *node, const uint8_t c) {
-    struct parser_event *global_event;
+const struct parser_event * feed_subtypes(struct subtype_node *node, const uint8_t c) {
+
+    struct parser_event *evt;
 
     if (node->wildcard) {
-        global_e = true;
-        global_event = malloc(sizeof(*global_event));
-        if (global_event == NULL) {
+        isWildcard = true;
+        evt = malloc(sizeof(*evt));
+        if (evt == NULL) {
             return NULL;
         }
-        memset(global_event, 0, sizeof(*global_event));
-        global_event->type = STRING_CMP_EQ;
-        global_event->next = NULL;
-        global_event->n = 1;
-        global_event->data[0] = c;
-        return global_event;
+        memset(evt, 0, sizeof(*evt));
+        evt->type = STRING_CMP_EQ;
+        evt->next = NULL;
+        evt->n = 1;
+        evt->data[0] = c;
+        return evt;
     }
-    global_e = false;
+    isWildcard = false;
     node->event = parser_feed(node->parser, c);
-    global_event = (struct parser_event *) node->event;
+    evt = (struct parser_event *) node->event;
 
     while (node->next != NULL) {
         node = node->next;
         node->event = parser_feed(node->parser, c);
         if (node->event->type == STRING_CMP_EQ) {
-            global_event = (struct parser_event *) node->event;
+            evt = (struct parser_event *) node->event;
         }
     }
-    return global_event;
+    return evt;
 }
 
-static void check_end_of_frontier(struct ctx *ctx, const uint8_t c) {
+static void detect_delimiter_ending(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(
-            ((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_end_parser, c);
+            ((struct delimiter_st *) stack_peek(ctx->boundary_delimiter))->delimiter_end_parser, c);
     do {
         //debug("7.Body", parser_utils_strcmpi_event, e);
         switch (e->type) {
             case STRING_CMP_EQ:
-                ctx->frontier_end_detected = &T;
+                ctx->delimiter_end_detected = &T;
                 break;
             case STRING_CMP_NEQ:
-                ctx->frontier_end_detected = &F;
+                ctx->delimiter_end_detected = &F;
                 break;
         }
         e = e->next;
@@ -442,31 +447,27 @@ static void check_end_of_frontier(struct ctx *ctx, const uint8_t c) {
 }
 
 
-static void boundary_frontier_check(struct ctx *ctx, const uint8_t c) {
+static void boundary_delimiter_detection(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(
-            ((struct delimiter_st *) stack_peek(ctx->boundary_frontier))->delimiter_parser, c);
+            ((struct delimiter_st *) stack_peek(ctx->boundary_delimiter))->delimiter_parser, c);
     do {
         //debug("6.Body", parser_utils_strcmpi_event, e);
         switch (e->type) {
             case STRING_CMP_EQ:
-                ctx->frontier_detected = &T;
+                ctx->delimiter_detected = &T;
                 break;
             case STRING_CMP_NEQ:
-                ctx->frontier_detected = &F;
+                ctx->delimiter_detected = &F;
         }
         e = e->next;
     } while (e != NULL);
 }
 
-static void store_boundary_parameter(struct ctx *ctx, const uint8_t c) {
-    extend(c, stack_peek(ctx->boundary_frontier));
-}
 
 
-static void parameter_boundary(struct ctx *ctx, const uint8_t c) {
+static void boundary_analizer(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(ctx->boundary, c);
     do {
-        //debug("5.Boundary", parser_utils_strcmpi_event, e);
         switch (e->type) {
             case STRING_CMP_EQ:
                 ctx->boundary_detected = &T;
@@ -480,13 +481,12 @@ static void parameter_boundary(struct ctx *ctx, const uint8_t c) {
 }
 
 static void content_type_subtype(struct ctx *ctx, const uint8_t c) {
-    const struct parser_event *e = parser_feed_subtype(ctx->subtype, c);
+    const struct parser_event *e = feed_subtypes(ctx->subtype, c);
     if (e == NULL) {
-        //TODO destro ctx
+        // BORRAR ESTO CAMBIARLO DESTRUIR CTX
         return;
     }
     do {
-        //debug("4.subtype", parser_utils_strcmpi_event, e);
         switch (e->type) {
             case STRING_CMP_EQ:
                 ctx->filtered_msg_detected = &T;
@@ -497,9 +497,9 @@ static void content_type_subtype(struct ctx *ctx, const uint8_t c) {
         }
 
         const struct parser_event *next = e->next;
-        if (global_e) {
+        if (isWildcard) {
             free((void *) e);
-            global_e = false;
+            isWildcard = false;
         }
         e = next;
     } while (e != NULL);
@@ -507,9 +507,8 @@ static void content_type_subtype(struct ctx *ctx, const uint8_t c) {
 
 
 static void content_type_type(struct ctx *ctx, const uint8_t c) {
-    const struct parser_event *e = parser_feed_type(ctx->mime_list, c);
+    const struct parser_event *e = feed_types(ctx->mime_list, c);
     do {
-        //debug("4.type", parser_utils_strcmpi_event, e);
         switch (e->type) {
             case STRING_CMP_EQ:
                 ctx->filtered_msg_detected = &T;
@@ -522,10 +521,9 @@ static void content_type_type(struct ctx *ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
-static void content_type_value(struct ctx *ctx, const uint8_t c) {
+static void content_type_st(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(ctx->mime_type, c);
     do {
-        //debug("3.typeval", mime_type_event, e);
         switch (e->type) {
             case MIME_TYPE_TYPE:
                 if (ctx->filtered_msg_detected != 0
@@ -542,27 +540,27 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
             case MIME_TYPE_TYPE_END:
                 if (ctx->filtered_msg_detected != 0
                     || *ctx->filtered_msg_detected) {
-                    setContextType(ctx);
+                    context_setter(ctx);
                 }
                 break;
             case MIME_PARAMETER:
-                parameter_boundary(ctx, c);
+                boundary_analizer(ctx, c);
                 break;
-            case MIME_FRONTIER_START:
+            case MIME_DELIMITER_START:
                 if (ctx->boundary_detected != 0
                     && *ctx->boundary_detected) {
                     struct delimiter_st *dlm = delimiter_init();
                     if (dlm == NULL) {
                         abort();
                     }
-                    stack_push(ctx->boundary_frontier, dlm);
+                    stack_push(ctx->boundary_delimiter, dlm);
                 }
                 break;
-            case MIME_FRONTIER:
+            case MIME_DELIMITER:
                 if (ctx->boundary_detected != 0
                     && *ctx->boundary_detected) {
                     for (int i = 0; i < e->n; i++) {
-                        store_boundary_parameter(ctx, e->data[i]);
+                        extend(e->data[i], stack_peek(ctx->boundary_delimiter));
                     }
                 }
                 break;
@@ -593,7 +591,4 @@ static void content_type_header(struct ctx *ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
-bool should_print(const struct parser_event *e) {
-    return e->type != MIME_MSG_BODY && e->type != MIME_MSG_VALUE && e->type != MIME_MSG_VALUE_END
-           && e->type != MIME_MSG_WAIT && e->type != MIME_MSG_VALUE_FOLD;
-}
+

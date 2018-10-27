@@ -13,16 +13,16 @@ struct ctx {
     struct parser *msg;
     /* detector de field-name "Content-Type" */
     struct parser *ctype_header;
-    /* parser de mime type "tipo rfc 2045" */
+    /* parser mime type "tipo-rfc 2045" */
     struct parser *mime_type;
-    /* estructura que contiene los tipos filtrados*/
+    /* lista de tipos filtrados*/
     struct List *mime_list;
-    /* estructura que contiene los subtipos del tipo encontrado */
+    /* lista de subtipos de cierto tipo */
     struct subtype_node *subtype;
-    /* detector de parametro boundary en un header Content-Type */
+    /* detecta de boundary en un header Content-Type */
     struct parser *boundary;
-    /* stack de frontiers que permite tener boundaries anidados */
-    struct stack *boundary_frontier;
+    /* stack de delimitadores para anidaciones de boundaries */
+    struct stack *boundary_delimiter;
 
     char * filter_msg;
     bool replace, replaced;
@@ -31,12 +31,11 @@ struct ctx {
      * a Content-Type?. Utilizando dentro msg para los field-name.
      */
     bool *msg_content_type_field_detected;
-    bool *frontier_end_detected;
-    bool *frontier_detected;
+    bool *delimiter_end_detected;
+    bool *delimiter_detected;
     bool *filtered_msg_detected;
     bool *boundary_detected;
 
-    // content type value
     char buffer[CONTENT_TYPE_VALUE_SIZE];
     unsigned i;
 };
@@ -47,27 +46,26 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c);
 
 static void mime_msg(struct ctx *ctx, const uint8_t c);
 
-void setContextType(struct ctx *ctx) ;
+void context_setter(struct ctx *ctx) ;
 
-const struct parser_event * parser_feed_subtype(struct subtype_node *node, const uint8_t c);
+const struct parser_event * feed_subtypes(struct subtype_node *node, const uint8_t c);
 
-static void check_end_of_frontier(struct ctx *ctx, const uint8_t c);
+const struct parser_event * feed_types(struct List *mime_list, const uint8_t c);
 
-static void boundary_frontier_check(struct ctx *ctx, const uint8_t c);
+static void detect_delimiter_ending(struct ctx *ctx, const uint8_t c);
 
-static void store_boundary_parameter(struct ctx *ctx, const uint8_t c);
+static void boundary_delimiter_detection(struct ctx *ctx, const uint8_t c);
 
-static void parameter_boundary(struct ctx *ctx, const uint8_t c);
+static void boundary_analizer(struct ctx *ctx, const uint8_t c);
 
 static void content_type_subtype(struct ctx *ctx, const uint8_t c);
 
 static void content_type_type(struct ctx *ctx, const uint8_t c);
 
-static void content_type_value(struct ctx *ctx, const uint8_t c);
+static void content_type_st(struct ctx *ctx, const uint8_t c);
 
 static void content_type_header(struct ctx *ctx, const uint8_t c);
 
-bool should_print(const struct parser_event *e);
 
 
 
