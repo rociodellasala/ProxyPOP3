@@ -10,8 +10,8 @@ typedef struct options * options;
 
 extern options parameters;
 
-int parse_input(const int, char **);
+int parse_input(int, char **);
 void initialize_values();
-void set_options_values(const int, char **);
+void set_options_values(int, char **);
 
 #endif //PROXYPOP3_OPTIONSPARSER_H

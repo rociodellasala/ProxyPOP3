@@ -10,7 +10,8 @@
 #define SPACE ' '
 #define NEWLINE '\n'
 
-enum cmd {
+typedef enum {
+    HELP        = '0',
     A           = '1',
     SET_T       = '2',
     GET_T       = '3',
@@ -20,8 +21,7 @@ enum cmd {
     ALLOW_MI    = '7',
     FORBID_MI   = '8',
     Q           = '9',
-    HELP        = '0',
-};
+} cmd;
 
 typedef enum admin_status {
     ST_AUTH     = 0,
@@ -31,15 +31,15 @@ typedef enum admin_status {
 typedef enum cmd_status {
     BAD_SINTAXIS    = 0,
     INEXISTENT_CMD  = 1,
-    HELP_CMD = 2,
-    WELL_WRITTEN = 4,
+    HELP_CMD        = 2,
+    WELL_WRITTEN    = 3,
 } cmd_status;
 
 extern file_descriptor socket_fd;
 
 void communicate_with_proxy();
 
-cmd_status authenticate(enum cmd, char *, bool *);
-cmd_status transaction(enum cmd, char *, bool *);
+cmd_status authenticate(cmd, const char *, bool *);
+cmd_status transaction(cmd, const char *, bool *);
 
 #endif //PROXYPOP3_CONFIGURATIONCLIENT_H

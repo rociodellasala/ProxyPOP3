@@ -58,7 +58,6 @@ void initialize_sctp_socket() {
 }
 
 int main(int argc, char ** argv) {
-    int i;
     char recv_buffer[MAX_BUFFER] = {0};
 
     if (parse_input(argc,argv) < 0) {

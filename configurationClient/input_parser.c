@@ -33,9 +33,11 @@ int validate_parameters(const char * next_option, const char * parameter) {
             return -1;
         }
     }
+
+    return 0;
 }
 
-int validate_options(int argc, char ** argv) {
+int validate_options(const int argc, char ** argv) {
     int arg;
     int option;
     char * next_option = NULL;
@@ -78,6 +80,7 @@ int validate_options(int argc, char ** argv) {
     }
 
     printf("No errors found on input, starting to run client\n");
+    return 0;
 }
 
 void print_usage() {

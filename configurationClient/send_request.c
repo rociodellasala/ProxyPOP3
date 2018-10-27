@@ -23,9 +23,9 @@ ssize_t send_request(request * request) {
     return sent_bytes;
 }
 
-void send_request_one_param(const char * parameter, enum cmd cmd) {
+void send_request_one_param(const char * parameter, cmd cmd) {
     request * request   = malloc(sizeof(*request));
-
+    
     request->version    = VERSION;
     request->cmd        = cmd;
     request->length     = (unsigned int) strlen(parameter) + 1;
@@ -38,7 +38,7 @@ void send_request_one_param(const char * parameter, enum cmd cmd) {
     free(request);
 }
 
-void send_request_without_param(enum cmd cmd) {
+void send_request_without_param(cmd cmd) {
     request * request   = malloc(sizeof(*request));
 
     request->version    = VERSION;

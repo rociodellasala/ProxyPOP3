@@ -8,7 +8,7 @@ typedef struct {
     unsigned char * data;
 } response;
 
-typedef enum response_status {
+typedef enum {
    ERROR            = 0,
    OK               = 1,
    ERROR_RECEIVING  = 2,

@@ -5,6 +5,7 @@
 #include "include/metrics.h"
 #include "include/admin_parser.h"
 #include "include/input_parser.h"
+#include "include/utils.h"
 
 int check_password(const char * pass) {
     const char * password = "1234";
@@ -28,22 +29,30 @@ void switch_transformation_program(struct admin * admin){
     admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
 }
 
-void return_metric(struct admin * admin, const char * data) {
-    metrics metrics = program_metrics;
-    char * aux = malloc(30 * sizeof(char)); /*TODO:CAMBIAR*/
-
-    if (strcmp(data, "cc") == 0) {
-        sprintf(aux, "%d", metrics->concurrent_connections);
-    } else if (strcmp(data, "ha") == 0) {
-        sprintf(aux, "%d", metrics->historical_access);
-    } else if (strcmp(data, "tb") == 0) {
-        sprintf(aux, "%d", (int) metrics->transferred_bytes);
-    } else {
+void return_metric(struct admin * admin, const char * data){
+    int index;
+    char * name = metric_get_name(data, &index);
+    char * resp;
+    char * value;
+    double metric;
+    int size;
+    
+    if(index >= METRICS_SIZE ){
+        printf("hOLA");
         admin->req_status =  INCORRECT_METRIC;
         return;
     }
 
-    admin->resp_data = aux;
+    metric = metrics[index];
+    size = get_int_len(metric);
+    
+    value = malloc(size *  sizeof(char *));
+    sprintf(value, "%.0f", metric);
+    
+    resp = malloc((strlen(name) + 1 + size ) * sizeof(char *));
+    sprintf(resp, "%s:%s", name, value);
+    
+    admin->resp_data = resp;
     admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
 }
 

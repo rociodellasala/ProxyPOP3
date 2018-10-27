@@ -66,3 +66,13 @@ void print_connection_status(const char * msg, struct sockaddr_storage addr) {
 
     printf("%s: \n\t - IP: %s \n\t - Port: %d \n", msg, hoststr, portstr);
 }
+
+
+int get_int_len(int value) {
+    int l=1;
+    while (value>9) {
+        l++;
+        value /= 10;
+    }
+    return l;
+}

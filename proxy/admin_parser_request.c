@@ -79,10 +79,9 @@ int parse_admin_request(struct admin * admin) {
     int read_bytes;
     unsigned char buffer[100]; /* TODO VER TAMAÑO BUFFER */
     request_admin * request     = malloc(sizeof(*request));
-   
-   
+
     read_bytes = sctp_recvmsg(admin->fd, buffer, 100, NULL, 0, 0, 0);
-   
+
     if (read_bytes <= 0) {
         admin->req_status = COULD_NOT_READ_REQUEST;
         admin->resp_data = "Server Error while reading. Please try again.";
@@ -92,10 +91,10 @@ int parse_admin_request(struct admin * admin) {
         admin->current_request = request;
         parse_req_commands(admin);
     }
-    
+
     if(admin->req_status == COULD_NOT_READ_REQUEST){
         return -1;
     }
-    
+
 }
 

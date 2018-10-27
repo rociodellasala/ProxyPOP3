@@ -12,7 +12,6 @@
 #include "include/metrics.h"
 #include "include/utils.h"
 
-metrics program_metrics;
 
 struct addrinfo * resolution(char * address, uint16_t port){
     struct addrinfo * list_result;
@@ -183,13 +182,6 @@ int initialize_sockets(options opt) {
     printf("Waiting for connections ...\n");
 
     return initialize_selector(mua_tcp_socket, admin_sctp_socket);
-}
-
-void initialize_metrics() {
-    program_metrics                             = malloc(sizeof(*program_metrics));
-    program_metrics->concurrent_connections     = 10;  /* TODO: CAMBIAR , NUMERO DE PRUEBA PARA EL ADMIN*/
-    program_metrics->historical_access          = 11; /* TODO: CAMBIAR */
-    program_metrics->transferred_bytes          = 12; /* TODO: CAMBIAR */
 }
 
 

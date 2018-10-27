@@ -2,11 +2,8 @@
 #include <string.h>
 #include "include/response.h"
 
-void print_msg(response_status status, response response) {
-    int i; 
-  
+void print_msg(const response_status status, const response response) {
     if (response.length > 0 && response.data != NULL) {
-        response.data;
 
         if (status == OK) {
             printf("Answer from proxy: +OK: %s\n", response.data);
@@ -31,11 +28,15 @@ void show_menu_authentication() {
 
 void show_menu_transaction() {
     printf(
-            "\nINPUT FORMAT:                  [COMMAND_NUMBER]        [parameter]\n"
+            "\nINPUT FORMAT:                   [COMMAND_NUMBER]        [parameter]\n"
             "  - SET TRANSFORMATION PROGRAM:          2          transformationprogram\n"
             "  - GET TRANSFORMATION PROGRAM:          3 \n"
             "  - SWITCH TRANSFORMATION PROGRAM:       4 \n"
             "  - GET METRIC:                          5                 metric\n"
+            "                                                           where metric is:     CONCURRENT CONNECTIONS        0\n"
+            "                                                                                MAX CONCURRENT CONNECTIONS    1\n"
+            "                                                                                HISTORICAL ACCESSES           2\n"
+            "                                                                                TRANSFERED BYTES              3\n"
             "  - GET MIME:                            6 \n"
             "  - ALLOW MIME:                          7                  mime\n"
             "  - FORBID MIME:                         8                  mime\n"

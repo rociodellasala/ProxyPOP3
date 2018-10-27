@@ -14,7 +14,7 @@ file_descriptor socket_fd;
 
 struct parse_action {
     admin_status status;
-    cmd_status (* function)(enum cmd c, char * buffer_option, bool * quit_option_on);
+    cmd_status (* function)(const cmd c, const char * buffer_option, bool * quit_option_on);
 };
 
 static struct parse_action auth_action = {
@@ -51,9 +51,9 @@ void handle_receive_msg(response_status * r_status) {
     }
 }
 
-cmd_status assemble_req(int i, const char * buffer_option, const enum cmd command) {
-    char param[MAX_BUFFER] = {0};
-    int j = 0;
+cmd_status assemble_req(int i, const char * buffer_option, const cmd command) {
+    char param[MAX_BUFFER]  = {0};
+    int j                   = 0;
 
     if(buffer_option[i] != SPACE){
         return BAD_SINTAXIS;
@@ -70,9 +70,10 @@ cmd_status assemble_req(int i, const char * buffer_option, const enum cmd comman
     return WELL_WRITTEN;
 }
 
-cmd_status authenticate(enum cmd c, char * buffer_option, bool * quit_option_on) {
-    cmd_status cmd_status;
+cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_option_on) {
     int i = 0;
+    cmd_status cmd_status;
+   
     switch (c) {
         case A:
             cmd_status = assemble_req(++i, buffer_option, A);
@@ -100,9 +101,10 @@ cmd_status authenticate(enum cmd c, char * buffer_option, bool * quit_option_on)
     return cmd_status;
 }
 
-cmd_status transaction(enum cmd c, char * buffer_option, bool * quit_option_on) {
-    cmd_status cmd_status;
+cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_option_on) {
     int i = 0;
+    cmd_status cmd_status;
+    
     switch (c) {
         case SET_T:
             cmd_status = assemble_req(++i, buffer_option, SET_T);
@@ -170,7 +172,7 @@ cmd_status transaction(enum cmd c, char * buffer_option, bool * quit_option_on) 
 }
 
 
-void parse_cmd_status(cmd_status cmd_status, response_status * r_status){
+void parse_cmd_status(cmd_status cmd_status, response_status * r_status) {
     switch (cmd_status) {
         case BAD_SINTAXIS:
                 printf("Incorrect sintax of command. Press HELP option (0) to display menu again.\n");
@@ -190,12 +192,10 @@ void parse_cmd_status(cmd_status cmd_status, response_status * r_status){
 
 void communicate_with_proxy() {
     char buffer_option[MAX_BUFFER];
-    admin_status a_status                 = ST_AUTH;
-
-    struct parse_action * act;
-
-    enum cmd c;
+    cmd c;
     cmd_status cmd_status;
+    struct parse_action * act;
+    admin_status a_status               = ST_AUTH;
     bool running                        = true;
     bool quit_option_on                 = false;
     response_status r_status            = OK;
@@ -206,24 +206,18 @@ void communicate_with_proxy() {
         printf("\nInsert a command to run on proxy: ");
 
         if (fgets(buffer_option, MAX_BUFFER, stdin) == NULL) {
-            close(socket_fd);
-            exit(-1);
-        }
-
-        if (buffer_option < 0) {
             printf("An error occured while reading from STDIN.\n");
             close(socket_fd);
             exit(EXIT_FAILURE);
         }
 
-        c = (enum cmd) buffer_option[0];
-
-        act = action_list[a_status];
-        cmd_status = act->function(c, buffer_option, &quit_option_on);
+        c           = (cmd) buffer_option[0];
+        act         = action_list[a_status];
+        cmd_status  = act->function(c, buffer_option, &quit_option_on);
 
         parse_cmd_status(cmd_status,&r_status);
 
-        if(r_status == OK){
+        if (r_status == OK) {
             if (a_status == ST_AUTH ) {
                 if (quit_option_on != true) {
                     a_status = ST_TRANS;
