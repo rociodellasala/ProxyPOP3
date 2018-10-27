@@ -32,6 +32,7 @@ int add_new(char* type, char* subtype,struct List* list){
 
 		
 		if(strcmp(subtype,WILDCARD) == 0){
+
 			make_subtype_wildcard(tpnode,type,typeExists);
 			return 0;
 		}
@@ -58,12 +59,13 @@ int add_new(char* type, char* subtype,struct List* list){
 	}else{
 		//tengo que inicializar 
 
-			if(strcmp(subtype,WILDCARD)==0){
-				list->first->subtypes = create_new_wildcard_subtype();			
+			list->first = create_new_type(type);
+			if(strcmp(subtype,WILDCARD)==0){	
+				list->first->subtypes = create_new_wildcard_subtype();		
 				return 0;
 			}
 
-			list->first = create_new_type(type);
+			
 			list->first->subtypes = create_new_subtype(subtype);			
 			return 0;
 	}

@@ -20,7 +20,7 @@
 //variables de entorno del manual pop3filter.8
 #define FILTER_MEDIAS 	"FILTER_MEDIAS"
 #define FILTER_MSG 		"FILTER_MSG"
-#define ANY (1 << 9) //cambiar esto y tmbn en la funcion
+#define ANY (1 << 9) 
 
 
 static bool T = true;
@@ -48,13 +48,13 @@ int main(int argc, char ** argv) {
 		free(list);
 		return -1;
 	}
-	printf("flm is %s\n", flm);
+	//printf("flm is %s\n", flm);
 	
 	
 	char* medias = malloc(strlen(flm) + 1);
 	
 	if(medias == NULL){
-		printf("bye 1\n");
+		//printf("bye 1\n");
 		free(list);
 		return -1;
 	}
@@ -99,7 +99,7 @@ int main(int argc, char ** argv) {
 		}
 		strcpy(type, mime);
 		/*getting subtype*/
-		
+
 		mime = strtok_r(NULL, slash, &context_b);
 		if(mime == NULL){
 			return -1;
@@ -112,8 +112,9 @@ int main(int argc, char ** argv) {
 		}
 
 		strcpy(subtype, mime);
-		
+        printf("-- before agregado --\n");
 		int addition = add_new(type, subtype, list);
+        printf("-- agregado --\n");
 		if(addition != -1){
 			//printf("Node correctly added!\n");
 		}
@@ -124,7 +125,7 @@ int main(int argc, char ** argv) {
 	// free(flm); no funca
 
 	//print_list(list);
-
+    printf("lista creada\n");
 	
 	char *message = getenv(FILTER_MSG);
 
