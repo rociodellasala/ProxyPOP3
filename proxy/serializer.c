@@ -17,8 +17,7 @@ unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, un
     int i = 0;
     do {
         buffer = serialize_char(buffer, *str);
-        str++;
-    } while (++i != length);
+    } while (*str++ != '\0');
     return buffer;
 }
 

@@ -29,8 +29,8 @@ void send_request_one_param(const char * parameter, enum cmd cmd) {
     request->version    = VERSION;
     request->cmd        = cmd;
     request->length     = (unsigned int) strlen(parameter) + 1;
-    request->data       = malloc(request->length * sizeof(unsigned char *));
-    strncpy((char *)request->data, parameter, request->length);
+    request->data       = malloc(request->length * sizeof(char *));
+    strncpy((char *) request->data, parameter, request->length);
 
     send_request(request);
     

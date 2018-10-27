@@ -3,22 +3,15 @@
 #include "include/response.h"
 
 void print_msg(response_status status, response response) {
-    int i; /*todo:ver que onda esto que lee mal si no agrego \0 */
-    char msg[response.length + 1];
-
-    for (i = 0; i < response.length; i++) {
-        msg[i] = response.data[i];
-    }
-    
-    msg[i] = '\0';
-    
+    int i; 
+  
     if (response.length > 0 && response.data != NULL) {
         response.data;
 
         if (status == OK) {
-            printf("Answer from proxy: +OK: %s\n", msg);
+            printf("Answer from proxy: +OK: %s\n", response.data);
         } else {
-            printf("Answer from proxy: -ERR: %s\n", msg);
+            printf("Answer from proxy: -ERR: %s\n", response.data);
         }
     } else {
         if (status == OK) {

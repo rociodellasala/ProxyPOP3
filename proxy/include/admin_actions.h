@@ -4,6 +4,7 @@
 
 int check_password(const char *);
 void return_metric(struct admin *, const char *);
+void switch_transformation_program(struct admin *);
 //void forbid_mime(request *, int *, char *);
 //void allow_mime(request *, int *, char *);
 void quit(struct admin *);

@@ -13,67 +13,34 @@
 #include "include/response_admin.h"
 #include "include/utils.h"
 
-void authenticate(struct admin * admin);
-void transaction(struct admin * admin);
-
-struct parse_action {
-    admin_status status;
-    void (* function)(struct admin * admin);
-};
-
-static struct parse_action auth_action = {
-        .status      = ST_AUTH,
-        .function    = authenticate,
-};
-
-static struct parse_action trans_action = {
-        .status      = ST_TRANS,
-        .function    = transaction,
-};
-
-static struct parse_action * action_list[] = {
-        &auth_action,
-        &trans_action,
-};
-
-void authenticate(struct admin * admin){
+void parse_action(struct admin * admin){
     request_admin * r = admin->current_request;
 
-    if(r->cmd == A){
-        if(check_password((const char *) r->data) == 1){
-            admin->a_status = ST_TRANS;
-        } else {
-            admin->req_status = INCORRECT_PASS;
-        }
-    } else if(r->cmd == Q) {
-        admin->quit = 1;
-    } else {
-        admin->req_status = INCORRECT_COMMAND_STATUS;
-    }
-
-}
-
-void transaction(struct admin * admin){
-    request_admin * r = admin->current_request;
     switch(r->cmd){
+        case A:
+            if(check_password((const char *) r->data) == 1){
+                admin->a_status = ST_CONNECTED;
+            } else {
+                admin->req_status = INCORRECT_PASS;
+            }
+            break;
         case SET_T:
             /* TODO: Algun chequeo necesario ? */
-            parameters->filter_command->program_name = (char *) r->data;
+            parameters->filter_command->program_name = r->data;
             break;
         case GET_T:
-            admin->resp_data = (unsigned char *) parameters->filter_command->program_name;
-            admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
+            admin->resp_data = (char *) parameters->filter_command->program_name;
+            admin->resp_length = strlen((const char *) admin->resp_data);
             break;
         case SWITCH_T:
-            /* Deberiamos enviar un mensaje */
-            parameters->filter_command->switch_program != parameters->filter_command->switch_program;
+            switch_transformation_program(admin);
             break;
         case GET_ME:
-            return_metric(admin, r->data);
+            return_metric(admin, (const char *) r->data);
             break;
         case GET_MI:
-            admin->resp_data = (unsigned char *) parameters->filtered_media_types;
-            admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
+            admin->resp_data = parameters->filtered_media_types;
+            admin->resp_length = strlen((const char *) admin->resp_data);
             break;
         case ALLOW_MI:
             //allow_mime()
@@ -85,32 +52,22 @@ void transaction(struct admin * admin){
             admin->quit = 1;
             break;
         default:
-            admin->req_status = INCORRECT_COMMAND_STATUS;
             break;
     }
     
 }
 
 void parse_req_commands(struct admin * admin){
-    struct parse_action * act = action_list[admin->a_status-1];
-    act->function(admin);
+    parse_action(admin);
 
     switch (admin->req_status) {
         case INCORRECT_PASS:
-            admin->resp_data = (unsigned char *) "Incorrect password. Could not authenticate.";
-            admin->resp_length = (unsigned int) strlen(admin->resp_data);
+            admin->resp_data = "Incorrect password. Could not authenticate.";
+            admin->resp_length = strlen((const char *) admin->resp_data);
             break;
-        case INCORRECT_COMMAND_STATUS:
-            if(admin->a_status == ST_AUTH) {
-                admin->resp_data = (unsigned char *) "Incorrect command for current status: First you have to authenticate.";
-            } else {
-                admin->resp_data = (unsigned char *) "Incorrect command for current status: You are already authenticated.";
-            }
-            admin->resp_length = (unsigned int) strlen(admin->resp_data);
-            break;
-        case COULD_NOT_READ_REQUEST:
-            admin->resp_data = (unsigned char *) "Server Error. Please try again.";
-            admin->resp_length = (unsigned int) strlen(admin->resp_data);
+        case INCORRECT_METRIC:
+            admin->resp_data = "Incorrect metric. It does not exists.";
+            admin->resp_length =  strlen((const char *) admin->resp_data);
             break;
         default:
             break;
@@ -118,22 +75,27 @@ void parse_req_commands(struct admin * admin){
 
 }
 
-void parse_admin_request(struct admin * admin) {
+int parse_admin_request(struct admin * admin) {
     int read_bytes;
-    unsigned char buffer[100];
+    unsigned char buffer[100]; /* TODO VER TAMAÑO BUFFER */
     request_admin * request     = malloc(sizeof(*request));
-
+   
+   
     read_bytes = sctp_recvmsg(admin->fd, buffer, 100, NULL, 0, 0, 0);
-
+   
     if (read_bytes <= 0) {
         admin->req_status = COULD_NOT_READ_REQUEST;
-        admin->resp_data = (unsigned char *) "Server Error. Please try again.";
-        admin->resp_length = (unsigned int) strlen(admin->resp_data);
+        admin->resp_data = "Server Error while reading. Please try again.";
+        admin->resp_length = strlen((const char *) admin->resp_data);
     } else {
         deserialize_request(buffer, request);
         admin->current_request = request;
         parse_req_commands(admin);
     }
-
+    
+    if(admin->req_status == COULD_NOT_READ_REQUEST){
+        return -1;
+    }
+    
 }
 

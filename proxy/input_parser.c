@@ -326,7 +326,7 @@ void initialize_values() {
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
     parameters->filter_command->switch_program  = false;
-    parameters->filter_command->program_name    = "cat";
+    parameters->filter_command->program_name    = (unsigned char *) "cat";
 }
 
 options set_options_values(const int argc, char ** argv) {
@@ -353,16 +353,16 @@ options set_options_values(const int argc, char ** argv) {
                 parameters->filtered_media_types = optarg;
                 break;
             case 'o':
-                parameters->management_port = atoi(optarg);
+                parameters->management_port = (uint16_t) atoi(optarg);
                 break;
             case 'p':
-                parameters->port = atoi(optarg);
+                parameters->port = (uint16_t) atoi(optarg);
                 break;
             case 'P':
-                parameters->origin_port = atoi(optarg);
+                parameters->origin_port = (uint16_t) atoi(optarg);
                 break;
             case 't':
-                parameters->filter_command->program_name = optarg;
+                parameters->filter_command->program_name = (unsigned char *) optarg;
                 break;
             default: /* If validate_option works correctly, it won't enter here */
                 break;

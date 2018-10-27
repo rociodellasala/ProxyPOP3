@@ -19,7 +19,7 @@ ssize_t receive_response(response_status * status, response * response) {
 
     deserialize_response(buffer, response);
 
-    *status = response->status;
+    *status = (response_status) response->status;
    
     return read_quan;
 }

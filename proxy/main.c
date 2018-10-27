@@ -14,7 +14,7 @@
 
 metrics program_metrics;
 
-struct addrinfo * dns_resolution(char * address, uint16_t port){
+struct addrinfo * resolution(char * address, uint16_t port){
     struct addrinfo * list_result;
     list_result = 0;
 
@@ -156,8 +156,8 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
 }
 
 int initialize_sockets(options opt) {
-    struct addrinfo * mua_addr = dns_resolution(parameters->listen_address, parameters->port);
-    struct addrinfo * admin_addr = dns_resolution(parameters->management_address, parameters->management_port);
+    struct addrinfo * mua_addr      = resolution(parameters->listen_address, parameters->port);
+    struct addrinfo * admin_addr    = resolution(parameters->management_address, parameters->management_port);
 
     file_descriptor mua_tcp_socket      = new_socket(IPPROTO_TCP, mua_addr);       // 1110
     file_descriptor admin_sctp_socket   = new_socket(IPPROTO_SCTP, admin_addr);    // 9090

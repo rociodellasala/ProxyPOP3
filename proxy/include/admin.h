@@ -19,17 +19,15 @@ enum cmd {
 };
 
 typedef enum admin_status {
-    ST_EHLO     = 0,
-    ST_AUTH     = 1,
-    ST_TRANS    = 2,
+    ST_EHLO         = 0,
+    ST_CONNECTED    = 1,
 } admin_status;
 
 typedef enum parse_req_status {
     REQ_PARSE_OK                = 0,
     INCORRECT_PASS              = 1,
-    INCORRECT_COMMAND_STATUS    = 2,
-    COULD_NOT_READ_REQUEST      = 3,
-    INCORRECT_METRIC            = 4,
+    COULD_NOT_READ_REQUEST      = 2,
+    INCORRECT_METRIC            = 3,
 } parse_req_status;
 
 typedef enum parse_resp_status {
@@ -48,8 +46,8 @@ struct admin {
     parse_req_status              req_status;
 
     parse_resp_status             resp_status;
-    unsigned int                  resp_length;
-    unsigned char *               resp_data;
+    size_t                        resp_length;
+    char *                        resp_data;
 
     unsigned int                  quit;
 

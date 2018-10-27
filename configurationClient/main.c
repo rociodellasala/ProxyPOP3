@@ -14,7 +14,7 @@ options parameters;
 
 /* todo: VER CASO DONDE SE ROMPA EL PROXY, DESCONECTAR AL ADMIN */
 
-struct addrinfo * dns_resolution(){
+struct addrinfo * resolution(){
     struct addrinfo * list_result = 0;
     char mgmt_buff[10];
     snprintf(mgmt_buff, sizeof(mgmt_buff), "%hu", parameters->management_port);
@@ -37,8 +37,7 @@ struct addrinfo * dns_resolution(){
 }
 
 void initialize_sctp_socket() {
-    struct sockaddr_in proxyAddr;
-    struct addrinfo * managementaddrinfo = dns_resolution();
+    struct addrinfo * managementaddrinfo = resolution();
 
     socket_fd = socket(managementaddrinfo->ai_family, SOCK_STREAM, IPPROTO_SCTP);
 

@@ -86,9 +86,10 @@ void admin_accept_connection(struct selector_key * key) {
 
 void admin_read(struct selector_key * key){
     struct admin * admin = ATTACHMENT(key);
-
+    
     parse_admin_request(admin);
-
+    
+    
     if(selector_set_interest(key->s, key->fd, OP_WRITE) != SELECTOR_SUCCESS){
         selector_unregister_fd(key->s, admin->fd);
     };
@@ -104,8 +105,12 @@ void reset_admin_status(struct admin * admin) {
 
 void admin_write(struct selector_key * key) {
     struct admin * admin = ATTACHMENT(key);
+    int resp = -1;
+
     if (admin->quit == 0) {
-        parse_admin_response(admin);
+        while(resp < 0){ //TODO: chequear
+            resp = parse_admin_response(admin);
+        }
     } else {
         quit(admin);
         selector_unregister_fd(key->s, admin->fd);

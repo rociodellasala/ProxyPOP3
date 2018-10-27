@@ -31,12 +31,13 @@ unsigned char * deserialize_request(unsigned char * buffer, request_admin * requ
     buffer = deserialize_int(buffer, &request->length);
 
     if (request->length > 0) {
-        request->data = malloc((size_t)request->length);
+        request->data = malloc(request->length * sizeof(unsigned char *));
         if (request->data == NULL) {
             return NULL;
         }
         buffer = deserialize_string(buffer, request->data, request->length);
     }
-    
+
+
     return buffer;
 }

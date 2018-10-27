@@ -4,6 +4,7 @@
 #include "include/admin.h"
 #include "include/metrics.h"
 #include "include/admin_parser.h"
+#include "include/input_parser.h"
 
 int check_password(const char * pass) {
     const char * password = "1234";
@@ -12,6 +13,19 @@ int check_password(const char * pass) {
     } else {
         return 0;
     }
+}
+
+void switch_transformation_program(struct admin * admin){
+    bool * pointer = &(parameters->filter_command->switch_program);
+    *pointer = !(*pointer);
+
+    if(*pointer == false){
+        admin->resp_data = "OFF";
+    } else {
+        admin->resp_data = "ON";
+    }
+
+    admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
 }
 
 void return_metric(struct admin * admin, const char * data) {
@@ -29,7 +43,7 @@ void return_metric(struct admin * admin, const char * data) {
         return;
     }
 
-    admin->resp_data = (unsigned char *) aux;
+    admin->resp_data = aux;
     admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
 }
 
@@ -55,6 +69,6 @@ void allow_mime(request_admin * request, int * status, char * media_types){
 */
 
 void quit(struct admin * admin) {
-    send_response_without_data(admin->fd, 1);
+    send_response_without_data(admin, 1);
     close(admin->fd);
 }

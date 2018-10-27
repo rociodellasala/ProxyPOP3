@@ -2,13 +2,14 @@
 #define PROXYPOP3_INPUT_PARSER_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define DELIM "."
 #define BACKLOG 10
 
 struct extern_transformation {
     bool switch_program; /* TODO: Dudoso el tipo */
-    char * program_name;
+    unsigned char * program_name;
 };
 
 typedef struct extern_transformation * transformation;
@@ -16,15 +17,15 @@ typedef struct extern_transformation * transformation;
 extern transformation e_transformation;
 
 struct options{
-    int port;                           // -p
+    uint16_t port;                      // -p
     char * error_file;                  // -e
     char * listen_address;              // -l
     char * management_address;          // -L
-    int management_port;                // -o
+    uint16_t management_port;           // -o
     char * replacement_msg;             // -m
     char * filtered_media_types;        // -M
     char * origin_server;               // This is the argument origin_server, it's not an option
-    int origin_port;                    // -P
+    uint16_t origin_port;               // -P
     transformation filter_command;      // -t
 };
 

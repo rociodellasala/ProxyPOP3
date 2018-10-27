@@ -15,66 +15,66 @@ void ehlo(struct admin * admin){
     send_bytes = send(admin->fd, w_message, strlen(w_message), 0);
 
     if(send_bytes <= 0){
-        admin->resp_status = COULD_NOT_SEND_RESPONSE;
+        admin->resp_status = COULD_NOT_SEND_WELCOME;
     } else {
-        admin->a_status = ST_AUTH;
+        admin->a_status = ST_CONNECTED;
     }
 }
 
 
-ssize_t send_response(file_descriptor socket, response_admin * response) {
+ssize_t send_response(struct admin * admin, response_admin * response) {
     ssize_t sent_bytes;
-    unsigned char buffer_response[100];
+    unsigned char buffer_response[100]; // TODO ARREGLAR SMASHING STACK SI MANDO ALGO MAYOR A ESE NUMERO 100
     unsigned char * pointer = serialize_response(buffer_response, response);
 
-    sent_bytes = sctp_sendmsg(socket, buffer_response, pointer-buffer_response, NULL, 0, 0, 0, 0, 0, 0);
+    sent_bytes = sctp_sendmsg(admin->fd, buffer_response, pointer-buffer_response, NULL, 0, 0, 0, 0, 0, 0);
 
     if (sent_bytes <= 0) {
-        printf("%s\n", strerror(errno));
+        admin->resp_status = COULD_NOT_SEND_RESPONSE;
     }
 
     return sent_bytes;
 }
 
 
-void send_response_with_data(unsigned char * parameter, file_descriptor socket, unsigned char status) {
+void send_response_with_data(struct admin * admin, unsigned char status) {
     response_admin * response   = malloc(sizeof(*response));
     response->version           = VERSION;
     response->status            = status;
-    response->length            = (unsigned int) strlen((const char *) parameter);
+    response->length            = (unsigned int) strlen((const char *) admin->resp_data);
     response->data              = malloc(response->length * sizeof(unsigned char *));
     
-    strncpy((char *) response->data, (const char *) parameter, response->length);
+    strncpy((char *) response->data, (const char *) admin->resp_data, response->length);
     
-    send_response(socket, response);
+    send_response(admin, response);
     
     free(response->data);
     free(response);
 }
 
-void send_response_without_data(file_descriptor socket, unsigned char status) {
+void send_response_without_data(struct admin * admin, unsigned char status) {
     response_admin * response   = malloc(sizeof(*response));
     response->version           = VERSION;
     response->status            = status;
     response->length            = 0;
     response->data              = 0;
     
-    send_response(socket, response);
+    send_response(admin, response);
     
     free(response);
 }
 
 
-void parse_admin_response(struct admin * admin) {
+int parse_admin_response(struct admin * admin) {
     unsigned char status;
     if (admin->a_status == ST_EHLO){
         ehlo(admin);
     } else {
         if(admin->resp_length != 0){
             if(admin->resp_status != RESP_PARSE_OK || admin->req_status != REQ_PARSE_OK) {
-                send_response_with_data(admin->resp_data, admin->fd, 0);
+                send_response_with_data(admin, 0);
             } else {
-                send_response_with_data(admin->resp_data, admin->fd, 1);
+                send_response_with_data(admin, 1);
             }
         } else {
             if(admin->resp_status != RESP_PARSE_OK){
@@ -86,8 +86,14 @@ void parse_admin_response(struct admin * admin) {
                     status = 1;
                 }
             }
-            send_response_without_data(admin->fd, status);
+            send_response_without_data(admin, status);
         }
     }
+
+    if(admin->resp_status == COULD_NOT_SEND_RESPONSE || admin->resp_status == COULD_NOT_SEND_WELCOME){
+        return -1;
+    }
+
+    return 0;
 }
 

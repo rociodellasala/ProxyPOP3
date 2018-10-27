@@ -199,6 +199,7 @@ void communicate_with_proxy() {
     bool running                        = true;
     bool quit_option_on                 = false;
     response_status r_status            = OK;
+
     show_menu_authentication();
 
     while (running) {

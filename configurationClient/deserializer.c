@@ -15,8 +15,7 @@ unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, 
     int i = 0;
     do {
         buffer = deserialize_char(buffer, str);
-        str++;
-    } while (++i != length);
+    } while (*str++ != '\0'); // ARREGLAR CASO Q ROMPE ACA CUANDO SEREALIZA POR EJEMPLO METRIC Q ES INT
     return buffer;
 }
 
@@ -31,8 +30,9 @@ unsigned char * deserialize_response(unsigned char * buffer, response * response
 
     if (response->length > 0) {
         response->data = malloc(response->length * sizeof(char *));
-        if (response->data == NULL)
+        if (response->data == NULL) {
             return NULL;
+        }
         buffer = deserialize_string(buffer, response->data, response->length);
     }
 
