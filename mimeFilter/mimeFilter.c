@@ -120,7 +120,7 @@ int main(int argc, char ** argv) {
 
 		free(aux);
 		current = strtok_r(NULL, comma, &context);
-	}free
+	}
 	// free(flm); no funca
 
 	print_list(list);
@@ -192,8 +192,8 @@ int main(int argc, char ** argv) {
     parser_utils_strcmpi_destroy(&boundary_def);
     destroy_list(ctx.mime_list);
 
-    while(!(ctx.boundary_delimiter.size == 0)) {
-        struct delimiter_st dlm = stack_pop(ctx.boundary_delimiter);
+    while(!(ctx.boundary_delimiter->size == 0)) {
+        struct delimiter_st *dlm = stack_pop(ctx.boundary_delimiter);
         delimiter_destroy(dlm);
     }
     stack_destroy(ctx.boundary_delimiter);
@@ -260,7 +260,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
-                        content_type_st(ctx, e->data[i]);
+                        content_type_value(ctx, e->data[i]);
                     }
                 }
                 break;
@@ -293,7 +293,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     printed = true;
                 }
                 if ((ctx->boundary_detected != 0
-                     && *ctx->boundary_detected) || !(ctx->boundary_delimiter.size == 0)) {
+                     && *ctx->boundary_detected) || !(ctx->boundary_delimiter->size == 0)) {
                     for (int i = 0; i < e->n; i++) {
                         boundary_delimiter_detection(ctx, e->data[i]);
                         detect_delimiter_ending(ctx, e->data[i]);
@@ -521,7 +521,7 @@ static void content_type_type(struct ctx *ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
-static void content_type_st(struct ctx *ctx, const uint8_t c) {
+static void content_type_value(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(ctx->mime_type, c);
     do {
         switch (e->type) {

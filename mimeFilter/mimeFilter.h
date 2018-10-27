@@ -62,7 +62,7 @@ static void content_type_subtype(struct ctx *ctx, const uint8_t c);
 
 static void content_type_type(struct ctx *ctx, const uint8_t c);
 
-static void content_type_st(struct ctx *ctx, const uint8_t c);
+static void content_type_value(struct ctx *ctx, const uint8_t c);
 
 static void content_type_header(struct ctx *ctx, const uint8_t c);
 

@@ -144,7 +144,7 @@ struct subtype_node* create_new_subtype(char* name){
 			return NULL;
 		}
 
-		struct parser_definition *aux = parser_utils_strcmpi(name);
+		struct parser_definition aux = parser_utils_strcmpi(name);
 		memcpy(def, &aux, sizeof(aux));
 
 		node->parser = parser_init(parser_no_classes(), def);
