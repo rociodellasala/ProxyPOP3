@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "include/selector.h"
 #include "include/pop3.h"
 #include "include/admin.h"
@@ -12,13 +14,38 @@
 
 metrics program_metrics;
 
+struct addrinfo * dns_resolution(char * address, uint16_t port){
+    struct addrinfo * list_result;
+    list_result = 0;
+
+    char mgmt_buff[7];
+
+    snprintf(mgmt_buff, sizeof(mgmt_buff), "%hu", port);
+
+    struct addrinfo hints = {
+            .ai_family    = AF_UNSPEC,    /* Allow IPv4 or IPv6 */
+            .ai_socktype  = SOCK_STREAM,  /* Datagram socket */
+            .ai_flags     = AI_PASSIVE,   /* For wildcard IP address */
+            .ai_protocol  = 0,            /* Any protocol */
+            .ai_canonname = NULL,
+            .ai_addr      = NULL,
+            .ai_next      = NULL,
+    };
+
+    if (getaddrinfo(address, mgmt_buff, &hints, &list_result) != 0){
+        fprintf(stderr,"Domain Name System (DNS) resolution error\n");
+    }
+
+    return list_result;
+}
+
 /* Crea una conexión TCP o SCTP */
-file_descriptor new_socket(int protocol, int port, struct sockaddr_in * address) {
+file_descriptor new_socket(int protocol, struct addrinfo * address) {
     file_descriptor master_socket;
     int optval = 1;
 
     /* Crea el socket */
-    master_socket = socket(AF_INET, SOCK_STREAM, protocol);
+    master_socket = socket(address->ai_family, SOCK_STREAM, protocol);
 
     if (master_socket < 0) {
         fprintf(stderr, "Unable to create %s socket", protocol == IPPROTO_TCP ? "TCP" : "SCTP");
@@ -31,14 +58,8 @@ file_descriptor new_socket(int protocol, int port, struct sockaddr_in * address)
         exit(EXIT_FAILURE);
     }
 
-    /* Construye la dirección del socket */
-    memset(address, 0, sizeof(*address));
-    (*address).sin_family       = AF_INET;
-    (*address).sin_addr.s_addr  = htonl(INADDR_ANY);
-    (*address).sin_port         = htons((uint16_t) port);
-
     /* Enlaza el socket a la dirección especificada (puerto localhost)  */
-    if (bind(master_socket, (struct sockaddr *) address, sizeof(*address)) < 0) {
+    if (bind(master_socket, address->ai_addr, address->ai_addrlen) < 0) {
         perror("Unable to bind socket");
         exit(EXIT_FAILURE);
     }
@@ -135,11 +156,11 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
 }
 
 int initialize_sockets(options opt) {
-    struct sockaddr_in mua_address;
-    struct sockaddr_in admin_address;
+    struct addrinfo * mua_addr = dns_resolution(parameters->listen_address, parameters->port);
+    struct addrinfo * admin_addr = dns_resolution(parameters->management_address, parameters->management_port);
 
-    file_descriptor mua_tcp_socket      = new_socket(IPPROTO_TCP, opt->port, &mua_address);                  // 1110
-    file_descriptor admin_sctp_socket   = new_socket(IPPROTO_SCTP, opt->management_port, &admin_address);    // 9090
+    file_descriptor mua_tcp_socket      = new_socket(IPPROTO_TCP, mua_addr);       // 1110
+    file_descriptor admin_sctp_socket   = new_socket(IPPROTO_SCTP, admin_addr);    // 9090
 
     /* Marca el socket como pasivo para que se quede escuchando conexiones entrantes y las acepte */
     if (listen(mua_tcp_socket, BACKLOG) < 0) {

@@ -3,6 +3,7 @@
 
 #include "input_parser.h"
 #include "utils.h"
+#include <stdbool.h>
 
 #define MAX_BUFFER 1024
 #define MAX_READ MAX_BUFFER
@@ -22,6 +23,23 @@ enum cmd {
     HELP        = '0',
 };
 
-void communicate_with_proxy(file_descriptor);
+typedef enum admin_status {
+    ST_AUTH     = 0,
+    ST_TRANS    = 1,
+} admin_status;
+
+typedef enum cmd_status {
+    BAD_SINTAXIS    = 0,
+    INEXISTENT_CMD  = 1,
+    HELP_CMD = 2,
+    WELL_WRITTEN = 4,
+} cmd_status;
+
+extern file_descriptor socket_fd;
+
+void communicate_with_proxy();
+
+cmd_status authenticate(enum cmd, char *, bool *);
+cmd_status transaction(enum cmd, char *, bool *);
 
 #endif //PROXYPOP3_CONFIGURATIONCLIENT_H

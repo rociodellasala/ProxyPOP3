@@ -2,7 +2,7 @@
 #include <string.h>
 #include "include/response.h"
 
-void print_msg(int status, response response) {
+void print_msg(response_status status, response response) {
     int i; /*todo:ver que onda esto que lee mal si no agrego \0 */
     char msg[response.length + 1];
 
@@ -15,13 +15,13 @@ void print_msg(int status, response response) {
     if (response.length > 0 && response.data != NULL) {
         response.data;
 
-        if (status) {
+        if (status == OK) {
             printf("Answer from proxy: +OK: %s\n", msg);
         } else {
             printf("Answer from proxy: -ERR: %s\n", msg);
         }
     } else {
-        if (status) {
+        if (status == OK) {
             printf("Answer from proxy: +OK\n");
         } else {
             printf("Answer from proxy: -ERR\n");
@@ -29,19 +29,22 @@ void print_msg(int status, response response) {
     }
 }
 
-void show_menu() {
+void show_menu_authentication() {
     printf(
-            "\n-------------------------- MENU --------------------------\n"
-            "FORMAT: [COMMAND_NUMBER] [parameter]\n"
-            " - AUTENTHICATION:                1 pass\n"
-            " - SET TRANSFORMATION PROGRAM:    2 transformationprogram\n"
-            " - GET TRANSFORMATION PROGRAM:    3 \n"
-            " - SWITCH TRANSFORMATION PROGRAM: 4 \n"
-            " - GET METRIC:                    5 metric\n"
-            " - GET MIME:                      6 \n"
-            " - ALLOW MIME:                    7 mime\n"
-            " - FORBID MIME:                   8 mime\n"
-            " - QUIT:                          9\n"
-            "USAGE EXAMPLE: 2 ./cat\n");
+            "\nINPUT FORMAT:     [COMMAND_NUMBER]  [parameter]\n"
+            "  - AUTHENTICATE:           1            pass\n"
+            "  - QUIT:                   9\n");
 }
 
+void show_menu_transaction() {
+    printf(
+            "\nINPUT FORMAT:                  [COMMAND_NUMBER]        [parameter]\n"
+            "  - SET TRANSFORMATION PROGRAM:          2          transformationprogram\n"
+            "  - GET TRANSFORMATION PROGRAM:          3 \n"
+            "  - SWITCH TRANSFORMATION PROGRAM:       4 \n"
+            "  - GET METRIC:                          5                 metric\n"
+            "  - GET MIME:                            6 \n"
+            "  - ALLOW MIME:                          7                  mime\n"
+            "  - FORBID MIME:                         8                  mime\n"
+            "  - QUIT:                                9\n");
+}

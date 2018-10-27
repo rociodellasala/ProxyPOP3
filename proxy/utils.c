@@ -10,6 +10,7 @@
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
 
+/* TODO: Creo que esto hay que sacarlo */
 extern const char * sockaddr_to_human(char * buff, const size_t buffsize, const struct sockaddr * addr) {
     if (addr == 0) {
         strncpy(buff, "null", buffsize);

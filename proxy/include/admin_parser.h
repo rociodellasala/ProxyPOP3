@@ -1,6 +1,8 @@
 #ifndef PROXYPOP3_ADMIN_PARSER_H
 #define PROXYPOP3_ADMIN_PARSER_H
 
+#include "utils.h"
+
 /* Request */
 
 int parse_admin_request(struct admin *);

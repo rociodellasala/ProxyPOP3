@@ -102,7 +102,7 @@ void initialize_values() {
     parameters->management_port        = 9090;
 }
 
-options set_options_values(const int argc, char ** argv, options opt) {
+void set_options_values(const int argc, char ** argv) {
     int c;
     optind = 1;
 
@@ -119,6 +119,5 @@ options set_options_values(const int argc, char ** argv, options opt) {
         }
     }
 
-    return opt;
 }
 

@@ -37,14 +37,14 @@ ssize_t send_response(file_descriptor socket, response_admin * response) {
 }
 
 
-void send_response_with_data(char * parameter, file_descriptor socket, unsigned char status) {
+void send_response_with_data(unsigned char * parameter, file_descriptor socket, unsigned char status) {
     response_admin * response   = malloc(sizeof(*response));
     response->version           = VERSION;
     response->status            = status;
-    response->length            = (unsigned int) strlen(parameter);
+    response->length            = (unsigned int) strlen((const char *) parameter);
     response->data              = malloc(response->length * sizeof(unsigned char *));
     
-    strncpy(response->data, parameter, response->length);
+    strncpy((char *) response->data, (const char *) parameter, response->length);
     
     send_response(socket, response);
     
@@ -66,7 +66,7 @@ void send_response_without_data(file_descriptor socket, unsigned char status) {
 
 
 void parse_admin_response(struct admin * admin) {
-    int status;
+    unsigned char status;
     if (admin->a_status == ST_EHLO){
         ehlo(admin);
     } else {

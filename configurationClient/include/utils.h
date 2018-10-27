@@ -5,7 +5,10 @@
 
 typedef int file_descriptor;
 
-void show_menu();
-void print_msg(int, response);
+void show_menu_authentication();
+
+void show_menu_transaction();
+
+void print_msg(response_status, response);
 
 #endif //PROXYPOP3_UTILS_H

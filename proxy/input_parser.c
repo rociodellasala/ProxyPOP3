@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netdb.h>
 #include "include/input_parser.h"
 
 void print_usage() {
@@ -319,7 +320,7 @@ void initialize_values() {
     parameters->error_file                      = "/dev/null";
     parameters->management_address              = "127.0.0.1";
     parameters->management_port                 = 9090;
-    parameters->listen_address                  = INADDR_ANY;
+    parameters->listen_address                  = "0.0.0.0";
     parameters->replacement_msg                 = "Parte reemplazada.";
     parameters->filtered_media_types            = "text/plain"; /* Default value ?? */
     parameters->origin_port                     = 110;

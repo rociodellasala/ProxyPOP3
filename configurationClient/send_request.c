@@ -5,15 +5,16 @@
 #include "include/request.h"
 #include "include/send_request.h"
 #include "include/serializer.h"
+#include "include/administrator.h"
 
 #define VERSION 1 /* TODO: esta bien ?*/
 
-ssize_t send_request(const file_descriptor socket, request * request) {
+ssize_t send_request(request * request) {
     ssize_t sent_bytes;
     unsigned char buffer[100];
     unsigned char * pointer = serialize_request(buffer, request);
 
-    sent_bytes = sctp_sendmsg(socket, buffer, pointer-buffer, NULL, 0, 0, 0, 0, 0, 0);
+    sent_bytes = sctp_sendmsg(socket_fd, buffer, pointer-buffer, NULL, 0, 0, 0, 0, 0, 0);
 
     if (sent_bytes <= 0) {
         printf("%s\n", strerror(errno));
@@ -22,7 +23,7 @@ ssize_t send_request(const file_descriptor socket, request * request) {
     return sent_bytes;
 }
 
-void send_request_one_param(const char * parameter, enum cmd cmd, const file_descriptor socket) {
+void send_request_one_param(const char * parameter, enum cmd cmd) {
     request * request   = malloc(sizeof(*request));
 
     request->version    = VERSION;
@@ -31,13 +32,13 @@ void send_request_one_param(const char * parameter, enum cmd cmd, const file_des
     request->data       = malloc(request->length * sizeof(unsigned char *));
     strncpy((char *)request->data, parameter, request->length);
 
-    send_request(socket, request);
+    send_request(request);
     
     free(request->data);
     free(request);
 }
 
-void send_request_without_param(enum cmd cmd, const file_descriptor socket) {
+void send_request_without_param(enum cmd cmd) {
     request * request   = malloc(sizeof(*request));
 
     request->version    = VERSION;
@@ -45,7 +46,7 @@ void send_request_without_param(enum cmd cmd, const file_descriptor socket) {
     request->length     = 0;
     request->data       = 0;
 
-    send_request(socket, request);
+    send_request(request);
     
     free(request);
 }

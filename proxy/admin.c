@@ -64,14 +64,12 @@ void admin_accept_connection(struct selector_key * key) {
     state = admin_new(client);
 
     if(state == NULL) {
-        // TODO: sin un estado, nos es imposible manejaro.
-        // tal vez deberiamos apagar accept() hasta que detectemos
-        // que se liberó alguna conexión.
         goto fail;
     }
 
     memcpy(&state->admin_addr, &client_addr, client_addr_len);
 
+    /* Empezamos por mandar el mensaje de bienvenida al cliente administrador */
     if(SELECTOR_SUCCESS != selector_register(key->s, client, &admin_handler, OP_WRITE, state)) {
         goto fail;
     }
@@ -96,7 +94,7 @@ void admin_read(struct selector_key * key){
     };
 }
 
-void reset_admin_status(struct admin * admin){
+void reset_admin_status(struct admin * admin) {
     admin->current_request  = NULL;
     admin->resp_length      = 0;
     admin->resp_data        = NULL;
@@ -104,9 +102,9 @@ void reset_admin_status(struct admin * admin){
     admin->resp_status      = RESP_PARSE_OK;
 }
 
-void admin_write(struct selector_key * key){
+void admin_write(struct selector_key * key) {
     struct admin * admin = ATTACHMENT(key);
-    if(admin->quit == 0) {
+    if (admin->quit == 0) {
         parse_admin_response(admin);
     } else {
         quit(admin);

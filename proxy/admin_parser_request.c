@@ -11,17 +11,14 @@
 #include "include/request_admin.h"
 #include "include/admin_actions.h"
 #include "include/response_admin.h"
+#include "include/utils.h"
 
-
-typedef int file_descriptor;
-
-void authenticate(struct admin * data);
-void transaction(struct admin * data);
+void authenticate(struct admin * admin);
+void transaction(struct admin * admin);
 
 struct parse_action {
     admin_status status;
-    int (* function)(struct admin * admin);
-    int args;
+    void (* function)(struct admin * admin);
 };
 
 static struct parse_action auth_action = {
@@ -43,7 +40,7 @@ void authenticate(struct admin * admin){
     request_admin * r = admin->current_request;
 
     if(r->cmd == A){
-        if(check_password(r->data) == 1){
+        if(check_password((const char *) r->data) == 1){
             admin->a_status = ST_TRANS;
         } else {
             admin->req_status = INCORRECT_PASS;
@@ -61,11 +58,11 @@ void transaction(struct admin * admin){
     switch(r->cmd){
         case SET_T:
             /* TODO: Algun chequeo necesario ? */
-            parameters->filter_command->program_name = r->data ;
+            parameters->filter_command->program_name = (char *) r->data;
             break;
         case GET_T:
-            admin->resp_data = parameters->filter_command->program_name;
-            admin->resp_length = strlen(admin->resp_data);
+            admin->resp_data = (unsigned char *) parameters->filter_command->program_name;
+            admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
             break;
         case SWITCH_T:
             /* Deberiamos enviar un mensaje */
@@ -75,8 +72,8 @@ void transaction(struct admin * admin){
             return_metric(admin, r->data);
             break;
         case GET_MI:
-            admin->resp_data = parameters->filtered_media_types;
-            admin->resp_length = strlen(admin->resp_data);
+            admin->resp_data = (unsigned char *) parameters->filtered_media_types;
+            admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
             break;
         case ALLOW_MI:
             //allow_mime()
@@ -100,20 +97,20 @@ void parse_req_commands(struct admin * admin){
 
     switch (admin->req_status) {
         case INCORRECT_PASS:
-            admin->resp_data = "Incorrect password. Could not authenticate.";
-            admin->resp_length = strlen(admin->resp_data);
+            admin->resp_data = (unsigned char *) "Incorrect password. Could not authenticate.";
+            admin->resp_length = (unsigned int) strlen(admin->resp_data);
             break;
         case INCORRECT_COMMAND_STATUS:
             if(admin->a_status == ST_AUTH) {
-                admin->resp_data = "Incorrect command for current status: First you have to authenticate.";
+                admin->resp_data = (unsigned char *) "Incorrect command for current status: First you have to authenticate.";
             } else {
-                admin->resp_data = "Incorrect command for current status: You are already authenticated.";
+                admin->resp_data = (unsigned char *) "Incorrect command for current status: You are already authenticated.";
             }
-            admin->resp_length = strlen(admin->resp_data);
+            admin->resp_length = (unsigned int) strlen(admin->resp_data);
             break;
         case COULD_NOT_READ_REQUEST:
-            admin->resp_data = "Server Error. Please try again.";
-            admin->resp_length = strlen(admin->resp_data);
+            admin->resp_data = (unsigned char *) "Server Error. Please try again.";
+            admin->resp_length = (unsigned int) strlen(admin->resp_data);
             break;
         default:
             break;
@@ -130,8 +127,8 @@ void parse_admin_request(struct admin * admin) {
 
     if (read_bytes <= 0) {
         admin->req_status = COULD_NOT_READ_REQUEST;
-        admin->resp_data = "Server Error. Please try again.";
-        admin->resp_length = strlen(admin->resp_data);
+        admin->resp_data = (unsigned char *) "Server Error. Please try again.";
+        admin->resp_length = (unsigned int) strlen(admin->resp_data);
     } else {
         deserialize_request(buffer, request);
         admin->current_request = request;

@@ -6,8 +6,6 @@
 #include "request_admin.h"
 #include "response_admin.h"
 
-#define BUFFER_SIZE 1024
-
 enum cmd {
     A           = '1',
     SET_T       = '2',
@@ -57,10 +55,9 @@ struct admin {
 
 };
 
-void admin_read(struct selector_key * key);
-void admin_write(struct selector_key * key);
-void admin_close(struct selector_key * key);
-
+void admin_read(struct selector_key *);
+void admin_write(struct selector_key *);
+void admin_close(struct selector_key *);
 void admin_accept_connection(struct selector_key *);
 
 
