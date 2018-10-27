@@ -34,9 +34,9 @@ int main(int argc, char ** argv) {
 	* pointed to by name and returns the associated value to the string. 
 	*/
 
-	//char* flm = getenv("FILTER_MEDIAS");
+	char* flm = getenv("FILTER_MEDIAS");
 
-	char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
+	//char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
 
 	struct List *list = create_list();
 
@@ -95,31 +95,24 @@ int main(int argc, char ** argv) {
 
 		char *type = malloc(strlen(mime) + 1);
 		if(type == NULL){
-			printf("bye type\n");
 			return -1;
 		}
 		strcpy(type, mime);
-		printf("Ok type es %s\n", type);
 		/*getting subtype*/
 		
 		mime = strtok_r(NULL, slash, &context_b);
 		if(mime == NULL){
-			printf("bye mime2\n");
 			return -1;
 		}
 
 		char *subtype = malloc(strlen(mime) + 1);
 
 		if(subtype == NULL){
-			printf("bye subtpe\n");
 			return -1;
 		}
 
 		strcpy(subtype, mime);
-		printf("ok subtype es %s\n", subtype);
 		
-
-		// free ?
 		int addition = add_new(type, subtype, list);
 		if(addition != -1){
 			printf("Node correctly added!\n");
@@ -127,8 +120,7 @@ int main(int argc, char ** argv) {
 
 		free(aux);
 		current = strtok_r(NULL, comma, &context);
-	}
-	printf("outside of while\n");
+	}free
 	// free(flm); no funca
 
 	print_list(list);
