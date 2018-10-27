@@ -77,10 +77,10 @@ int main(int argc, char ** argv) {
 
 	//en este WHILE faltan hacer free! con variable error porque sino hay que destruir  el mimeparser list
 	while(current != NULL){
-		printf("INSIDE WHILE\n");
+		//printf("INSIDE WHILE\n");
 		char *aux = malloc(strlen(current) + 1);
 		if(aux == NULL){
-			printf("bye aux\n");
+			//printf("bye aux\n");
 			return -1;
 		}
 		strcpy(aux, current);
@@ -89,7 +89,7 @@ int main(int argc, char ** argv) {
 		
 		mime = strtok_r(aux, slash, &context_b);
 		if(mime == NULL){
-			printf("bye mime\n");
+			//printf("bye mime\n");
 			return -1;
 		}
 
@@ -115,7 +115,7 @@ int main(int argc, char ** argv) {
 		
 		int addition = add_new(type, subtype, list);
 		if(addition != -1){
-			printf("Node correctly added!\n");
+			//printf("Node correctly added!\n");
 		}
 
 		free(aux);
@@ -123,9 +123,7 @@ int main(int argc, char ** argv) {
 	}
 	// free(flm); no funca
 
-	print_list(list);
-	
-	return 0;
+	//print_list(list);
 
 	
 	char *message = getenv(FILTER_MSG);

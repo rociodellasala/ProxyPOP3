@@ -1,0 +1,17 @@
+gcc -o test delimiter.c parser_creator.c stack.c mimeList.c mime_type.c mime_chars.c parser_utils.c mime_msg.c multi_pop3_parser.c mimeFilter.c
+
+
+501) 
+
+FILTER_MEDIAS=application/json./stripmime < ../test_cases/ii_images.mbox > out
+
+diff -u ii_images.mbox out
+
+
+502)
+FILTER_MEDIAS=image/png ./stripmime < ../test_cases/ii_images.mbox > out
+
+diff -u ii_images.mbox out
+
+503)
+
