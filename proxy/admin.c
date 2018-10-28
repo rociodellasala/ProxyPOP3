@@ -13,6 +13,7 @@
 #include "include/deserializer.h"
 #include "include/admin_actions.h"
 #include "include/admin_parser.h"
+#include "include/metrics.h"
 
 #define ATTACHMENT(key) ((struct admin *)(key)->data)
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -50,7 +51,8 @@ void admin_accept_connection(struct selector_key * key) {
     struct admin *                state           = NULL;
 
     const file_descriptor client = accept(key->fd, (struct sockaddr*) &client_addr, &client_addr_len);
-
+    metric_add_admin_connected();
+    
     if(client == -1) {
         goto fail;
     }
@@ -115,6 +117,7 @@ void admin_write(struct selector_key * key) {
             free(admin->current_request->data);
         }
         //free(admin->current_request);
+        metric_remove_admin_connected();
         selector_unregister_fd(key->s, admin->fd);
         return;
     }

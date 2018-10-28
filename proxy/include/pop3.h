@@ -5,7 +5,7 @@
 #include "selector.h"
 
 /* Handler del socket pasivo que atiende conexiones pop3 */
-void pop3_passive_accept(struct selector_key *);
+void pop3_accept_connection(struct selector_key *);
 
 /* Libera pools internos */
 void pop3_pool_destroy(void);

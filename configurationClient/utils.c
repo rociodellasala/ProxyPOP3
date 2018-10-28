@@ -37,6 +37,7 @@ void show_menu_transaction() {
             "                                                                                MAX CONCURRENT CONNECTIONS    1\n"
             "                                                                                HISTORICAL ACCESSES           2\n"
             "                                                                                TRANSFERED BYTES              3\n"
+            "                                                                                CURRENT ADMINS CONNECTED      4\n"
             "  - GET MIME:                            6 \n"
             "  - ALLOW MIME:                          7                  mime\n"
             "  - FORBID MIME:                         8                  mime\n"

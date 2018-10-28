@@ -6,6 +6,7 @@ enum e_metrics {
     MAX_CONCURRENT_CONNECTIONS,
     HISTORICAL_ACCESSES,
     TRANSFERED_BYTES,
+    CURRENT_ADMIN_CONNECTED,
     METRICS_SIZE
 };
 
@@ -13,6 +14,14 @@ extern double metrics[METRICS_SIZE];
 
 void initialize_metrics();
 
-char * metric_get_name(unsigned char *, int * index);
+char * metric_get_name(unsigned char *, int *);
+
+void metric_add_transfered_bytes(double);
+
+void metric_add_new_connection();
+
+void metric_add_admin_connected();
+
+void metric_remove_admin_connected();
 
 #endif //PROXYPOP3_METRICS_H

@@ -9,7 +9,7 @@ double metrics[METRICS_SIZE];
 void initialize_metrics() {
     int i ;
     for(i = 0; i < METRICS_SIZE; i++){
-        metrics[i] = 100;
+        metrics[i] = 0;
     }
 }
 
@@ -37,11 +37,32 @@ char * metric_get_name(unsigned char * number, int * index) {
         case TRANSFERED_BYTES:
             *index = TRANSFERED_BYTES;
             return "transfered bytes";
+        case CURRENT_ADMIN_CONNECTED:
+            *index = CURRENT_ADMIN_CONNECTED;
+            return "current admins connected";    
         default:
             return NULL;
     }
 }
 
+void metric_add_admin_connected(){
+    metrics[CURRENT_ADMIN_CONNECTED] += 1;
+}
+
+void metric_remove_admin_connected(){
+    metrics[CURRENT_ADMIN_CONNECTED] -= 1;
+}
+
 void metric_add_transfered_bytes(double curr_transfered_bytes) {
     metrics[TRANSFERED_BYTES] += curr_transfered_bytes;
 }
+
+void metric_add_new_connection() {
+    metrics[INST_CONCURRENT_CONNECTIONS] += 1;
+    if(metrics[MAX_CONCURRENT_CONNECTIONS] < metrics[INST_CONCURRENT_CONNECTIONS]) {
+        metrics[MAX_CONCURRENT_CONNECTIONS] = metrics[INST_CONCURRENT_CONNECTIONS];
+    }
+
+    metrics[INST_CONCURRENT_CONNECTIONS] += 1;
+}
+

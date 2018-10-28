@@ -7,7 +7,7 @@
 #include "include/input_parser.h"
 #include "include/deserializer.h"
 #include "include/admin.h"
-#include "include/serializer.h"
+#include "include/admin_serializer.h"
 #include "include/admin_request.h"
 #include "include/admin_actions.h"
 #include "include/admin_response.h"

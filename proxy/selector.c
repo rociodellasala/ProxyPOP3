@@ -18,7 +18,7 @@
 
 #define ERROR_DEFAULT_MSG "something failed"
 
-/** retorna una descripción humana del fallo */
+/* Retorna una descripción humana del fallo */
 const char * selector_error(const selector_status status) {
     const char *msg;
     switch (status) {
@@ -40,19 +40,20 @@ const char * selector_error(const selector_status status) {
         default:
             msg = ERROR_DEFAULT_MSG;
     }
+
     return msg;
 }
 
 
 static void wake_handler(const int signal) {
-    // nada que hacer. está solo para interrumpir el select
+    // nada que hacer, está solo para interrumpir el select
 }
 
-// señal a usar para las notificaciones de resolución
+/* Señal a usar para las notificaciones de resolución */
 struct selector_init conf;
 static sigset_t emptyset, blockset;
 
-selector_status selector_init(const struct selector_init  *c) {
+selector_status selector_init(const struct selector_init  * c) {
     memcpy(&conf, c, sizeof(conf));
 
     // inicializamos el sistema de comunicación entre threads y el selector
@@ -74,10 +75,8 @@ selector_status selector_init(const struct selector_init  *c) {
         goto finally;
     }
 
-    // 1. Registramos una función que atenderá la señal de interrupción
-    //    del selector.
-    //    Esta interrupción es útil en entornos multi-hilos.
-
+    // 1. registramos una función que atenderá la señal de interrupción
+    //    del selector. Esta interrupción es útil en entornos multi-hilos.
     if (sigaction(conf.signal, &act, 0)) {
         ret = SELECTOR_IO;
         goto finally;
@@ -90,8 +89,7 @@ selector_status selector_init(const struct selector_init  *c) {
 }
 
 selector_status selector_close(void) {
-    // Nada para liberar.
-    // TODO: podriamos reestablecer el handler de la señal.
+    // nada para liberar.
     return SELECTOR_SUCCESS;
 }
 
@@ -105,15 +103,16 @@ struct item {
 
 /* Tarea bloqueante */
 struct blocking_job {
-    /* Selector dueño de la resolucion */
+    /* selector dueño de la resolucion */
     fd_selector             s;
-    /* File descriptor dueño de la resolucion */
+
+    /* file descriptor dueño de la resolucion */
     int                     fd;
 
-    /* Datos del trabajo provisto por el usuario */
+    /* datos del trabajo provisto por el usuario */
     void *                  data;
 
-    /* El siguiente en la lista */
+    /* el siguiente en la lista */
     struct blocking_job *   next;
 };
 
@@ -124,45 +123,43 @@ static const int FD_UNUSED = -1;
 #define ITEM_USED(i) ( ( FD_UNUSED != (i)->fd) )
 
 struct fdselector {
-    /* Almacenamos en una jump table donde la entrada es el file descriptor.
-        Asumimos que el espacio de file descriptors no va a ser esparso; pero
-        esto podría mejorarse utilizando otra estructura de datos */
+    // almacenamos en una jump table donde la entrada es el file descriptor.
+    // Asumimos que el espacio de file descriptors no va a ser esparso; pero
+    // esto podría mejorarse utilizando otra estructura de datos
     struct item *               fds;
     size_t                      fd_size;  // cantidad de elementos posibles de fds
 
-    /* Fd maximo para usar en select() */
+    /* fd maximo para usar en select() */
     int                         max_fd;  // max(.fds[].fd)
 
-    /* Descriptores prototipicos ser usados en select */
+    /* descriptores prototipicos ser usados en select */
     fd_set                      master_r, master_w;
-    /* Para ser usado en el select() (recordar que select cambia el valor) */
+
+    /* para ser usado en el select() (recordar que select cambia el valor) */
     fd_set                      slave_r,  slave_w;
 
-    /* Timeout prototipico para usar en select() */
+    /* timeout prototipico para usar en select() */
     struct timespec             master_t;
-    /* Tambien select() puede cambiar el valor */
+
+    /* tambien select() puede cambiar el valor */
     struct timespec             slave_t;
 
-    // Notificaciónes entre blocking jobs y el selector
+    /* notificaciónes entre blocking jobs y el selector */
     volatile pthread_t          selector_thread;
-    /** Protege el acceso a resolutions jobs */
+
+    /* protege el acceso a resolutions jobs */
     pthread_mutex_t             resolution_mutex;
-    /**
-     * lista de trabajos blockeantes que finalizaron y que pueden ser
-     * notificados.
-     */
+
+    /* lista de trabajos blockeantes que finalizaron y que pueden ser notificados */
     struct blocking_job *       resolution_jobs;
 };
 
-/** cantidad máxima de file descriptors que la plataforma puede manejar */
+/* Cantidad máxima de file descriptors que la plataforma puede manejar */
 #define ITEMS_MAX_SIZE      FD_SETSIZE
 
 // en esta implementación el máximo está dado por el límite natural de select(2).
 
-/**
- * determina el tamaño a crecer, generando algo de slack para no tener
- * que realocar constantemente.
- */
+/* Determina el tamaño a crecer, generando algo de slack para no tener que realocar constantemente */
 static size_t next_capacity(const size_t n) {
     unsigned bits = 0;
     size_t tmp = n;
@@ -186,10 +183,8 @@ static inline void item_init(struct item *item) {
     item->fd = FD_UNUSED;
 }
 
-/**
- * inicializa los nuevos items. `last' es el indice anterior.
- * asume que ya está blanqueada la memoria.
- */
+/* Inicializa los nuevos items. `last' es el indice anterior.
+   Asume que ya está blanqueada la memoria. */
 static void items_init(fd_selector s, const size_t last) {
     size_t i;
     assert(last <= s->fd_size);
@@ -198,9 +193,7 @@ static void items_init(fd_selector s, const size_t last) {
     }
 }
 
-/**
- * calcula el fd maximo para ser utilizado en select()
- */
+/* Calcula el fd maximo para ser utilizado en select() */
 static int items_max_fd(fd_selector s) {
     int max = 0;
     int i;
@@ -231,11 +224,8 @@ static void items_update_fdset_for_fd(fd_selector s, const struct item * item) {
     }
 }
 
-/**
- * garantizar cierta cantidad de elemenos en `fds'.
- * Se asegura de que `n' sea un número que la plataforma donde corremos lo
- * soporta
- */
+/* Garantizar cierta cantidad de elemenos en `fds'. Se asegura de
+   que `n' sea un número que la plataforma donde corremos lo soporta */
 static selector_status ensure_capacity(fd_selector s, const size_t n) {
     selector_status ret = SELECTOR_SUCCESS;
 
@@ -329,13 +319,13 @@ void selector_destroy(fd_selector s) {
 selector_status selector_register(fd_selector s, const int fd, const fd_handler * handler, const fd_interest interest, void * data) {
     selector_status ret = SELECTOR_SUCCESS;
     
-    // Validación de argumentos
+    // validación de argumentos
     if (s == NULL || INVALID_FD(fd) || handler == NULL) {
         ret = SELECTOR_IARGS;
         goto finally;
     }
     
-    // Tenemos espacio?
+    // tenemos espacio?
     size_t ufd = (size_t)fd;
 
     if (ufd > s->fd_size) {
@@ -345,7 +335,7 @@ selector_status selector_register(fd_selector s, const int fd, const fd_handler 
         }
     }
 
-    // Registración del fd
+    // registración del fd
     struct item * item = s->fds + ufd;
 
     if (ITEM_USED(item)) {
@@ -357,7 +347,7 @@ selector_status selector_register(fd_selector s, const int fd, const fd_handler 
         item->interest = interest;
         item->data     = data;
 
-        // Actualizo colaterales
+        // actualizo colaterales
         if (fd > s->max_fd) {
             s->max_fd = fd;
         }
@@ -436,10 +426,7 @@ selector_status selector_set_interest_key(struct selector_key * key, fd_interest
     return ret;
 }
 
-/**
- * se encarga de manejar los resultados del select.
- * se encuentra separado para facilitar el testing
- */
+/* Se encarga de manejar los resultados del select. Se encuentra separado para facilitar el testing */
 static void handle_iteration(fd_selector s) {
     int n = s->max_fd;
     int i;
@@ -544,8 +531,7 @@ selector_status selector_select(fd_selector s) {
                 // si una señal nos interrumpio. ok!
                 break;
             case EBADF:
-                // ayuda a encontrar casos donde se cierran los fd pero no
-                // se desregistraron
+                // ayuda a encontrar casos donde se cierran los fd pero no se desregistraron
                 for (i = 0 ; i < s->max_fd; i++) {
                     if (FD_ISSET(i, &s->master_r) || FD_ISSET(i, &s->master_w)) {
                         if (fcntl(i, F_GETFD, 0) == -1) {

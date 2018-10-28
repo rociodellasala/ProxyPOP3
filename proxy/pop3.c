@@ -267,7 +267,7 @@ static const struct fd_handler pop3_handler = {
 };
 
 /** Intenta aceptar la nueva conexión entrante*/
-void pop3_passive_accept(struct selector_key * key) {
+void pop3_accept_connection(struct selector_key * key) {
     struct sockaddr_storage       client_addr;
     socklen_t                     client_addr_len = sizeof(client_addr);
     struct pop3                * state            = NULL;

@@ -94,9 +94,9 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
     }
 
     const struct fd_handler pop3_handler = {
-            .handle_read       = &pop3_passive_accept,
+            .handle_read       = &pop3_accept_connection,
             .handle_write      = NULL,
-            .handle_close      = NULL, // nada que liberar
+            .handle_close      = NULL,
     };
 
     const struct fd_handler admin_handler = {

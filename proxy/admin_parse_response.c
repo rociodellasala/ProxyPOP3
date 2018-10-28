@@ -5,7 +5,7 @@
 #include <netinet/sctp.h>
 #include <errno.h>
 #include "include/admin.h"
-#include "include/serializer.h"
+#include "include/admin_serializer.h"
 #include "include/utils.h"
 
 typedef int file_descriptor;
