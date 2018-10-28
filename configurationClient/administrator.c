@@ -11,7 +11,7 @@
 #include "include/utils.h"
 
 file_descriptor socket_fd;
-/* TODO: MANDAR POR STREAMS, MIRAR BIEN TODO LO QUE AHORA ESTA EN CERO EN SEND Y RECEIVE */
+/* TODO: MANDAR POR STREAMS, MIRAR BIEN TODO LO QUE AHORA ESTA EN CERO EN SEND Y RECEIVE (no se si es necesario) */
 
 struct parse_action {
     admin_status status;
