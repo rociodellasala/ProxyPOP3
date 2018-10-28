@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "include/request.h"
 
 unsigned char * serialize_int(unsigned char * buffer, unsigned int value) {
@@ -30,7 +31,7 @@ unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, co
 unsigned char * serialize_request(unsigned char * buffer, request * request) {
     /* serializamos la version del proxy */
     buffer = serialize_char(buffer, request->version);
-
+    
     /* serializamos el comando a enviar */
     buffer = serialize_char(buffer, request->cmd);
 

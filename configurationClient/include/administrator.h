@@ -21,6 +21,18 @@ typedef enum {
     Q           = '9',
 } cmd;
 
+typedef enum {
+    A_CMD         = 0X01,
+    SET_T_CMD     = 0X02,
+    GET_T_CMD     = 0X03,
+    SWITCH_T_CMD  = 0X04,
+    GET_ME_CMD    = 0X05,
+    GET_MI_CMD    = 0X06,
+    ALLOW_MI_CMD  = 0X07,
+    FORBID_MI_CMD = 0X08,
+    Q_CMD         = 0X09,
+} b_cmd;
+
 typedef enum admin_status {
     ST_AUTH     = 0,
     ST_TRANS    = 1,
@@ -31,7 +43,8 @@ typedef enum cmd_status {
     INEXISTENT_CMD  = 1,
     HELP_CMD        = 2,
     PARAM_TOO_LONG  = 3,
-    WELL_WRITTEN    = 4,
+    PARAM_TOO_SHORT = 4,
+    WELL_WRITTEN    = 5,
 } cmd_status;
 
 extern file_descriptor socket_fd;

@@ -1,8 +1,6 @@
 #ifndef PROXYPOP3_REQUEST_H
 #define PROXYPOP3_REQUEST_H
 
-#define VERSION 1
-
 typedef struct {
     unsigned char   version;
     unsigned char   cmd;

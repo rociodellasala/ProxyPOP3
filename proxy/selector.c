@@ -91,7 +91,7 @@ selector_status selector_init(const struct selector_init  *c) {
 
 selector_status selector_close(void) {
     // Nada para liberar.
-    // TODO(juan): podriamos reestablecer el handler de la señal.
+    // TODO: podriamos reestablecer el handler de la señal.
     return SELECTOR_SUCCESS;
 }
 

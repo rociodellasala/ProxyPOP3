@@ -36,12 +36,12 @@ unsigned char * deserialize_response(unsigned char * buffer, response * response
 
     /* deserializamos la data a enviar (si la hay) */
     if (response->length > 0) {
-        response->data = malloc((response->length + 1) * sizeof(char *));
-        
+        response->data = malloc((response->length + 1) * sizeof(unsigned char *));
+
         if (response->data == NULL) {
             return NULL;
         }
-        
+
         buffer = deserialize_string(buffer, response->data, response->length);
         response->data[response->length] = '\0';
     }

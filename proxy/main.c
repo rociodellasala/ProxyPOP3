@@ -22,10 +22,10 @@ struct addrinfo * resolution(char * address, uint16_t port){
     snprintf(mgmt_buff, sizeof(mgmt_buff), "%hu", port);
 
     struct addrinfo hints = {
-            .ai_family    = AF_UNSPEC,    /* Allow IPv4 or IPv6 */
-            .ai_socktype  = SOCK_STREAM,  /* Datagram socket */
-            .ai_flags     = AI_PASSIVE,   /* For wildcard IP address */
-            .ai_protocol  = 0,            /* Any protocol */
+            .ai_family    = AF_UNSPEC,
+            .ai_socktype  = SOCK_STREAM,
+            .ai_flags     = AI_PASSIVE,
+            .ai_protocol  = 0,
             .ai_canonname = NULL,
             .ai_addr      = NULL,
             .ai_next      = NULL,

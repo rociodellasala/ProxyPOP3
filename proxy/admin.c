@@ -49,7 +49,7 @@ void admin_accept_connection(struct selector_key * key) {
     socklen_t                     client_addr_len = sizeof(client_addr);
     struct admin *                state           = NULL;
 
-    const int client = accept(key->fd, (struct sockaddr*) &client_addr, &client_addr_len);
+    const file_descriptor client = accept(key->fd, (struct sockaddr*) &client_addr, &client_addr_len);
 
     if(client == -1) {
         goto fail;
@@ -59,8 +59,7 @@ void admin_accept_connection(struct selector_key * key) {
         goto fail;
     }
 
-    print_connection_status("[ADMIN]: Connection established", client_addr);
-    printf("[ADMIN]: File descriptor: %d\n", client);
+    print_connection_status("[ADMIN]: Connection established", client_addr, client);
     state = admin_new(client);
 
     if(state == NULL) {
@@ -89,7 +88,6 @@ void admin_read(struct selector_key * key){
     
     parse_admin_request(admin);
     
-    
     if(selector_set_interest(key->s, key->fd, OP_WRITE) != SELECTOR_SUCCESS){
         selector_unregister_fd(key->s, admin->fd);
     };
@@ -108,11 +106,15 @@ void admin_write(struct selector_key * key) {
     int resp = -1;
 
     if (admin->quit == 0) {
-        while(resp < 0){ //TODO: chequear
+        while(resp < 0) {
             resp = parse_admin_response(admin);
         }
     } else {
         quit(admin);
+        if (admin->current_request->length > 0) {
+            free(admin->current_request->data);
+        }
+        //free(admin->current_request);
         selector_unregister_fd(key->s, admin->fd);
         return;
     }
@@ -126,6 +128,6 @@ void admin_write(struct selector_key * key) {
 
 void admin_close(struct selector_key * key) {
     struct admin * admin = ATTACHMENT(key);
-    print_connection_status("[ADMIN]: Connection disconnected", admin->admin_addr);
+    print_connection_status("[ADMIN]: Connection disconnected", admin->admin_addr, admin->fd);
     free(admin);
 }

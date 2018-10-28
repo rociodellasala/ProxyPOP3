@@ -51,9 +51,12 @@ void return_metric(struct admin * admin, const char * data){
     
     resp = malloc((strlen(name) + 1 + size ) * sizeof(char *));
     sprintf(resp, "%s:%s", name, value);
-    
+
     admin->resp_data = resp;
     admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
+
+    free(value);
+    free(resp);
 }
 
 /* TODO: creo que hay que llamar a lo que hicimos en el tp2 para saber si el mime no esta ya incluido

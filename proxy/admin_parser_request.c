@@ -13,45 +13,45 @@
 #include "include/admin_response.h"
 #include "include/utils.h"
 
-void parse_action(struct admin * admin){
+void parse_action(struct admin * admin) {
     request_admin * r = admin->current_request;
-
-    switch(r->cmd){
-        case A:
+    
+    switch (r->cmd) {
+        case A_CMD:
             if(check_password((const char *) r->data) == 1){
                 admin->a_status = ST_CONNECTED;
             } else {
                 admin->req_status = INCORRECT_PASS;
             }
             break;
-        case SET_T:
+        case SET_T_CMD:
             /* TODO: Algun chequeo necesario ? */
             parameters->filter_command->program_name = r->data;
             break;
-        case GET_T:
+        case GET_T_CMD:
             admin->resp_data = (char *) parameters->filter_command->program_name;
             admin->resp_length = strlen((const char *) admin->resp_data);
             break;
-        case SWITCH_T:
+        case SWITCH_T_CMD:
             switch_transformation_program(admin);
             break;
-        case GET_ME:
+        case GET_ME_CMD:
             return_metric(admin, (const char *) r->data);
             break;
-        case GET_MI:
+        case GET_MI_CMD:
             admin->resp_data = parameters->filtered_media_types;
             admin->resp_length = strlen((const char *) admin->resp_data);
             break;
-        case ALLOW_MI:
+        case ALLOW_MI_CMD:
             /* TODO: Ale cuidado cuando agregues un mime a la lista porque las respuestas tienen un maximo de
              * 100 caracteres para la parte de data y entonces si despues agregamos tantos que eso se sobrepasa
              * y hacemos el comando 6 para pedir, va a explotar toodo */
             //allow_mime()
             break;
-        case FORBID_MI:
+        case FORBID_MI_CMD:
             //forbid_mime()
             break;
-        case Q:
+        case Q_CMD:
             admin->quit = 1;
             break;
         default:
@@ -78,6 +78,7 @@ void parse_req_commands(struct admin * admin){
 
 }
 
+/* TODO: VER MALLOC QUE SE PIERDE VALGRIND */
 int parse_admin_request(struct admin * admin) {
     int read_bytes;
     unsigned char buffer[MAX_ADMIN_BUFFER];
@@ -94,8 +95,7 @@ int parse_admin_request(struct admin * admin) {
         admin->current_request = request;
         parse_req_commands(admin);
     }
-
-    if(admin->req_status == COULD_NOT_READ_REQUEST){
+    if (admin->req_status == COULD_NOT_READ_REQUEST) {
         return -1;
     }
 

@@ -56,7 +56,7 @@ extern const char * sockaddr_to_human(char * buff, const size_t buffsize, const 
     return buff;
 }
 
-void print_connection_status(const char * msg, struct sockaddr_storage addr) {
+void print_connection_status(const char * msg, struct sockaddr_storage addr, file_descriptor fd) {
     char hoststr[NI_MAXHOST];
     char portstr[NI_MAXSERV];
 
@@ -64,7 +64,7 @@ void print_connection_status(const char * msg, struct sockaddr_storage addr) {
                 sizeof(addr), hoststr, sizeof(hoststr), portstr, sizeof(portstr),
                 NI_NUMERICHOST | NI_NUMERICSERV);
 
-    printf("%s: \n\t - IP: %s \n\t - Port: %d \n", msg, hoststr, portstr);
+    printf("%s: \n\t - File descriptor: %d \n\t - IP: %s \n\t - Port: %s \n", msg, fd, hoststr, portstr);
 }
 
 

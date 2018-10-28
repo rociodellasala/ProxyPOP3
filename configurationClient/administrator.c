@@ -52,7 +52,7 @@ void handle_receive_msg(response_status * r_status) {
     }
 }
 
-cmd_status assemble_req(int i, const char * buffer_option, const cmd command) {
+cmd_status assemble_req(int i, const char * buffer_option, const b_cmd command) {
     char param[MAX_PARAM]  = {0};
     int j                   = 0;
 
@@ -67,6 +67,8 @@ cmd_status assemble_req(int i, const char * buffer_option, const cmd command) {
 
         if (j == MAX_PARAM) {
             return PARAM_TOO_LONG;
+        } else if (j == 0) {
+            return PARAM_TOO_SHORT;
         }
 
         send_request_one_param(param, command);
@@ -81,7 +83,7 @@ cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_opt
 
     switch (c) {
         case A:
-            cmd_status = assemble_req(++i, buffer_option, A);
+            cmd_status = assemble_req(++i, buffer_option, A_CMD);
             break;
         case Q:
             i++;
@@ -90,7 +92,7 @@ cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_opt
                 break;
             } else {
                 *quit_option_on = true;
-                send_request_without_param(Q);
+                send_request_without_param(Q_CMD);
                 cmd_status = WELL_WRITTEN;
                 break;
             }
@@ -112,7 +114,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
 
     switch (c) {
         case SET_T:
-            cmd_status = assemble_req(++i, buffer_option, SET_T);
+            cmd_status = assemble_req(++i, buffer_option, SET_T_CMD);
             break;
         case GET_T:
             i++;
@@ -120,7 +122,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
-                send_request_without_param(GET_T);
+                send_request_without_param(GET_T_CMD);
                 cmd_status = WELL_WRITTEN;
                 break;
             }
@@ -130,12 +132,12 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
-                send_request_without_param(SWITCH_T);
+                send_request_without_param(SWITCH_T_CMD);
                 cmd_status = WELL_WRITTEN;
                 break;
             }
         case GET_ME:
-            cmd_status = assemble_req(++i, buffer_option, GET_ME);
+            cmd_status = assemble_req(++i, buffer_option, GET_ME_CMD);
             break;
         case GET_MI:
             i++;
@@ -143,15 +145,15 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
-                send_request_without_param(GET_MI);
+                send_request_without_param(GET_MI_CMD);
                 cmd_status = WELL_WRITTEN;
                 break;
             }
         case ALLOW_MI:
-            cmd_status = assemble_req(++i, buffer_option, ALLOW_MI);
+            cmd_status = assemble_req(++i, buffer_option, ALLOW_MI_CMD);
             break;
         case FORBID_MI:
-            cmd_status = assemble_req(++i, buffer_option, FORBID_MI);
+            cmd_status = assemble_req(++i, buffer_option, FORBID_MI_CMD);
             break;
         case Q:
             i++;
@@ -160,7 +162,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
                 break;
             } else {
                 *quit_option_on = true;
-                send_request_without_param(Q);
+                send_request_without_param(Q_CMD);
                 cmd_status = WELL_WRITTEN;
                 break;
             }
@@ -189,6 +191,10 @@ void parse_cmd_status(cmd_status cmd_status, response_status * r_status) {
                 break;
         case PARAM_TOO_LONG:
                 printf("The entered parameter is too long to be sent. Maximum of 99 characters.\n");
+                *r_status = NOT_SEND;
+                break;
+        case PARAM_TOO_SHORT:
+                printf("The entered parameter is too short to be sent. Please enter at least 1 character.\n");
                 *r_status = NOT_SEND;
                 break;
         case WELL_WRITTEN:

@@ -13,6 +13,7 @@ typedef int file_descriptor;
 void ehlo(struct admin * admin){
     ssize_t send_bytes;
     char * w_message = "Welcome to POP3 Proxy Management Server\n";
+    
     send_bytes = send(admin->fd, w_message, strlen(w_message), 0);
 
     if(send_bytes <= 0){

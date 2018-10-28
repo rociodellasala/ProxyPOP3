@@ -22,19 +22,13 @@ unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, un
     return buffer;
 }
 
-/**
- * Serializes the corresponding fields for the type of the msg
- */
 unsigned char * serialize_response(unsigned char * buffer, response_admin * response) {
-    /** version serialization */
     buffer = serialize_char(buffer, response->version);
 
-    /** command serialization */
     buffer = serialize_char(buffer, response->status);
 
-    /** data size serialization */
     buffer = serialize_int(buffer, response->length);
-    /** data serialization if present */
+
     if (response->length > 0) {
         buffer = serialize_string(buffer, response->data, response->length);
     }

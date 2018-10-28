@@ -21,7 +21,7 @@ ssize_t send_request(request * request) {
     return sent_bytes;
 }
 
-void send_request_one_param(const char * parameter, cmd cmd) {
+void send_request_one_param(const char * parameter, b_cmd cmd) {
     request * request   = malloc(sizeof(*request));
 
     request->version    = VERSION;
@@ -36,7 +36,7 @@ void send_request_one_param(const char * parameter, cmd cmd) {
     free(request);
 }
 
-void send_request_without_param(cmd cmd) {
+void send_request_without_param(b_cmd cmd) {
     request * request   = malloc(sizeof(*request));
 
     request->version    = VERSION;
