@@ -63,8 +63,8 @@ cmd_status assemble_req(int i, const char * buffer_option, const cmd command) {
         for (; j < MAX_PARAM && buffer_option[i] != '\n'; i++) {
             param[j++] = buffer_option[i];
         }
-       
-        if(j == MAX_PARAM){
+
+        if (j == MAX_PARAM) {
             return PARAM_TOO_LONG;
         }
 
