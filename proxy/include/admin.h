@@ -50,7 +50,6 @@ struct admin {
     char *                        resp_data;
 
     unsigned int                  quit;
-
 };
 
 void admin_read(struct selector_key *);

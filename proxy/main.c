@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "include/selector.h"
-#include "include/pop3.h"
+#include "include/pop3nio.h"
 #include "include/admin.h"
 #include "include/input_parser.h"
 #include "include/metrics.h"

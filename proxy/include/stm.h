@@ -1,5 +1,5 @@
-#ifndef STM_H_wL7YxN65ZHqKGvCPrNbPtMJgL8B
-#define STM_H_wL7YxN65ZHqKGvCPrNbPtMJgL8B
+#ifndef PROXYPOP3_STM_H
+#define PROXYPOP3_STM_H
 
 /**
  * stm.c - pequeño motor de maquina de estados donde los eventos son los
@@ -83,4 +83,4 @@ stm_handler_block(struct state_machine *stm, struct selector_key *key);
 void
 stm_handler_close(struct state_machine *stm, struct selector_key *key);
 
-#endif
+#endif //PROXYPOP3_STM_H

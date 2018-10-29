@@ -52,33 +52,36 @@ void admin_accept_connection(struct selector_key * key) {
 
     const file_descriptor client = accept(key->fd, (struct sockaddr*) &client_addr, &client_addr_len);
     metric_add_admin_connected();
-    
-    if(client == -1) {
+
+    if (client == -1) {
         goto fail;
     }
 
-    if(selector_fd_set_nio(client) == -1) {
+    if (selector_fd_set_nio(client) == -1) {
         goto fail;
     }
 
     print_connection_status("[ADMIN]: Connection established", client_addr, client);
     state = admin_new(client);
 
-    if(state == NULL) {
+    if (state == NULL) {
+        // sin un estado, nos es imposible manejaro.
+        // tal vez deberiamos apagar accept() hasta que detectemos
+        // que se liberó alguna conexión.
         goto fail;
     }
 
     memcpy(&state->admin_addr, &client_addr, client_addr_len);
 
     /* Empezamos por mandar el mensaje de bienvenida al cliente administrador */
-    if(SELECTOR_SUCCESS != selector_register(key->s, client, &admin_handler, OP_WRITE, state)) {
+    if (SELECTOR_SUCCESS != selector_register(key->s, client, &admin_handler, OP_WRITE, state)) {
         goto fail;
     }
 
     return ;
 
     fail:
-    if(client != -1) {
+    if (client != -1) {
         close(client);
     }
 
