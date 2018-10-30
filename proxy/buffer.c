@@ -50,7 +50,6 @@ inline void buffer_read_adv(buffer * b, const ssize_t bytes) {
     if (bytes > -1) {
         b->read += (size_t) bytes;
         assert(b->read <= b->write);
-
         if (b->read == b->write) {
             // compactacion poco costosa
             buffer_compact(b);

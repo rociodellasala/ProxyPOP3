@@ -24,4 +24,6 @@ void metric_add_admin_connected();
 
 void metric_remove_admin_connected();
 
+void metric_remove_current_connection();
+
 #endif //PROXYPOP3_METRICS_H

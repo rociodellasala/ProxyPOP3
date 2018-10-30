@@ -103,15 +103,7 @@ int is_valid_ip(char * ip_str) {
 
 // TODO: Validate origin server argument
 int validate_origin_server_argument(char * origin_server) {
-    if (strcmp("localhost", origin_server) == 0) {
-        return 0;
-    } else if (is_valid_ip(origin_server) == 0) {
-        printf("Valid IP!\n");
-        return 0;
-    }
-
-    //TODO: VALIDATE IPV6 ??
-    return -1;
+    return 0;
 }
 
 /* TODO Ale: Si cambias algo en esta funcion o en validate_port --> en clients esta copypasteada la misma, cambiar ahi tmb */

@@ -62,7 +62,9 @@ void metric_add_new_connection() {
     if(metrics[MAX_CONCURRENT_CONNECTIONS] < metrics[INST_CONCURRENT_CONNECTIONS]) {
         metrics[MAX_CONCURRENT_CONNECTIONS] = metrics[INST_CONCURRENT_CONNECTIONS];
     }
+}
 
-    metrics[INST_CONCURRENT_CONNECTIONS] += 1;
+void metric_remove_current_connection() {
+    metrics[INST_CONCURRENT_CONNECTIONS] -= 1;
 }
 

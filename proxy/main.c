@@ -195,7 +195,6 @@ int main(int argc, char ** argv) {
     initialize_metrics();
     initialize_values();
     opt = set_options_values(argc, argv);
-    printf("%s\n", opt->origin_server);
 
     return initialize_sockets(opt);
 }
