@@ -100,7 +100,7 @@ void * queue_get_next(struct queue * queue) {
     if (queue->current != NULL) {
         ret = queue->current->data;
         queue->current = queue->current->next;
-    } else {    // termine de recorrer o la queue estaba vacia
+    } else {
         queue->current = queue->first;
         ret = NULL;
     }

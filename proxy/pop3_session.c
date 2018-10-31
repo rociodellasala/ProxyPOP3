@@ -3,10 +3,8 @@
 
 void pop3_session_init(struct pop3_session *s, bool pipelining) {
     memset(s, 0, sizeof(*s));
-
     s->pipelining = pipelining;
     s->state = POP3_AUTHORIZATION;
-
     s->request_queue = new_queue();
 }
 
