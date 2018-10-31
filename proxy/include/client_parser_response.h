@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 
 #include "buffer.h"
-#include "response.h"
+#include "client_response.h"
 #include "request.h"
 #include "parser.h"
 

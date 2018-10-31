@@ -1,7 +1,7 @@
 #ifndef PROXYPOP3_REQUEST_H
 #define PROXYPOP3_REQUEST_H
 
-#include "response.h"
+#include "client_response.h"
 
 #define CMD_SIZE    5
 #define PARAM_SIZE  (40 * 2)

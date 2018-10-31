@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "include/response.h"
+#include "include/client_response.h"
 
 #define RESP_SIZE (response_status_err + 1)
 

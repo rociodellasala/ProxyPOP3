@@ -1,7 +1,7 @@
 #ifndef PROXYPOP3_SERIALIZER_H
 #define PROXYPOP3_SERIALIZER_H
 
-#include "request.h"
+#include "client_request.h"
 
 /* Serializa cada campo del request, es decir transforma todos los campos y
  * los junta en un char * que sera el que se enviará a través del socket */

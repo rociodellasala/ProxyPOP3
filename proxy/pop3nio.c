@@ -19,8 +19,8 @@
 
 #include "include/pop3nio.h"
 #include "include/input_parser.h"
-#include "include/request_parser.h"
-#include "include/response_parser.h"
+#include "include/client_parser_request.h"
+#include "include/client_parser_response.h"
 
 #include "include/metrics.h"
 #include "include/utils.h"
@@ -710,7 +710,6 @@ enum pop3_state request_process(struct selector_key * key, struct request_st * r
             case request_error_inexistent_cmd:
                 msg = "-ERR: Unknown command ";
                 dest = append_cmd(dest, msg, request->request_parser.request->cmd->name);
-                printf("dest: %s\n", dest);
                 break;
             case request_error_cmd_too_long:
                 dest = "-ERR: Command too long\r\n";

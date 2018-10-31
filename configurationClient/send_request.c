@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <netinet/sctp.h>
 #include <string.h>
-#include "include/request.h"
+#include "include/client_request.h"
 #include "include/send_request.h"
 #include "include/serializer.h"
 #include "include/administrator.h"
