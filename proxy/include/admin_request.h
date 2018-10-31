@@ -6,7 +6,7 @@ typedef struct {
     unsigned char   cmd;
     unsigned int    length;
     unsigned char * data;
-}request_admin;
+} request_admin;
 
 
 #endif //PROXYPOP3_REQUEST_H

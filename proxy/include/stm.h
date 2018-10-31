@@ -22,65 +22,56 @@
  */
 
 struct state_machine {
-    /** declaración de cual es el estado inicial */
-    unsigned                      initial;
-    /**
-     * declaracion de los estados: deben estar ordenados segun .[].state.
-     */
-    const struct state_definition *states;
-    /** cantidad de estados */
-    unsigned                      max_state;
-    /** estado actual */
-    const struct state_definition *current;
+    // declaración de cual es el estado inicial
+    unsigned                        initial;
+
+    //declaracion de los estados
+    const struct state_definition * states;
+    // cantidad de estados
+    unsigned                        max_state;
+
+    // estado actual
+    const struct state_definition * current;
 };
 
-struct selector_key *key;
+struct selector_key * key;
 
 /**
- * definición de un estado de la máquina de estados
+ * Definición de un estado de la máquina de estados
  */
 struct state_definition {
-    /**
-     * identificador del estado: típicamente viene de un enum que arranca
-     * desde 0 y no es esparso.
-     */
+    // identificador del estado
     unsigned state;
 
-    /** ejecutado al arribar al estado */
-    void     (*on_arrival)    (const unsigned state, struct selector_key *key);
-    /** ejecutado al salir del estado */
-    void     (*on_departure)  (const unsigned state, struct selector_key *key);
-    /** ejecutado cuando hay datos disponibles para ser leidos */
-    unsigned (*on_read_ready) (struct selector_key *key);
-    /** ejecutado cuando hay datos disponibles para ser escritos */
-    unsigned (*on_write_ready)(struct selector_key *key);
-    /** ejecutado cuando hay una resolución de nombres lista */
-    unsigned (*on_block_ready)(struct selector_key *key);
+    // ejecutado al arribar al estado
+    void     (* on_arrival)    (const unsigned state, struct selector_key * key);
+    // ejecutado al salir del estado
+    void     (* on_departure)  (const unsigned state, struct selector_key * key);
+    // ejecutado cuando hay datos disponibles para ser leidos
+    unsigned (* on_read_ready) (struct selector_key * key);
+    // ejecutado cuando hay datos disponibles para ser escritos
+    unsigned (* on_write_ready)(struct selector_key * key);
+    // ejecutado cuando hay una resolución de nombres lista
+    unsigned (* on_block_ready)(struct selector_key * key);
 };
 
 
-/** inicializa el la máquina */
-void
-stm_init(struct state_machine *stm);
+/* Inicializa el la máquina */
+void stm_init(struct state_machine *);
 
-/** obtiene el identificador del estado actual */
-unsigned
-stm_state        (struct state_machine *stm);
+/* Obtiene el identificador del estado actual */
+unsigned stm_state (struct state_machine *);
 
-/** indica que ocurrió el evento read. retorna nuevo id de nuevo estado. */
-unsigned
-stm_handler_read(struct state_machine *stm, struct selector_key *key);
+/* Indica que ocurrió el evento read. retorna nuevo id de nuevo estado. */
+unsigned stm_handler_read(struct state_machine *, struct selector_key *);
 
-/** indica que ocurrió el evento write. retorna nuevo id de nuevo estado. */
-unsigned
-stm_handler_write(struct state_machine *stm, struct selector_key *key);
+/* Indica que ocurrió el evento write. retorna nuevo id de nuevo estado. */
+unsigned stm_handler_write(struct state_machine *, struct selector_key *);
 
-/** indica que ocurrió el evento block. retorna nuevo id de nuevo estado. */
-unsigned
-stm_handler_block(struct state_machine *stm, struct selector_key *key);
+/* Indica que ocurrió el evento block. retorna nuevo id de nuevo estado. */
+unsigned stm_handler_block(struct state_machine *, struct selector_key *);
 
-/** indica que ocurrió el evento close. retorna nuevo id de nuevo estado. */
-void
-stm_handler_close(struct state_machine *stm, struct selector_key *key);
+/* Indica que ocurrió el evento close. retorna nuevo id de nuevo estado. */
+void stm_handler_close(struct state_machine *, struct selector_key *);
 
 #endif //PROXYPOP3_STM_H

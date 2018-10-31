@@ -115,7 +115,7 @@ void admin_write(struct selector_key * key) {
             resp = parse_admin_response(admin);
         }
     } else {
-        quit(admin);
+        quit_admin(admin);
         if (admin->current_request->length > 0) {
             free(admin->current_request->data);
         }

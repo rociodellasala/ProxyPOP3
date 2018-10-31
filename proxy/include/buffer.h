@@ -25,7 +25,7 @@
  * Invariantes:
  *    R <= W <= limit
  *
- * Se quiere escribir en el bufer cuatro bytes.
+ * Se quiere escribir en el buffer cuatro bytes.
  *
  * ptr + 0 <- buffer_write_ptr(b, &wbytes), wbytes=6
  * n = read(fd, ptr, wbytes)

@@ -32,7 +32,7 @@ struct addrinfo * resolution(char * address, uint16_t port){
     };
 
     if (getaddrinfo(address, mgmt_buff, &hints, &list_result) != 0){
-        fprintf(stderr,"Domain Name System (DNS) resolution error\n");
+        fprintf(stderr,"Domain Name System resolution error\n");
     }
 
     return list_result;

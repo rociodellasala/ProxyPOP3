@@ -1,9 +1,11 @@
 #ifndef PROXYPOP3_POP3_SESSION_H
 #define PROXYPOP3_POP3_SESSION_H
 
+#include <stdbool.h>
+
 #include "queue.h"
 
-// estados independientes de la maquina de estados general
+/* Estados POP3 */
 enum pop3_session_state {
     POP3_AUTHORIZATION,
     POP3_TRANSACTION,
@@ -11,24 +13,21 @@ enum pop3_session_state {
     POP3_DONE,
 };
 
-// representa una sesion pop3
+/* Representa una sesion pop3 */
 struct pop3_session {
-    char *user;
-    char *password;
+    // long maxima: 40 bytes segun rfc de pop3
+    char * user;
+    char * password;
 
     enum pop3_session_state state;
+    unsigned concurrent_invalid_commands;
 
-    // historial de requests de la sesion
-    struct pop3_request *first, *last;
-    // todo podriamos hacer que la queue funcione de historial (para no tener una lista de requests aparte)
-    // para eso cuando hacemos dequeue no tengo que perder la referencia al objeto
-
-    // podria ser una variable global?? -> no porque me pueden cambiar el origin server?
     bool pipelining;
-    // queue de requests, solo se usa si el server no soporta pipelining
-    struct queue *request_queue;
+
+    struct queue * request_queue;
 };
 
-void pop3_session_init(struct pop3_session *, bool);
+void pop3_session_init(struct pop3_session *s, bool pipelining);
 
 #endif //PROXYPOP3_POP3_SESSION_H
+
