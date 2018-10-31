@@ -32,8 +32,11 @@ int add_new(char* type, char* subtype,struct List* list){
 
 		
 		if(strcmp(subtype,WILDCARD) == 0){
-
+			free(subtype);
 			make_subtype_wildcard(tpnode,type,typeExists);
+			if(typeExists){
+				free(type);
+			}
 			return 0;
 		}
 
@@ -42,10 +45,13 @@ int add_new(char* type, char* subtype,struct List* list){
 				struct subtype_node* stpnode = search_for_subtype(tpnode->subtypes, subtype, &subtypeExists);
 
 				if(subtypeExists){
+					free(subtype);
+					free(type);
 					return -1;
 				}else{
 					//agrego nuevo subtipo al nodo tipo
 					stpnode->next = create_new_subtype(subtype);
+					free(type);
 					return 0;
 				}
 		}else{
@@ -61,6 +67,7 @@ int add_new(char* type, char* subtype,struct List* list){
 
 			list->first = create_new_type(type);
 			if(strcmp(subtype,WILDCARD)==0){	
+				free(subtype);
 				list->first->subtypes = create_new_wildcard_subtype();		
 				return 0;
 			}

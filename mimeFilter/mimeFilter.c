@@ -78,7 +78,7 @@ int main(int argc, char ** argv) {
 	while(current != NULL){
 		char *aux = malloc(strlen(current) + 1);
 		if(aux == NULL){
-			//printf("bye aux\n");
+			free(aux);
 			return -1;
 		}
 		strcpy(aux, current);
@@ -87,12 +87,13 @@ int main(int argc, char ** argv) {
 		
 		mime = strtok_r(aux, slash, &context_b);
 		if(mime == NULL){
-			//printf("bye mime\n");
+            free(aux);
 			return -1;
 		}
 
 		char *type = malloc(strlen(mime) + 1);
 		if(type == NULL){
+            free(type);
 			return -1;
 		}
 		strcpy(type, mime);
@@ -100,12 +101,14 @@ int main(int argc, char ** argv) {
 
 		mime = strtok_r(NULL, slash, &context_b);
 		if(mime == NULL){
+
 			return -1;
 		}
 
 		char *subtype = malloc(strlen(mime) + 1);
 
 		if(subtype == NULL){
+            free(subtype);
 			return -1;
 		}
 
@@ -116,11 +119,12 @@ int main(int argc, char ** argv) {
 		}
 
 		free(aux);
+        
 		current = strtok_r(NULL, comma, &context);
-	}
-	// free(flm); no funca
 
-	//print_list(list);
+	}
+	
+    free(medias);
 	
 	char *message = getenv(FILTER_MSG);
 
