@@ -28,6 +28,7 @@ typedef enum parse_req_status {
     INCORRECT_PASS              = 1,
     COULD_NOT_READ_REQUEST      = 2,
     INCORRECT_METRIC            = 3,
+    VERSION_UNSOPPORTED         = 4,
 } parse_req_status;
 
 typedef enum parse_resp_status {
