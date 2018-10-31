@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 
 #include "buffer.h"
-#include "request.h"
+#include "client_request.h"
 
 #define MAX_CONCURRENT_INVALID_COMMANDS 5
 

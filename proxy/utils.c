@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #include "include/utils.h"
-#include "include/request.h"
+#include "include/client_request.h"
 #include "include/client_parser_request.h"
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -95,7 +95,6 @@ bool compare_strings(const char * str1, const char * str2) {
     return false;
 }
 
-
 char * append_cmd(char * dest, char * msg, const char * parse_cmd) {
     char cmd[CMD_SIZE];
     dest = malloc((strlen(msg) + CMD_SIZE + 2) * sizeof(char *));
@@ -104,4 +103,14 @@ char * append_cmd(char * dest, char * msg, const char * parse_cmd) {
     strcat(dest, cmd);
     strcat(dest, "\r\n");
     return dest;
+}
+
+char * to_upper(char * str) {
+    char * aux = str;
+    while (*aux != 0) {
+        *aux = (char)toupper(*aux);
+        aux++;
+    }
+
+    return str;
 }

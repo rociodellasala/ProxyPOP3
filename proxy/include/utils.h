@@ -1,6 +1,8 @@
 #ifndef PROXYPOP3_UTILS_H
 #define PROXYPOP3_UTILS_H
 
+#include <stdbool.h>
+
 #define SOCKADDR_TO_HUMAN_MIN (INET6_ADDRSTRLEN + 5 + 1)
 #define VERSION 0X01
 #define MAX_ADMIN_DATA 100
@@ -17,6 +19,8 @@ int get_int_len(int);
 
 bool compare_strings(const char *, const char *);
 
-char * append_cmd(char *, char *, const char * cmd);
+char * append_cmd(char *, char *, const char *);
+
+char * to_upper(char *);
 
 #endif //PROXYPOP3_UTILS_H

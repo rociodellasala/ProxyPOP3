@@ -24,6 +24,7 @@
 
 #include "include/metrics.h"
 #include "include/utils.h"
+#include "include/pipelining.h"
 
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -459,7 +460,7 @@ void send_error_(int fd, const char * error) {
     send(fd, error, strlen(error), 0);
 }
 
-unsigned connecting(struct selector_key *key) {
+unsigned connecting(struct selector_key * key) {
     int error;
     socklen_t len = sizeof(error);
     struct pop3 *d = ATTACHMENT(key);
@@ -567,7 +568,6 @@ static void welcome_close(const unsigned state, struct selector_key *key) {
 ////////////////////////////////////////////////////////////////////////////////
 
 void send_capability_to_origin_server(struct selector_key * key);
-void set_pipelining(struct selector_key * key, struct response_st * d);
 
 void capa_init(const unsigned state, struct selector_key * key) {
     struct response_st * response = &ATTACHMENT(key)->orig.response;
@@ -587,28 +587,32 @@ void send_capability_to_origin_server(struct selector_key * key) {
     send(ATTACHMENT(key)->origin_fd, msg, strlen(msg), 0);
 }
 
-/** Lee la respuesta al comando capa */
+/* Lee la respuesta al comando capa */
 static unsigned capa_read(struct selector_key * key) {
-    struct response_st *d = &ATTACHMENT(key)->orig.response;
+    struct response_st * response = &ATTACHMENT(key)->orig.response;
     enum pop3_state stm_next_status = CAPA;
 
     bool  error        = false;
 
-    buffer  *b         = d->read_buffer;
+    buffer  * buffer         = response->read_buffer;
     uint8_t *ptr;
     size_t  count;
     ssize_t  n;
 
-    ptr = buffer_write_ptr(b, &count);
+    ptr = buffer_write_ptr(buffer, &count);
     n = recv(key->fd, ptr, count, 0);
 
     if(n > 0) {
-        buffer_write_adv(b, n);
-        response_consume(b, d->write_buffer, &d->response_parser, &error);
-        d->response_parser.first_line_done = false;
-        enum response_state st = response_consume(b, d->write_buffer, &d->response_parser, &error);
+        buffer_write_adv(buffer, n);
+        response_consume(buffer, response->write_buffer, &response->response_parser, &error);
+        response->response_parser.first_line_done = false;
+        enum response_state st = response_consume(buffer, response->write_buffer, &response->response_parser, &error);
         if (response_is_done(st, 0)) {
-            set_pipelining(key, d);
+            struct pop3 * pop3 = ATTACHMENT(key);
+            pop3->session.pipelining = is_pipelining_available(response->response_parser.capa_response);
+            while (buffer_can_read(response->write_buffer)) {
+                buffer_read(response->write_buffer);
+            }
             selector_status ss = SELECTOR_SUCCESS;
             ss |= selector_set_interest_key(key, OP_NOOP);
             ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_READ);
@@ -625,35 +629,6 @@ static void capa_close(const unsigned state, struct selector_key * key) {
     //nada por hacer
 }
 
-char * to_upper(char * str) {
-    char * aux = str;
-    while (*aux != 0) {
-        *aux = (char)toupper(*aux);
-        aux++;
-    }
-
-    return str;
-}
-
-void set_pipelining(struct selector_key * key, struct response_st * response) {
-    to_upper(response->response_parser.capa_response);
-
-    char * capabilities = response->response_parser.capa_response;
-    char * needle = "PIPELINING";
-
-    struct pop3 * pop3 = ATTACHMENT(key);
-
-    if (strstr(capabilities, needle) != NULL) {
-        pop3->session.pipelining = true;
-    } else {
-        pop3->session.pipelining = false;
-    }
-
-    while (buffer_can_read(response->write_buffer)) {
-        buffer_read(response->write_buffer);
-    }
-
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // REQUEST
@@ -822,8 +797,8 @@ static unsigned request_write(struct selector_key * key) {
 }
 
 static void request_close(const unsigned state, struct selector_key * key) {
-    //struct request_st * request = &ATTACHMENT(key)->client.request;
-    //destroy_request(request->request_parser.request);
+    struct request_st * request = &ATTACHMENT(key)->client.request;
+//    destroy_request(request->request_parser.request);
     //destroy_request(&request->request);
 }
 

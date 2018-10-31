@@ -8,7 +8,7 @@
 
 #include "buffer.h"
 #include "client_response.h"
-#include "request.h"
+#include "client_request.h"
 #include "parser.h"
 
 #define STATUS_SIZE         4

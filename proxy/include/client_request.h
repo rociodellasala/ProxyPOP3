@@ -118,6 +118,5 @@ const struct pop3_request_cmd * get_cmd(const char *);
 
 struct pop3_request * new_request(const struct pop3_request_cmd *, char *);
 
-void destroy_request(struct pop3_request *);
 
 #endif //PROXYPOP3_REQUEST_H
