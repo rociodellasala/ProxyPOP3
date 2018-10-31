@@ -24,13 +24,13 @@ enum response_state {
     response_capa,
 
     // estado usado para respuestas multilinea que no requieren un manejo especial
-            response_multiline,
+    response_multiline,
 
     // apartir de aca están done
-            response_done,
+    response_done,
 
     // y apartir de aca son considerado con error
-            response_error,
+    response_error,
 };
 
 struct response_parser {

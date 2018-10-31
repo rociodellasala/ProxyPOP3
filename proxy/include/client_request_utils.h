@@ -5,6 +5,11 @@
 #include "include/client_request.h"
 #include "include/utils.h"
 
+#include "pop3_session.h"
+#include "client_request.h"
+#include "utils.h"
+
+
 enum request_state check_request_against_current_session_status(enum pop3_session_state, struct pop3_request *);
 
 void send_error_request(enum request_state, char *, file_descriptor);
