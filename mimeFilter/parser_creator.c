@@ -57,6 +57,7 @@ const struct parser_event *parser_feed(struct parser *p, const uint8_t c) {
             break;
         }
     }
+
     return &p->e1;
 }
 

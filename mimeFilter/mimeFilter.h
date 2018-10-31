@@ -36,6 +36,8 @@ struct ctx {
     bool *filtered_msg_detected;
     bool *boundary_detected;
 
+    bool attachment;
+
     char buffer[CONTENT_TYPE_VALUE_SIZE];
     unsigned i;
 };

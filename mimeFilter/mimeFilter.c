@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include "mimeList.h"
 #include "mimeFilter.h"
 #include "mime_type.h"
@@ -27,6 +28,7 @@ static bool T = true;
 static bool F = false;
 
 
+
 int main(int argc, char ** argv) {
 
 	/*
@@ -35,8 +37,6 @@ int main(int argc, char ** argv) {
 	*/
 
 	char* flm = getenv("FILTER_MEDIAS");
-
-	//char* flm = "image/jpeg,image/gif,image/png,text/plain,text/html";
 
 	struct List *list = create_list();
 
@@ -112,9 +112,7 @@ int main(int argc, char ** argv) {
 		}
 
 		strcpy(subtype, mime);
-        printf("-- before agregado --\n");
 		int addition = add_new(type, subtype, list);
-        printf("-- agregado --\n");
 		if(addition != -1){
 			//printf("Node correctly added!\n");
 		}
@@ -125,7 +123,6 @@ int main(int argc, char ** argv) {
 	// free(flm); no funca
 
 	//print_list(list);
-    printf("lista creada\n");
 	
 	char *message = getenv(FILTER_MSG);
 
@@ -167,17 +164,23 @@ int main(int argc, char ** argv) {
             .replaced               = false,
             .buffer                 = {0},
             .i                      = 0,
+            .attachment = false,
     };
 
+
 	uint8_t data[4096];
+
     ssize_t n;
+    ssize_t n2;
     int fd = STDIN_FILENO;
-    
     do {
+
         n = read(fd, data, sizeof(data));
-        for (ssize_t i = 0; i < n; i++) {
-            pop3_multi(&ctx, data[i]); 
+        for (ssize_t i = 0; i < n; i++) {   
+
+             pop3_multi(&ctx, data[i]); 
         }
+
     } while (n > 0);
 
 
@@ -223,6 +226,7 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c) {
         }
         e = e->next;
     } while (e != NULL);
+
 }
 
 
@@ -236,7 +240,8 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
     bool printed = false;
     do {
-        //debug("1.   msg", mime_msg_event, e);
+
+
         switch (e->type) {
             case MIME_MSG_NAME:
                 if (ctx->msg_content_type_field_detected == 0
@@ -244,10 +249,10 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     for (int i = 0; i < e->n; i++) {
                         content_type_header(ctx, e->data[i]);
                     }
+
                 }
                 break;
             case MIME_MSG_NAME_END:
-                // lo dejamos listo para el próximo header
                 parser_reset(ctx->ctype_header);
                 break;
             case MIME_MSG_VALUE:
@@ -260,16 +265,24 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
                         content_type_value(ctx, e->data[i]);
+
                     }
                 }
                 break;
             case MIME_MSG_VALUE_END:
+
+                ;
+                char * testing = strstr(ctx->buffer, "message");
+                if(testing != NULL){
+                   // printf("--TENEMOS UN MAIL ANIDADO--\n");
+                    ctx->attachment = true;
+                }
+
                 if (ctx->filtered_msg_detected != 0 && *ctx->filtered_msg_detected) {
                     ctx->replace = true;
                     printf("text/plain\r\n");
                 } else {
                     printf("%s\r\n", ctx->buffer);
-                    //printed = true;
                 }
 
                 ctx->i = 0;
@@ -284,25 +297,37 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 ctx->filtered_msg_detected = &F;
                 break;
             case MIME_MSG_BODY:
-                if (ctx->replace && !ctx->replaced) {
-                    printf("%s\r\n", ctx->filter_msg);
-                    ctx->replaced = true;
-                } else if (!ctx->replace){
-                    putchar(c);
-                    printed = true;
-                }
-                if ((ctx->boundary_detected != 0
-                     && *ctx->boundary_detected) || !(ctx->boundary_delimiter->size == 0)) {
-                    for (int i = 0; i < e->n; i++) {
-                        boundary_delimiter_detection(ctx, e->data[i]);
-                        detect_delimiter_ending(ctx, e->data[i]);
-                        if (!printed && ctx->delimiter_end_detected != NULL && *ctx->delimiter_end_detected) {
-                            putchar(c);
-                        }
+                    if (ctx->replace && !ctx->replaced) {
+                        printf("%s\r\n", ctx->filter_msg);
+                        ctx->replaced = true;
+                    } else if (!ctx->replace){
+                        putchar(c);
+                        printed = true;
                     }
-                }
+                    if ((ctx->boundary_detected != 0
+                         && *ctx->boundary_detected) || !(ctx->boundary_delimiter->size == 0)) {
+                        for (int i = 0; i < e->n; i++) {
+                            boundary_delimiter_detection(ctx, e->data[i]);
+                            detect_delimiter_ending(ctx, e->data[i]);
+                            if (!printed && ctx->delimiter_end_detected != NULL && *ctx->delimiter_end_detected) {
+                                putchar(c);
+                            }
+                        }
+                    }  
+
                 break;
             case MIME_MSG_BODY_NEWLINE:
+               
+                if(ctx->attachment == true){
+                    // OJO A VER Q PASA SI HAY MAS DE UN MAIL ANIDADO
+                    ctx->attachment = false;
+                    parser_reset(ctx->msg);               
+                    parser_reset(ctx->multi);
+                    delimiter_reset(stack_peek(ctx->boundary_delimiter));
+                    stack_destroy(ctx->boundary_delimiter);
+                    ctx->boundary_delimiter = stack_init();
+                    break;
+                }
                 if (ctx->delimiter_detected != 0 && ctx->delimiter_end_detected != 0
                     && (*ctx->delimiter_end_detected && !*ctx->delimiter_detected)) {
                     struct delimiter_st *dlm = stack_pop(ctx->boundary_delimiter);
@@ -333,7 +358,9 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 break;
             case MIME_MSG_VALUE_FOLD:
                 for (int i = 0; i < e->n; i++) {
-                    ctx->buffer[ctx->i++] = e->data[i];
+
+                    //e->data[i];
+                    ctx->buffer[ctx->i++] = e->data[i]; 
                     if (ctx->i >= CONTENT_TYPE_VALUE_SIZE) {
                         abort();
                     }
@@ -538,7 +565,7 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                 break;
             case MIME_TYPE_TYPE_END:
                 if (ctx->filtered_msg_detected != 0
-                    || *ctx->filtered_msg_detected) {
+                    || *ctx->filtered_msg_detected) {              
                     context_setter(ctx);
                 }
                 break;
@@ -553,6 +580,7 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                         abort();
                     }
                     stack_push(ctx->boundary_delimiter, dlm);
+                  //  printf("\n--pushee un boundary--\n");
                 }
                 break;
             case MIME_DELIMITER:
@@ -577,7 +605,7 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
 static void content_type_header(struct ctx *ctx, const uint8_t c) {
     const struct parser_event *e = parser_feed(ctx->ctype_header, c);
     do {
-        //debug("2.typehr", parser_utils_strcmpi_event, e);
+
         switch (e->type) {
             case STRING_CMP_EQ:
                 ctx->msg_content_type_field_detected = &T;
