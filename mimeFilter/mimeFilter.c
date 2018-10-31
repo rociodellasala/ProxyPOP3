@@ -54,7 +54,6 @@ int main(int argc, char ** argv) {
 	char* medias = malloc(strlen(flm) + 1);
 	
 	if(medias == NULL){
-		//printf("bye 1\n");
 		free(list);
 		return -1;
 	}
@@ -113,7 +112,7 @@ int main(int argc, char ** argv) {
 		strcpy(subtype, mime);
 		int addition = add_new(type, subtype, list);
 		if(addition != -1){
-			//printf("Node correctly added!\n");
+			//printf("Node addition made\n");
 		}
 
 		free(aux);
@@ -154,11 +153,11 @@ int main(int argc, char ** argv) {
             .boundary               = boundaryParser,
             .mime_list              = list,
             .boundary_delimiter      = stack_init(),
-            .filtered_msg_detected  = NULL,
+            .to_be_censored  = NULL,
             .boundary_detected      = NULL,
             .delimiter_end_detected  = NULL,
             .delimiter_detected      = NULL,
-            .filter_msg             = message,
+            .replacement_text       = message,
             .replace                = false,
             .replaced               = false,
             .buffer                 = {0},
@@ -170,7 +169,6 @@ int main(int argc, char ** argv) {
 	uint8_t data[4096];
 
     ssize_t n;
-    ssize_t n2;
     int fd = STDIN_FILENO;
     do {
 
@@ -257,7 +255,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
             case MIME_MSG_VALUE:
                 for (int i = 0; i < e->n; i++) {
                     ctx->buffer[ctx->i++] = e->data[i];
-                    if (ctx->i >= CONTENT_TYPE_VALUE_SIZE) {
+                    if (ctx->i >= MAX) {
                         abort();
                     }
 
@@ -276,7 +274,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     ctx->attachment = true;
                 }
 
-                if (ctx->filtered_msg_detected != 0 && *ctx->filtered_msg_detected) {
+                if (ctx->to_be_censored != 0 && *ctx->to_be_censored) {
                     ctx->replace = true;
                     printf("text/plain\r\n");
                 } else {
@@ -284,7 +282,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 }
 
                 ctx->i = 0;
-                for (int i = 0; i < CONTENT_TYPE_VALUE_SIZE; i++) {
+                for (int i = 0; i < MAX; i++) {
                     ctx->buffer[i]  = 0;
                 }
                 close_delimiter(stack_peek(ctx->boundary_delimiter));
@@ -292,11 +290,11 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 clean_list(ctx->mime_list);
                 parser_reset(ctx->boundary);
                 ctx->msg_content_type_field_detected = 0;
-                ctx->filtered_msg_detected = &F;
+                ctx->to_be_censored = &F;
                 break;
             case MIME_MSG_BODY:
                     if (ctx->replace && !ctx->replaced) {
-                        printf("%s\r\n", ctx->filter_msg);
+                        printf("%s\r\n", ctx->replacement_text);
                         ctx->replaced = true;
                     } else if (!ctx->replace){
                         putchar(c);
@@ -338,7 +336,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 if (ctx->delimiter_detected != 0 && *ctx->delimiter_detected) {
                     ctx->replace = false;
                     ctx->replaced = false;
-                    ctx->filtered_msg_detected = &F;
+                    ctx->to_be_censored = &F;
                     ctx->boundary_detected = &F;
                     ctx->delimiter_detected = NULL;
                     ctx->delimiter_end_detected = NULL;
@@ -361,7 +359,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
                     //e->data[i];
                     ctx->buffer[ctx->i++] = e->data[i]; 
-                    if (ctx->i >= CONTENT_TYPE_VALUE_SIZE) {
+                    if (ctx->i >= MAX) {
                         abort();
                     }
                 }
@@ -515,10 +513,10 @@ static void content_type_subtype(struct ctx *ctx, const uint8_t c) {
     do {
         switch (e->type) {
             case STRING_CMP_EQ:
-                ctx->filtered_msg_detected = &T;
+                ctx->to_be_censored = &T;
                 break;
             case STRING_CMP_NEQ:
-                ctx->filtered_msg_detected = &F;
+                ctx->to_be_censored = &F;
                 break;
         }
 
@@ -537,10 +535,10 @@ static void content_type_type(struct ctx *ctx, const uint8_t c) {
     do {
         switch (e->type) {
             case STRING_CMP_EQ:
-                ctx->filtered_msg_detected = &T;
+                ctx->to_be_censored = &T;
                 break;
             case STRING_CMP_NEQ:
-                ctx->filtered_msg_detected = &F;
+                ctx->to_be_censored = &F;
                 break;
         }
         e = e->next;
@@ -552,20 +550,17 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
     do {
         switch (e->type) {
             case MIME_TYPE_TYPE:
-                if (ctx->filtered_msg_detected != 0
-                    || *ctx->filtered_msg_detected)
+                if (ctx->to_be_censored != 0 || *ctx->to_be_censored)
                     for (int i = 0; i < e->n; i++) {
                         content_type_type(ctx, e->data[i]);
                     }
                 break;
             case MIME_TYPE_SUBTYPE:
-                if (ctx->filtered_msg_detected != 0
-                    && *ctx->filtered_msg_detected)
+                if (ctx->to_be_censored != 0 && *ctx->to_be_censored)
                     content_type_subtype(ctx, c);
                 break;
             case MIME_TYPE_TYPE_END:
-                if (ctx->filtered_msg_detected != 0
-                    || *ctx->filtered_msg_detected) {              
+                if (ctx->to_be_censored != 0 || *ctx->to_be_censored) {              
                     context_setter(ctx);
                 }
                 break;
@@ -573,8 +568,7 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                 boundary_analizer(ctx, c);
                 break;
             case MIME_DELIMITER_START:
-                if (ctx->boundary_detected != 0
-                    && *ctx->boundary_detected) {
+                if (ctx->boundary_detected != 0 && *ctx->boundary_detected) {
                     struct delimiter_st *dlm = delimiter_init();
                     if (dlm == NULL) {
                         abort();
@@ -584,8 +578,7 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                 }
                 break;
             case MIME_DELIMITER:
-                if (ctx->boundary_detected != 0
-                    && *ctx->boundary_detected) {
+                if (ctx->boundary_detected != 0 && *ctx->boundary_detected) {
                     for (int i = 0; i < e->n; i++) {
                         extend(e->data[i], stack_peek(ctx->boundary_delimiter));
                     }
