@@ -15,7 +15,7 @@ void print_connection_status(const char *, struct sockaddr_storage, file_descrip
 
 int get_int_len(int);
 
-static bool compare_strings(const char *, const char *);
+bool compare_strings(const char *, const char *);
 
 char * append_cmd(char *, char *, const char * cmd);
 

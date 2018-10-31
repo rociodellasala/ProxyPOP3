@@ -61,17 +61,24 @@ void parse_action(struct admin * admin) {
 }
 
 void parse_req_commands(struct admin * admin){
-    parse_action(admin);
+    if (admin->current_request->version > VERSION){
+        admin->req_status = VERSION_UNSOPPORTED;
+    } else {
+        parse_action(admin);
+    }
 
     switch (admin->req_status) {
         case INCORRECT_PASS:
-            admin->resp_data = "Incorrect password. Could not authenticate.";
-            admin->resp_length = strlen((const char *) admin->resp_data);
+            admin->resp_data    = "Incorrect password. Could not authenticate.";
+            admin->resp_length  = strlen((const char *) admin->resp_data);
             break;
         case INCORRECT_METRIC:
-            admin->resp_data = "Incorrect metric. It does not exists.";
-            admin->resp_length =  strlen((const char *) admin->resp_data);
+            admin->resp_data    = "Incorrect metric. It does not exists.";
+            admin->resp_length  =  strlen((const char *) admin->resp_data);
             break;
+        case VERSION_UNSOPPORTED:
+            admin->resp_data    = "Version unsopported.";
+            admin->resp_length  =  strlen((const char *) admin->resp_data);
         default:
             break;
     }

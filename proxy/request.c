@@ -52,21 +52,6 @@ struct pop3_request_cmd invalid_cmd = {
         .name   = NULL,
 };
 
-
-static bool compare_strings(const char * str1, const char * str2) {
-    while (*str1 && *str2) {
-        if (toupper(*str1++) != toupper(*str2++)) {
-            return false;
-        }
-    }
-
-    if (*str1 == '\0' && *str2 == '\0') {
-        return true;
-    }
-
-    return false;
-}
-
 const struct pop3_request_cmd * get_cmd(const char * cmd) {
     unsigned int i;
     char * aux = cmd;

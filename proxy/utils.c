@@ -81,7 +81,7 @@ int get_int_len(int value) {
     return l;
 }
 
-static bool compare_strings(const char * str1, const char * str2) {
+bool compare_strings(const char * str1, const char * str2) {
     while (*str1 && *str2) {
         if (toupper(*str1++) != toupper(*str2++)) {
             return false;
