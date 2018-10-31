@@ -38,7 +38,6 @@ void return_metric(struct admin * admin, const char * data){
     int size;
     
     if(index >= METRICS_SIZE ){
-        printf("hOLA");
         admin->req_status =  INCORRECT_METRIC;
         return;
     }
@@ -49,8 +48,8 @@ void return_metric(struct admin * admin, const char * data){
     value = malloc(size *  sizeof(char *));
     sprintf(value, "%.0f", metric);
     
-    resp = malloc((strlen(name) + 1 + size ) * sizeof(char *));
-    sprintf(resp, "%s:%s", name, value);
+    resp = malloc((strlen(name) + 2 + size ) * sizeof(char *));
+    sprintf(resp, "%s: %s", name, value);
 
     admin->resp_data = resp;
     admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);

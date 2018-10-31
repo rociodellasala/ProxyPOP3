@@ -312,28 +312,29 @@ void pop3_accept_connection(struct selector_key * key) {
 
 static void * origin_server_resolution_blocking(void * data);
 
-static unsigned origin_server_connect(struct selector_key * key);
+static enum pop3_state origin_server_connect(struct selector_key * key);
 
 /*
  * Tenemos que resolver el nombre (operación bloqueante), por ende disparamos
  * la resolución en un thread que luego notificará al selector que ha terminado.
  */
-unsigned origin_server_resolution(struct selector_key * key){
+enum pop3_state origin_server_resolution(struct selector_key * key){
     pthread_t tid;
-    struct selector_key * k = malloc(sizeof(*key));
+    struct selector_key * k               = malloc(sizeof(*key));
+    enum pop3_state       stm_next_status = ORIGIN_SERVER_RESOLUTION;
 
     if (k == NULL) {
-        return ERROR;
+        stm_next_status = ERROR;
     } else {
         memcpy(k, key, sizeof(*k));
         if (pthread_create(&tid, 0, origin_server_resolution_blocking, k) == -1) {
-            return ERROR;
+            stm_next_status = ERROR;
         } else{
             selector_set_interest_key(key, OP_NOOP);
         }
     }
 
-    return ORIGIN_SERVER_RESOLUTION;
+    return stm_next_status;
 }
 
 /**
@@ -373,7 +374,7 @@ static void * origin_server_resolution_blocking(void * data) {
     return 0;
 }
 
-static unsigned origin_server_resolution_done(struct selector_key * key) {
+enum pop3_state origin_server_resolution_done(struct selector_key * key) {
     struct pop3 * pop3 =  ATTACHMENT(key);
 
     if (pop3->origin_resolution == 0) {
@@ -397,8 +398,9 @@ static unsigned origin_server_resolution_done(struct selector_key * key) {
     return origin_server_connect(key);
 }
 
-static unsigned origin_server_connect(struct selector_key * key) {
-    int sock = socket(ATTACHMENT(key)->origin_domain, SOCK_STREAM, IPPROTO_TCP);
+static enum pop3_state origin_server_connect(struct selector_key * key) {
+    file_descriptor sock            = socket(ATTACHMENT(key)->origin_domain, SOCK_STREAM, IPPROTO_TCP);
+    enum pop3_state stm_next_status = CONNECTING_TO_OS;
 
     if (sock < 0) {
         perror("socket() failed");
@@ -436,16 +438,18 @@ static unsigned origin_server_connect(struct selector_key * key) {
         abort();
     }
 
-    return CONNECTING_TO_OS;
+    return stm_next_status;
 
     error:
+
+    stm_next_status = ERROR;
 
     if (sock != -1) {
         close(sock);
         //ATTACHMENT(key)->origin_fd = -1;
     }
 
-    return ERROR;
+    return stm_next_status;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -458,10 +462,10 @@ connecting_init(const unsigned state, struct selector_key * key) {
 }
 
 
-unsigned connecting(struct selector_key * key) {
+enum pop3_state connecting(struct selector_key * key) {
     int error;
     socklen_t len = sizeof(error);
-    struct pop3 *d = ATTACHMENT(key);
+    struct pop3 * d = ATTACHMENT(key);
 
     d->origin_fd = key->fd;
 
@@ -506,26 +510,24 @@ static void welcome_init(const unsigned state, struct selector_key * key) {
 }
 
 /* Lee todos los bytes del mensaje de tipo `welcome' de server_fd */
-static unsigned welcome_read(struct selector_key * key) {
-    uint8_t * ptr;
-    size_t  count;
-    ssize_t  n;
-    struct welcome_st * welcome = &ATTACHMENT(key)->orig.welcome;
-    enum pop3_state stm_next_status  = WELCOME_WRITE;
+static enum pop3_state welcome_read(struct selector_key * key) {
+    uint8_t *   ptr;
+    size_t      count;
+    ssize_t     n;
+
+    struct welcome_st * welcome         = &ATTACHMENT(key)->orig.welcome;
+    enum pop3_state     stm_next_status = WELCOME_WRITE;
 
     // proxy welcome message
     ptr = buffer_write_ptr(welcome->write_buffer, &count);
-    n = recv(key->fd, ptr, count, 0);
+    n   = recv(key->fd, ptr, count, 0);
     buffer_write_adv(welcome->write_buffer, n);
 
     if (n > 0) {
-        buffer_write_adv(welcome->write_buffer, 0);
         selector_status ss = SELECTOR_SUCCESS;
         ss |= selector_set_interest_key(key, OP_NOOP);
         ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
-        if (ss != SELECTOR_SUCCESS) {
-            stm_next_status = ERROR;
-        }
+        stm_next_status = SELECTOR_SUCCESS == ss ? stm_next_status : ERROR;
     } else {
         stm_next_status = ERROR;
     }
@@ -534,21 +536,22 @@ static unsigned welcome_read(struct selector_key * key) {
 }
 
 /* Escribe todos los bytes del mensaje `welcome' en client_fd */
-static unsigned welcome_write(struct selector_key * key) {
-    uint8_t * ptr;
-    size_t  count;
-    ssize_t  n;
-    struct welcome_st * welcome = &ATTACHMENT(key)->orig.welcome;
-    enum pop3_state stm_next_status  = WELCOME_WRITE;
+static enum pop3_state welcome_write(struct selector_key * key) {
+    uint8_t *   ptr;
+    size_t      count;
+    ssize_t     n;
+
+    struct welcome_st * welcome         = &ATTACHMENT(key)->orig.welcome;
+    enum pop3_state     stm_next_status = WELCOME_WRITE;
 
     ptr = buffer_read_ptr(welcome->write_buffer, &count);
-    n = send(key->fd, ptr, count, MSG_NOSIGNAL);
+    n   = send(key->fd, ptr, count, MSG_NOSIGNAL);
 
     if(n == -1) {
         stm_next_status = ERROR;
     } else {
         buffer_read_adv(welcome->write_buffer, n);
-        if(!buffer_can_read(welcome->write_buffer)) {
+        if (!buffer_can_read(welcome->write_buffer)) {
             selector_status ss = SELECTOR_SUCCESS;
             ss |= selector_set_interest_key(key, OP_NOOP);
             ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
@@ -559,9 +562,6 @@ static unsigned welcome_write(struct selector_key * key) {
     return stm_next_status;
 }
 
-static void welcome_close(const unsigned state, struct selector_key *key) {
-    //nada por hacer
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // CAPA
@@ -589,7 +589,7 @@ void send_capability_to_origin_server(struct selector_key * key) {
 }
 
 /* Lee la respuesta al comando capa */
-static unsigned capa_read(struct selector_key * key) {
+static enum pop3_state capa_read(struct selector_key * key) {
     struct response_st * response = &ATTACHMENT(key)->orig.response;
     enum pop3_state stm_next_status = CAPA;
 
@@ -626,10 +626,6 @@ static unsigned capa_read(struct selector_key * key) {
     return stm_next_status;
 }
 
-static void capa_close(const unsigned state, struct selector_key * key) {
-    //nada por hacer
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // REQUEST
@@ -645,11 +641,11 @@ static void request_init(const unsigned state, struct selector_key * key) {
     request->write_buffer               = &(ATTACHMENT(key)->write_buffer);
     request->request_parser.request     = &request->request;
 
-    request_parser_init(&request->request_parser);
+    request_parser_reset(&request->request_parser);
 }
 
 /* Lee todos los bytes del mensaje de tipo `request' y inicia su proceso */
-static unsigned request_read(struct selector_key * key) {
+static enum pop3_state request_read(struct selector_key * key) {
     uint8_t *   ptr;
     size_t      count;
     ssize_t     n;
@@ -660,7 +656,7 @@ static unsigned request_read(struct selector_key * key) {
     bool                error           = false;
 
     ptr = buffer_write_ptr(read_buffer, &count);
-    n = recv(key->fd, ptr, count, 0);
+    n   = recv(key->fd, ptr, count, 0);
 
     if (n > 0) {
         buffer_write_adv(read_buffer, n);
@@ -679,8 +675,8 @@ static unsigned request_read(struct selector_key * key) {
 enum pop3_state process(struct selector_key * key, struct request_st * request) {
     enum pop3_state stm_next_status = REQUEST;
 
-    // chequeo si la request es erronea y en ese caso no la mando, le advierto al cliente y vuelvo al estado request
-    if(request->request_parser.request->cmd->id != error) {
+    // si la request es erronea no la mando, le advierto al cliente y vuelvo al estado request
+    if (request->request_parser.request->cmd->id != error) {
         request->request_parser.state = check_request_against_current_session_status(ATTACHMENT(key)->session.state,
                                                                                      request->request_parser.request);
     }
@@ -693,7 +689,7 @@ enum pop3_state process(struct selector_key * key, struct request_st * request) 
             return DONE;
         }
 
-        request_parser_init(&request->request_parser);
+        request_parser_reset(&request->request_parser);
         return REQUEST;
     }
 
@@ -708,66 +704,46 @@ enum pop3_state process(struct selector_key * key, struct request_st * request) 
     }
 
     enqueue(ATTACHMENT(key)->session.request_queue, req);
-    request_parser_init(&request->request_parser);
+    request_parser_reset(&request->request_parser);
 
     if (!buffer_can_read(request->read_buffer)) {
-        selector_status s = SELECTOR_SUCCESS;
-        s |= selector_set_interest_key(key, OP_NOOP);
-        s |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_WRITE);
-
-        stm_next_status = SELECTOR_SUCCESS == s ? stm_next_status : ERROR;
+        selector_status ss = SELECTOR_SUCCESS;
+        ss |= selector_set_interest_key(key, OP_NOOP);
+        ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_WRITE);
+        stm_next_status = SELECTOR_SUCCESS == ss ? stm_next_status : ERROR;
     }
 
     return stm_next_status;
 }
 
 /* Escribe la request en el server */
-static unsigned request_write(struct selector_key * key) {
-    struct request_st * request = &ATTACHMENT(key)->client.request;
-
-    unsigned  stm_next_status     = REQUEST;
-    buffer * b         = request->write_buffer;
+static enum pop3_state request_write(struct selector_key * key) {
+    struct request_st * request            = &ATTACHMENT(key)->client.request;
+    enum pop3_state     stm_next_status    = REQUEST;
+    buffer * buffer                        = request->write_buffer;
     uint8_t * ptr;
     size_t  count;
     ssize_t  n;
 
-    // recorro la queue sin desencolar nada
     struct queue * queue = ATTACHMENT(key)->session.request_queue;
     struct pop3_request * pop3_request;
 
-    //si el server no soporta pipelining solo mando la primer request
-    if (ATTACHMENT(key)->session.pipelining == false) {
-        pop3_request = peek_data(queue);
-        if (pop3_request == NULL) {
-            fprintf(stderr, "Error empty queue");
-            return ERROR;
-        }
-
-        if (request_marshall(pop3_request, b) == -1) {
-            stm_next_status= ERROR;
-        }
-    } else {
-        while ((pop3_request = queue_get_next(queue)) != NULL) {
-            if (request_marshall(pop3_request, b) == -1) {
-                fprintf(stderr, "Request buffer error");
-                return ERROR;
-            }
-        }
+    if (request_to_buffer(buffer, ATTACHMENT(key)->session.pipelining, pop3_request, queue) == -1) {
+        return ERROR;
     }
 
-    ptr = buffer_read_ptr(b, &count);
+    ptr = buffer_read_ptr(buffer, &count);
     n = send(key->fd, ptr, count, MSG_NOSIGNAL);
 
     if (n == -1) {
-        stm_next_status= ERROR;
+        stm_next_status = ERROR;
     } else {
-        buffer_read_adv(b, n);
-        if (!buffer_can_read(b)) {
-            // el client_fd ya esta en NOOP (seteado en request_read)
+        buffer_read_adv(buffer, n);
+        if (!buffer_can_read(buffer)) {
             if (SELECTOR_SUCCESS == selector_set_interest_key(key, OP_READ)) {
-                stm_next_status= RESPONSE;
+                stm_next_status = RESPONSE;
             } else {
-                stm_next_status= ERROR;
+                stm_next_status = ERROR;
             }
         }
     }
@@ -775,11 +751,6 @@ static unsigned request_write(struct selector_key * key) {
     return stm_next_status;
 }
 
-static void request_close(const unsigned state, struct selector_key * key) {
-    struct request_st * request = &ATTACHMENT(key)->client.request;
-    //    destroy_request(request->request_parser.request);
-    //destroy_request(&request->request);
-}
 
 //////////////////////////////////////////////////////////////////////////////// ///////////////////////////////////////////////////////////////////////
 // RESPONSE
@@ -863,10 +834,10 @@ response_process_capa(struct response_st *d) {
  * Lee la respuesta del origin server. Si la respuesta corresponde al comando retr y se cumplen las condiciones,
  *  se ejecuta una transformacion externa
  */
-static unsigned
+static enum pop3_state
 response_read(struct selector_key *key) {
     struct response_st *d = &ATTACHMENT(key)->orig.response;
-    unsigned  stm_next_status     = RESPONSE;
+    enum pop3_state  stm_next_status     = RESPONSE;
     bool  error        = false;
 
     buffer  *b         = d->read_buffer;
@@ -899,7 +870,7 @@ response_read(struct selector_key *key) {
         selector_status ss = SELECTOR_SUCCESS;
         ss |= selector_set_interest_key(key, OP_NOOP);
         ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
-        stm_next_status= ss == SELECTOR_SUCCESS ? RESPONSE : ERROR;
+        stm_next_status = ss == SELECTOR_SUCCESS ? RESPONSE : ERROR;
 
         if (stm_next_status== RESPONSE && response_is_done(st, 0)) {
             if (d->request->cmd->id == capa) {
@@ -914,7 +885,7 @@ response_read(struct selector_key *key) {
 }
 
 /* Escribe la respuesta en el cliente */
-static unsigned
+static enum pop3_state
 response_write(struct selector_key *key) {
     struct response_st *d = &ATTACHMENT(key)->orig.response;
 
@@ -1027,24 +998,20 @@ static const struct state_definition client_states[] = {
         },{
                 .state            = WELCOME_WRITE,
                 .on_write_ready   = welcome_write,
-                .on_departure     = welcome_close,
         },{
                 .state            = CAPA,
                 .on_arrival       = capa_init,
                 .on_read_ready    = capa_read,
-                .on_departure     = capa_close,
         },{
                 .state            = REQUEST,
                 .on_arrival       = request_init,
                 .on_read_ready    = request_read,
                 .on_write_ready   = request_write,
-                .on_departure     = request_close,
         },{
                 .state            = RESPONSE,
                 .on_arrival       = response_init,
                 .on_read_ready    = response_read,
                 .on_write_ready   = response_write,
-                .on_departure     = response_close,
         },{
                 .state            = DONE,
 
@@ -1102,6 +1069,7 @@ static void pop3_done(struct selector_key * key) {
             ATTACHMENT(key)->origin_fd,
     };
 
+    metric_remove_current_connection();
 
     for (i = 0; i < N(fds); i++) {
         if (fds[i] != -1) {

@@ -72,10 +72,14 @@ const struct pop3_request_cmd * get_cmd(const char * cmd) {
 struct pop3_request * new_request(const struct pop3_request_cmd * cmd, char * args) {
     struct pop3_request * request = malloc(sizeof(*request));
 
-    request->cmd      = cmd;
-    request->args     = args;
+    if (request == NULL) {
+        return NULL;
+    } else {
+        request->cmd = cmd;
+        request->args = args;
 
-    return request;
+        return request;
+    }
 }
 
 

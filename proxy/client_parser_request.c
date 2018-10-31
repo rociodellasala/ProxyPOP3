@@ -41,7 +41,7 @@ static enum request_state cmd(const uint8_t c, struct request_parser * parser) {
     return next;
 }
 
-static enum request_state param(const uint8_t c, struct request_parser * parser) {
+static enum request_state parameter(const uint8_t c, struct request_parser * parser) {
     enum request_state ret          = request_param;
     struct pop3_request * request   = parser->request;
 
@@ -74,7 +74,7 @@ static enum request_state param(const uint8_t c, struct request_parser * parser)
     return ret;
 }
 
-extern void request_parser_init(struct request_parser * parser) {
+extern void request_parser_reset(struct request_parser * parser) {
     memset(parser->request, 0, sizeof(*(parser->request)));
     memset(parser->cmd_buffer, 0, CMD_SIZE);
     memset(parser->param_buffer, 0, PARAM_SIZE);
@@ -90,7 +90,7 @@ extern enum request_state request_parser_feed(struct request_parser * p, const u
             next = cmd(c, p);
             break;
         case request_param:
-            next = param(c, p);
+            next = parameter(c, p);
             break;
         case request_newline:
             if (c != '\n') {
@@ -117,11 +117,12 @@ bool request_is_done(const enum request_state st, bool *errored) {
     if(st >= request_error_inexistent_cmd && errored != 0) {
         *errored = true;
     }
+
     return st >= request_done;
 }
 
-void clean_buffer(buffer * buffer, uint8_t c, enum request_state * st){
-    while(buffer_can_read(buffer) && c != '\n') {
+void clean_buffer(buffer * buffer, uint8_t c, enum request_state * st) {
+    while (buffer_can_read(buffer) && c != '\n') {
         c = buffer_read(buffer);
     }
 
@@ -130,11 +131,11 @@ void clean_buffer(buffer * buffer, uint8_t c, enum request_state * st){
     }
 }
 
-enum request_state request_consume(buffer * buffer, struct request_parser * parser, bool *errored) {
+enum request_state request_consume(buffer * buffer, struct request_parser * parser, bool * errored) {
     enum request_state st = parser->state;
     uint8_t c = 0;
 
-    while(buffer_can_read(buffer)) {
+    while (buffer_can_read(buffer)) {
         c = buffer_read(buffer);
         st = request_parser_feed(parser, c);
         if(request_is_done(st, errored)) {
@@ -149,37 +150,41 @@ enum request_state request_consume(buffer * buffer, struct request_parser * pars
     return st;
 }
 
-extern int
-request_marshall(struct pop3_request *r, buffer *b) {
-    size_t  n;
-    uint8_t *buff;
+size_t request_marshall(struct pop3_request * request, buffer * buffer) {
+    size_t n;
+    uint8_t *  buff = buffer_write_ptr(buffer, &n);
 
-    const char * cmd = r->cmd->name;
-    char * args = r->args;
+    const char * cmd    = request->cmd->name;
+    char * args         = request->args;
 
     size_t i = strlen(cmd);
-    size_t j = args == NULL ? 0 : strlen(args);
-    size_t count = i + j + (j == 0 ? 2 : 3);
+    size_t j;
+    size_t total;
 
-    buff = buffer_write_ptr(b, &n);
+    if (args == NULL) {
+        j       = 0;
+        total   = i + j + 2;
+    } else {
+        j       = strlen(args);
+        total   = i + j + 3;
+    }
 
-    if(n < count) {
+    if(n < total) {
         return -1;
     }
 
     memcpy(buff, cmd, i);
-    buffer_write_adv(b, i);
-
+    buffer_write_adv(buffer, i);
 
     if (args != NULL) {
-        buffer_write(b, ' ');
-        buff = buffer_write_ptr(b, &n);
+        buffer_write(buffer, ' ');
+        buff = buffer_write_ptr(buffer, &n);
         memcpy(buff, args, j);
-        buffer_write_adv(b, j);
+        buffer_write_adv(buffer, j);
     }
 
-    buffer_write(b, '\r');
-    buffer_write(b, '\n');
+    buffer_write(buffer, '\r');
+    buffer_write(buffer, '\n');
 
-    return (int)count;
+    return total;
 }

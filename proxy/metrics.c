@@ -39,18 +39,31 @@ char * metric_get_name(unsigned char * number, int * index) {
             return "transfered bytes";
         case CURRENT_ADMIN_CONNECTED:
             *index = CURRENT_ADMIN_CONNECTED;
-            return "current admins connected";    
+            return "current admins connected";
+        case MAX_ADMIN_CONNECTED:
+            *index = MAX_ADMIN_CONNECTED;
+            return "max admins connected";
         default:
             return NULL;
     }
 }
 
 void metric_add_admin_connected(){
+    puts("CONNECTING");
+    printf("metric current: %f\n", metrics[CURRENT_ADMIN_CONNECTED]);
+    printf("metric max: %f\n", metrics[MAX_ADMIN_CONNECTED]);
+
     metrics[CURRENT_ADMIN_CONNECTED] += 1;
+    if(metrics[MAX_ADMIN_CONNECTED] < metrics[CURRENT_ADMIN_CONNECTED]) {
+        metrics[MAX_ADMIN_CONNECTED] = metrics[CURRENT_ADMIN_CONNECTED];
+    }
 }
 
 void metric_remove_admin_connected(){
     metrics[CURRENT_ADMIN_CONNECTED] -= 1;
+    puts("DISCONNECTING");
+    printf("metric current: %f\n", metrics[CURRENT_ADMIN_CONNECTED]);
+    printf("metric max: %f\n", metrics[MAX_ADMIN_CONNECTED]);
 }
 
 void metric_add_transfered_bytes(double curr_transfered_bytes) {
