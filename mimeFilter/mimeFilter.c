@@ -77,7 +77,6 @@ int main(int argc, char ** argv) {
 
 	//en este WHILE faltan hacer free! con variable error porque sino hay que destruir  el mimeparser list
 	while(current != NULL){
-		//printf("INSIDE WHILE\n");
 		char *aux = malloc(strlen(current) + 1);
 		if(aux == NULL){
 			//printf("bye aux\n");
@@ -274,7 +273,6 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 ;
                 char * testing = strstr(ctx->buffer, "message");
                 if(testing != NULL){
-                   // printf("--TENEMOS UN MAIL ANIDADO--\n");
                     ctx->attachment = true;
                 }
 
@@ -319,13 +317,14 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
             case MIME_MSG_BODY_NEWLINE:
                
                 if(ctx->attachment == true){
-                    // OJO A VER Q PASA SI HAY MAS DE UN MAIL ANIDADO
                     ctx->attachment = false;
                     parser_reset(ctx->msg);               
                     parser_reset(ctx->multi);
-                    delimiter_reset(stack_peek(ctx->boundary_delimiter));
-                    stack_destroy(ctx->boundary_delimiter);
-                    ctx->boundary_delimiter = stack_init();
+                    struct delimiter_st *aux = delimiter_init();
+                    if (aux == NULL) {
+                        abort();
+                    }
+                    stack_push(ctx->boundary_delimiter, aux);
                     break;
                 }
                 if (ctx->delimiter_detected != 0 && ctx->delimiter_end_detected != 0
@@ -333,6 +332,7 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     struct delimiter_st *dlm = stack_pop(ctx->boundary_delimiter);
                     if (dlm != NULL) {
                         delimiter_destroy(dlm);
+
                     }
                 }
                 if (ctx->delimiter_detected != 0 && *ctx->delimiter_detected) {
@@ -580,7 +580,7 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                         abort();
                     }
                     stack_push(ctx->boundary_delimiter, dlm);
-                  //  printf("\n--pushee un boundary--\n");
+
                 }
                 break;
             case MIME_DELIMITER:
