@@ -3,6 +3,8 @@ gcc -o test delimiter.c parser_creator.c stack.c mimeList.c mime_type.c mime_cha
 
 501) OK
 
+	Objetivo: No existan cambios.
+
 	FILTER_MEDIAS=application/json./stripmime < ../test_cases/ii_images.mbox > out
 
 	diff -u ii_images.mbox out
@@ -10,11 +12,15 @@ gcc -o test delimiter.c parser_creator.c stack.c mimeList.c mime_type.c mime_cha
 
 502) OK
 
+	Objetivo: Censure la parte png
+
 	FILTER_MEDIAS=image/png ./stripmime < ../test_cases/ii_images.mbox > out
 
 	diff -u ii_images.mbox out
 
 503) OK
+
+	Objetivo: Censure las partes jpeg y png
 
 	FILTER_MEDIAS=image/png,image/jpeg ./stripmime <../test_cases/ii_images.mbox> out
 
@@ -22,11 +28,19 @@ gcc -o test delimiter.c parser_creator.c stack.c mimeList.c mime_type.c mime_cha
 
 504) OK
 
+	Objetivo: Censure las partes jpeg y png
+
 	FILTER_MEDIAS=image/* ./test <../test_cases/ii_images.mbox> out
 
 	diff -u ii_images.mbox out
 
-505)
+505) OK (TBD) Ver q pasa con mas de uno anidado!
+
+	Objetivo: Censure partes jpeg y png
+
+	FILTER_MEDIAS=image/* ./test <../test_cases/iii_images_fwd.mbox> out
+
+	diff -u ii_images.mbox out
 
 506)
 

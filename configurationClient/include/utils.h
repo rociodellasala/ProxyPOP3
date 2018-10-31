@@ -3,7 +3,8 @@
 
 #include "response.h"
 
-#define VERSION 0X02
+#define VERSION 0X01
+
 #define MAX_PARAM 100
 #define MAX_BUFFER 9 + MAX_PARAM /* 3 version (uchar), 3 cmd (uchar), 3 length y 100 max data (definido por nosotros) */
 
