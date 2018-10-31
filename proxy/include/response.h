@@ -2,10 +2,18 @@
 #define PROXYPOP3_RESPONSE_H
 
 enum pop3_response_status {
-    OK,
-    ERR,
+    response_status_invalid = -1,
+
+    response_status_ok,
+    response_status_err,
 };
 
-enum pop3_response_status parse_response(const char *);
+struct pop3_response {
+    const enum pop3_response_status status;
+    const char 						*name;
+};
+
+const struct pop3_response *
+get_response(const char *response);
 
 #endif //PROXYPOP3_RESPONSE_H

@@ -80,7 +80,7 @@ void allow_mime(request_admin * request, int * status, char * media_types){
 
 */
 
-void quit(struct admin * admin) {
+void quit_admin(struct admin * admin) {
     send_response_without_data(admin, 1);
     close(admin->fd);
 }

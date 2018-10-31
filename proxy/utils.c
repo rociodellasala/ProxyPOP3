@@ -5,8 +5,12 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 #include "include/utils.h"
+#include "include/request.h"
+#include "include/request_parser.h"
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
 
@@ -75,4 +79,29 @@ int get_int_len(int value) {
         value /= 10;
     }
     return l;
+}
+
+static bool compare_strings(const char * str1, const char * str2) {
+    while (*str1 && *str2) {
+        if (toupper(*str1++) != toupper(*str2++)) {
+            return false;
+        }
+    }
+
+    if (*str1 == '\0' && *str2 == '\0') {
+        return true;
+    }
+
+    return false;
+}
+
+
+char * append_cmd(char * dest, char * msg, const char * parse_cmd) {
+    char cmd[CMD_SIZE];
+    dest = malloc((strlen(msg) + CMD_SIZE + 2) * sizeof(char *));
+    strcpy(cmd,parse_cmd);
+    strcpy(dest, msg);
+    strcat(dest, cmd);
+    strcat(dest, "\r\n");
+    return dest;
 }

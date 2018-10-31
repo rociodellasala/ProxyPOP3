@@ -6,6 +6,6 @@ typedef struct {
     unsigned char   status;
     unsigned int    length;
     unsigned char * data;
-}response_admin;
+} response_admin;
 
 #endif //PROXYPOP3_RESPONSE_H

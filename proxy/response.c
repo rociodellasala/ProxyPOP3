@@ -7,35 +7,33 @@
 
 #include "include/response.h"
 
-#define RESP_SIZE (ERR + 1)
+#define RESP_SIZE (response_status_err + 1)
 
-// ignoramos la descripcion de la response
-struct pop3_response {
-    const enum pop3_response_status status;
-    const char 						*name;
-};
-
-static struct pop3_response responses[RESP_SIZE] = {
+static const struct pop3_response responses[RESP_SIZE] = {
         {
-                .status = OK,
+                .status = response_status_ok,
                 .name 	= "+OK",
         },
         {
-                .status = ERR,
+                .status = response_status_err,
                 .name	= "-ERR",
         },
 };
 
+static const struct pop3_response invalid_response = {
+        .status = response_status_invalid,
+        .name   = NULL,
+};
+
 #define N(x) (sizeof(x)/sizeof((x)[0]))
 
-enum pop3_response_status
-parse_response(const char *response) {
-
-    for (int i = 0; i < N(responses); i++) {
+const struct pop3_response *
+get_response(const char *response) {
+    for (unsigned i = 0; i < N(responses); i++) {
         if (strcmp(response, responses[i].name) == 0) {
-            return responses[i].status;
+            return &responses[i];
         }
     }
 
-    return -1;
+    return &invalid_response;
 }

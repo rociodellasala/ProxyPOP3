@@ -8,7 +8,7 @@
 #define BACKLOG 10
 
 struct extern_transformation {
-    bool switch_program; /* TODO: Dudoso el tipo */
+    bool switch_program;
     unsigned char * program_name;
 };
 

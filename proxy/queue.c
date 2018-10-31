@@ -84,10 +84,6 @@ void * dequeue(struct queue * queue) {
     return ret;
 }
 
-int size(struct queue * queue) {
-    return queue->size;
-}
-
 void * peek_data(struct queue * queue) {
     void * ret = NULL;
 

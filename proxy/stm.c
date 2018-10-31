@@ -3,7 +3,6 @@
  *         del selector.c
  */
 #include <stdlib.h>
-#include <printf.h>
 #include "include/stm.h"
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -55,7 +54,7 @@ inline static void jump(struct state_machine * stm, unsigned next, struct select
 unsigned stm_handler_read(struct state_machine * stm, struct selector_key * key) {
     handle_first(stm, key);
 
-    if(stm->current->on_read_ready == 0) {
+    if (stm->current->on_read_ready == 0) {
         abort();
     }
 
@@ -68,7 +67,7 @@ unsigned stm_handler_read(struct state_machine * stm, struct selector_key * key)
 unsigned stm_handler_write(struct state_machine * stm, struct selector_key * key) {
     handle_first(stm, key);
 
-    if(stm->current->on_write_ready == 0) {
+    if (stm->current->on_write_ready == 0) {
         abort();
     }
 
