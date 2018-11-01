@@ -54,7 +54,7 @@ struct pop3_request_cmd invalid_cmd = {
 
 const struct pop3_request_cmd * get_cmd(const char * cmd) {
     unsigned int i;
-    char * aux = cmd;
+    const char * aux = cmd;
     struct pop3_request_cmd * i_cmd;
 
     for (i = 0; i < CMD_SIZE; i++) {
@@ -69,13 +69,14 @@ const struct pop3_request_cmd * get_cmd(const char * cmd) {
     return i_cmd;
 }
 
+
 struct pop3_request * new_request(const struct pop3_request_cmd * cmd, char * args) {
     struct pop3_request * request = malloc(sizeof(*request));
 
     if (request == NULL) {
         return NULL;
     } else {
-        request->cmd = cmd;
+        request->cmd = (struct pop3_request_cmd *) cmd;
         request->args = args;
 
         return request;

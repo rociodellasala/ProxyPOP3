@@ -34,7 +34,7 @@ struct request_parser {
 };
 
 void request_parser_reset (struct request_parser *);
-enum request_state request_parser_feed (struct request_parser *, const uint8_t);
+enum request_state request_parser_feed (struct request_parser *, uint8_t);
 enum request_state request_consume(buffer *, struct request_parser *, bool *);
 bool request_is_done(enum request_state, bool *);
 void request_parser_close(struct request_parser *);

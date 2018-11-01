@@ -66,29 +66,29 @@ struct ctx {
 
 const unsigned *parser_no_classes(void);
 
-static void pop3_multi(struct ctx *ctx, const uint8_t c);
+static void pop3_multi(struct ctx *ctx, uint8_t c);
 
-static void mime_msg(struct ctx *ctx, const uint8_t c);
+static void mime_msg(struct ctx *ctx, uint8_t c);
 
 void context_setter(struct ctx *ctx) ;
 
-const struct parser_event * feed_subtypes(struct subtype_node *node, const uint8_t c);
+const struct parser_event * feed_subtypes(struct subtype_node *node, uint8_t c);
 
-const struct parser_event * feed_types(struct List *mime_list, const uint8_t c);
+const struct parser_event * feed_types(struct List *mime_list, uint8_t c);
 
-static void detect_delimiter_ending(struct ctx *ctx, const uint8_t c);
+static void detect_delimiter_ending(struct ctx *ctx, uint8_t c);
 
-static void boundary_delimiter_detection(struct ctx *ctx, const uint8_t c);
+static void boundary_delimiter_detection(struct ctx *ctx, uint8_t c);
 
-static void boundary_analizer(struct ctx *ctx, const uint8_t c);
+static void boundary_analizer(struct ctx *ctx, uint8_t c);
 
-static void content_type_subtype(struct ctx *ctx, const uint8_t c);
+static void content_type_subtype(struct ctx *ctx, uint8_t c);
 
-static void content_type_type(struct ctx *ctx, const uint8_t c);
+static void content_type_type(struct ctx *ctx, uint8_t c);
 
-static void content_type_value(struct ctx *ctx, const uint8_t c);
+static void content_type_value(struct ctx *ctx, uint8_t c);
 
-static void content_type_header(struct ctx *ctx, const uint8_t c);
+static void content_type_header(struct ctx *ctx, uint8_t c);
 
 
 

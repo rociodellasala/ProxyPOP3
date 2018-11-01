@@ -61,7 +61,6 @@ void admin_accept_connection(struct selector_key * key) {
         goto fail;
     }
 
-    print_connection_status("[ADMIN]: Connection established", client_addr, client);
     state = admin_new(client);
 
     if (state == NULL) {
@@ -134,6 +133,5 @@ void admin_write(struct selector_key * key) {
 
 void admin_close(struct selector_key * key) {
     struct admin * admin = ATTACHMENT(key);
-    print_connection_status("[ADMIN]: Connection disconnected", admin->admin_addr, admin->fd);
     free(admin);
 }

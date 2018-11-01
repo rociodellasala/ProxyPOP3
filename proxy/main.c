@@ -12,7 +12,6 @@
 #include "include/metrics.h"
 #include "include/utils.h"
 
-
 struct addrinfo * resolution(char * address, uint16_t port){
     struct addrinfo * list_result;
     list_result = 0;
@@ -69,7 +68,7 @@ file_descriptor new_socket(int protocol, struct addrinfo * address) {
 
 
 int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sctp_socket) {
-    const char *err_msg;
+    const char * err_msg;
     selector_status   ss      = SELECTOR_SUCCESS;
     fd_selector selector      = NULL;
 

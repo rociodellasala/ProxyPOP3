@@ -170,7 +170,7 @@ size_t request_marshall(struct pop3_request * request, buffer * buffer) {
     }
 
     if(n < total) {
-        return -1;
+        return (size_t) -1;
     }
 
     memcpy(buff, cmd, i);

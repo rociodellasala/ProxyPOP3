@@ -80,7 +80,7 @@ parser_reset    (struct parser *p);
  * capturar los datos se debe clonar.
  */
 const struct parser_event *
-parser_feed     (struct parser *p, const uint8_t c);
+parser_feed     (struct parser *p, uint8_t c);
 
 /**
  * En caso de la aplicacion no necesite clases caracteres, se

@@ -14,7 +14,7 @@ unsigned char * serialize_char(unsigned char * buffer, unsigned char value) {
 }
 
 unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, unsigned int length) {
-    int i = 0;
+    unsigned int i = 0;
     do {
         buffer = serialize_char(buffer, *str);
         str++;

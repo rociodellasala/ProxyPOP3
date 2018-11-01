@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "queue.h"
+#include "msg_queue.h"
 
 /* Estados POP3 */
 enum pop3_session_state {
@@ -24,7 +24,7 @@ struct pop3_session {
 
     bool pipelining;
 
-    struct queue * request_queue;
+    struct msg_queue * request_queue;
 };
 
 void pop3_session_init(struct pop3_session *s, bool pipelining);

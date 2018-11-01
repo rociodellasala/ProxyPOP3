@@ -98,9 +98,6 @@ typedef enum {
     OP_WRITE   = 1 << 2,
 } fd_interest;
 
-/* Quita un interés de una lista de intereses */
-#define INTEREST_OFF(FLAG, MASK)  ( (FLAG) & ~(MASK) )
-
 /* Argumento de todas las funciones callback del handler */
 struct selector_key {
     /** el selector que dispara el evento */

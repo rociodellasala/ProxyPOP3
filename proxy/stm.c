@@ -28,7 +28,7 @@ inline static void handle_first(struct state_machine * stm, struct selector_key 
     if (stm->current == NULL) {
         stm->current = stm->states + stm->initial;
         if (NULL != stm->current->on_arrival) {
-            stm->current->on_arrival(stm->current->state, key);
+            stm->current->on_arrival(key);
         }
     }
 }
@@ -40,13 +40,13 @@ inline static void jump(struct state_machine * stm, unsigned next, struct select
 
     if (stm->current != stm->states + next) {
         if(stm->current != NULL && stm->current->on_departure != NULL) {
-            stm->current->on_departure(stm->current->state, key);
+            stm->current->on_departure(key);
         }
 
         stm->current = stm->states + next;
 
         if (NULL != stm->current->on_arrival) {
-            stm->current->on_arrival(stm->current->state, key);
+            stm->current->on_arrival(key);
         }
     }
 }
@@ -90,16 +90,3 @@ unsigned stm_handler_block(struct state_machine * stm, struct selector_key * key
     return ret;
 }
 
-void stm_handler_close(struct state_machine * stm, struct selector_key * key) {
-    if(stm->current != NULL && stm->current->on_departure != NULL) {
-        stm->current->on_departure(stm->current->state, key);
-    }
-}
-
-unsigned stm_state(struct state_machine * stm) {
-    unsigned ret = stm->initial;
-    if (stm->current != NULL) {
-        ret= stm->current->state;
-    }
-    return ret;
-}

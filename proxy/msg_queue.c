@@ -7,15 +7,15 @@ struct queue_node {
     struct queue_node *     next;
 };
 
-struct queue {
+struct msg_queue {
     struct queue_node *     first,
                       *     last,
                       *     current;
     int 				    size;
 };
 
-struct queue * new_queue() {
-    struct queue * new_q = malloc(sizeof(*new_q));
+struct msg_queue * new_queue() {
+    struct msg_queue * new_q = malloc(sizeof(*new_q));
 
     if (new_q == NULL) {
         return NULL;
@@ -41,7 +41,7 @@ static struct queue_node * new_node(void * data) {
     return new_n;
 }
 
-void enqueue(struct queue * queue, void * data) {
+void enqueue(struct msg_queue * queue, void * data) {
     struct queue_node * last = queue->last;
 
     if(data == NULL){
@@ -60,11 +60,11 @@ void enqueue(struct queue * queue, void * data) {
 }
 
 
-bool is_empty(struct queue * queue) {
+bool is_empty(struct msg_queue * queue) {
     return queue->size == 0;
 }
 
-void * dequeue(struct queue * queue) {
+void * dequeue(struct msg_queue * queue) {
     if (is_empty(queue)) {
         return NULL;
     }
@@ -84,7 +84,7 @@ void * dequeue(struct queue * queue) {
     return ret;
 }
 
-void * peek_data(struct queue * queue) {
+void * peek_data(struct msg_queue * queue) {
     void * ret = NULL;
 
     if (queue->first != NULL) {
@@ -94,7 +94,7 @@ void * peek_data(struct queue * queue) {
     return ret;
 }
 
-void * queue_get_next(struct queue * queue) {
+void * queue_get_next(struct msg_queue * queue) {
     void * ret;
 
     if (queue->current != NULL) {
@@ -108,7 +108,7 @@ void * queue_get_next(struct queue * queue) {
     return ret;
 }
 
-void destroy_queue(struct queue * queue) {
+void destroy_queue(struct msg_queue * queue) {
     struct queue_node *first = queue->first;
     struct queue_node *aux;
 

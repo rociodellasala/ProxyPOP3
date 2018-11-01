@@ -15,7 +15,8 @@ void initialize_metrics() {
 
 char * metric_get_name(unsigned char * number, int * index) {
     enum e_metrics metric;
-    int in = atoi (number);
+    int in;
+    in = atoi(number);
 
     if (in >= METRICS_SIZE || in < 0) {
         *index = METRICS_SIZE;

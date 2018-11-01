@@ -54,7 +54,7 @@ parser_feed(struct parser *p, const uint8_t c) {
 
     const struct parser_state_transition *state = p->def->states[p->state];
     const size_t n                              = p->def->states_n[p->state];
-    bool matched   = false;
+    bool matched;
 
     for(unsigned i = 0; i < n ; i++) {
         const int when = state[i].when;
@@ -63,7 +63,7 @@ parser_feed(struct parser *p, const uint8_t c) {
         } else if(state[i].when == ANY) {
             matched = true;
         } else if(state[i].when > 0xFF) {
-            matched = (type & when);
+            matched = (bool) (type & when);
         } else {
             matched = false;
         }

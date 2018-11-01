@@ -12,7 +12,7 @@ unsigned char * deserialize_char(unsigned char * buffer, unsigned char * value) 
 }
 
 unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, unsigned int length) {
-    int i = 0;
+    unsigned int i = 0;
     do {
         buffer = deserialize_char(buffer, str);
         str++;

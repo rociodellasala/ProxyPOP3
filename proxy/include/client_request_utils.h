@@ -10,6 +10,6 @@ enum request_state check_request_against_current_session_status(enum pop3_sessio
 
 void send_error_request(enum request_state, char *, file_descriptor);
 
-int request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct queue * queue);
+int request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct msg_queue * queue);
 
 #endif //PROXYPOP3_CLIENT_REQUEST_UTILS_H

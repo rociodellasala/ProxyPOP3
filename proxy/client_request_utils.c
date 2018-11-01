@@ -5,10 +5,10 @@
 #include "include/utils.h"
 #include "include/client_request.h"
 
-#define ERROR -1
+#define ERROR (-1)
 
 enum request_state check_request_against_current_session_status(enum pop3_session_state state, struct pop3_request * request){
-    enum request_state ret_state;
+    enum request_state ret_state = request_error_cmd_incorrect_status;
 
     if (state == POP3_AUTHORIZATION) {
         switch (request->cmd->id) {
@@ -46,9 +46,9 @@ enum request_state check_request_against_current_session_status(enum pop3_sessio
     return ret_state;
 }
 
-void send_error_request(enum request_state state, char * name, file_descriptor fd) {
-    char * dest;
-    char * msg;
+void send_error_request(enum request_state state, char *name, file_descriptor fd) {
+    char * dest = NULL;
+    char * msg = NULL;
 
     switch (state) {
         case request_error_inexistent_cmd:
@@ -71,7 +71,7 @@ void send_error_request(enum request_state state, char * name, file_descriptor f
     send(fd, dest, strlen(dest), 0);
 }
 
-int request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct queue * queue) {
+int request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct msg_queue * queue) {
     char * msg = "Error while copying request to buffer";
     if (pipelining == false) { // si el server no soporta pipelining solo copio la primer request
         pop3_request = peek_data(queue);
