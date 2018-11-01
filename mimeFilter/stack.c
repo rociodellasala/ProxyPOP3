@@ -3,6 +3,18 @@
 #include "stack.h"
 
 
+static struct element * create_element(void * data) {
+    struct element * node = malloc(sizeof(*node));
+
+    if (node == NULL) {
+        return NULL;
+    }
+
+    node->data = data;
+    node->prev = NULL;
+
+    return node;
+}
 
 struct stack * stack_init() {
 
@@ -18,18 +30,7 @@ struct stack * stack_init() {
     return s;
 }
 
-static struct element * create_element(void * data) {
-    struct element * node = malloc(sizeof(*node));
 
-    if (node == NULL) {
-        return NULL;
-    }
-
-    node->data = data;
-    node->prev = NULL;
-
-    return node;
-}
 
 void * stack_push(struct stack *s, void * data) {
     if (data == NULL) {

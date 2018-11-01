@@ -91,8 +91,4 @@ static void content_type_value(struct ctx *ctx, uint8_t c);
 static void content_type_header(struct ctx *ctx, uint8_t c);
 
 
-
-
-
-
 #endif

@@ -8,6 +8,20 @@
 #define WILDCARD "*"
 
 
+static void destroy_node(struct subtype_node *node) {
+	if (node->name != NULL && node->wildcard) {
+		free((void *) node->name);
+	}
+	if (node->def != NULL) {
+		parser_utils_strcmpi_destroy(node->def);
+		free(node->def);
+	}
+	if (node->parser != NULL) {
+		parser_destroy(node->parser);
+	}
+}
+
+
 struct List* create_list(void){
 
 	struct List* list = malloc(sizeof(*list));
@@ -32,8 +46,11 @@ int add_new(char* type, char* subtype,struct List* list){
 
 		
 		if(strcmp(subtype,WILDCARD) == 0){
-
+			free(subtype);
 			make_subtype_wildcard(tpnode,type,typeExists);
+			if(typeExists){
+				free(type);
+			}
 			return 0;
 		}
 
@@ -42,10 +59,13 @@ int add_new(char* type, char* subtype,struct List* list){
 				struct subtype_node* stpnode = search_for_subtype(tpnode->subtypes, subtype, &subtypeExists);
 
 				if(subtypeExists){
+					free(subtype);
+					free(type);
 					return -1;
 				}else{
 					//agrego nuevo subtipo al nodo tipo
 					stpnode->next = create_new_subtype(subtype);
+					free(type);
 					return 0;
 				}
 		}else{
@@ -61,6 +81,7 @@ int add_new(char* type, char* subtype,struct List* list){
 
 			list->first = create_new_type(type);
 			if(strcmp(subtype,WILDCARD)==0){	
+				free(subtype);
 				list->first->subtypes = create_new_wildcard_subtype();		
 				return 0;
 			}
@@ -259,19 +280,6 @@ struct type_node *removeSubtypes(struct type_node* node){
 
 	node->subtypes = NULL;
 	return node;
-}
-
-static void destroy_node(struct subtype_node *node) {
-	if (node->name != NULL && node->wildcard) {
-		free((void *) node->name);
-	}
-	if (node->def != NULL) {
-		parser_utils_strcmpi_destroy(node->def);
-		free(node->def);
-	}
-	if (node->parser != NULL) {
-		parser_destroy(node->parser);
-	}
 }
 
 void make_subtype_wildcard(struct type_node* node, char* type, bool typeExists){	

@@ -50,7 +50,7 @@ void clean_list(struct List* list);
 
 struct subtype_node* create_new_wildcard_subtype();
 
-static void destroy_node(struct subtype_node *node);
+//static void destroy_node(struct subtype_node *node);
 
 void make_subtype_wildcard(struct type_node* node, char* type, bool typeExists);
 
