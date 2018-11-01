@@ -543,12 +543,6 @@ int main(int argc, char ** argv) {
 }
 
 
-
-
-
-
-
-
 void context_setter(struct ctx *ctx) {
     struct type_node *node = ctx->mime_list->first;
     if (node->event->type == STRING_CMP_EQ) {
