@@ -49,10 +49,6 @@ char * metric_get_name(const char * number, int * index) {
 }
 
 void metric_add_admin_connected(){
-    puts("CONNECTING");
-    printf("metric current: %f\n", metrics[CURRENT_ADMIN_CONNECTED]);
-    printf("metric max: %f\n", metrics[MAX_ADMIN_CONNECTED]);
-
     metrics[CURRENT_ADMIN_CONNECTED] += 1;
     if(metrics[MAX_ADMIN_CONNECTED] < metrics[CURRENT_ADMIN_CONNECTED]) {
         metrics[MAX_ADMIN_CONNECTED] = metrics[CURRENT_ADMIN_CONNECTED];
@@ -61,9 +57,6 @@ void metric_add_admin_connected(){
 
 void metric_remove_admin_connected(){
     metrics[CURRENT_ADMIN_CONNECTED] -= 1;
-    puts("DISCONNECTING");
-    printf("metric current: %f\n", metrics[CURRENT_ADMIN_CONNECTED]);
-    printf("metric max: %f\n", metrics[MAX_ADMIN_CONNECTED]);
 }
 
 void metric_add_transfered_bytes(double curr_transfered_bytes) {
