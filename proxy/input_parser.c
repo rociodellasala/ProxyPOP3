@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include "include/input_parser.h"
+#include "include/utils.h"
 
 void print_usage() {
     printf("USAGE: ./pop3filter [ POSIX style options ] <origin-server> \n"
@@ -322,6 +323,7 @@ void initialize_values() {
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
     parameters->filter_command->switch_program  = false;
     parameters->filter_command->program_name    = (unsigned char *) "cat";
+    parameters->version                         = VERSION;
 }
 
 options set_options_values(const int argc, char ** argv) {

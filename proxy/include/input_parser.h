@@ -17,16 +17,17 @@ typedef struct extern_transformation * transformation;
 extern transformation e_transformation;
 
 struct options{
-    uint16_t port;                      // -p
-    char * error_file;                  // -e
-    char * listen_address;              // -l
-    char * management_address;          // -L
-    uint16_t management_port;           // -o
-    char * replacement_msg;             // -m
-    char * filtered_media_types;        // -M
-    char * origin_server;               // This is the argument origin_server, it's not an option
-    uint16_t origin_port;               // -P
-    transformation filter_command;      // -t
+    uint16_t            port;                 // -p
+    char *              error_file;           // -e
+    char *              listen_address;       // -l
+    char *              management_address;   // -L
+    uint16_t            management_port;      // -o
+    char *              replacement_msg;      // -m
+    char *              filtered_media_types; // -M
+    char *              origin_server;        // This is the argument origin_server, it's not an option
+    uint16_t            origin_port;          // -P
+    transformation      filter_command;       // -t
+    int                 version;
 };
 
 typedef struct options * options;
