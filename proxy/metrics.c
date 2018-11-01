@@ -79,5 +79,6 @@ void metric_add_new_connection() {
 
 void metric_remove_current_connection() {
     metrics[INST_CONCURRENT_CONNECTIONS] -= 1;
+    metrics[HISTORICAL_ACCESSES] += 1;
 }
 

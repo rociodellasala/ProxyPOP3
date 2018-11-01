@@ -4,6 +4,30 @@ set(CMAKE_C_STANDARD 11)                                # Enable c standard
 set(CMAKE_C_FLAGS    " -pthread -lsctp --std=c99 -pedantic -pedantic-errors -Wall -Wextra -Werror -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L")
 link_libraries(-lsctp)
 
+set(CLANG_TIDY_CHECKS *
+        -boost-*
+        -mpi-*
+        -llvm-*
+        -cppcoreguidelines-*
+        -clang-analyzer-osx.*
+        -cert-*-cpp
+        -misc-unused-parameters,
+        -clang-diagnostic-missing-declarations)
+string(REPLACE ";" "," CLANG_TIDY_CHECKS "${CLANG_TIDY_CHECKS}")
+
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    find_program(CLANGTIDY NAMES clang-tidy)
+    if(CLANGTIDY)
+        message(STATUS "Found clang-tidy: ${CLANGTIDY}")
+        set(CMAKE_C_CLANG_TIDY clang-tidy
+                -checks=${CLANG_TIDY_CHECKS}
+                -warnings-as-errors=*
+                -fix)
+    endif()
+endif()
+set(CMAKE_C_FLAGS, "${CMAKE_C_FLAGS} -pedantic -pedantic-errors -Wall -Wextra
+-Werror -Wno-unused-parameter -D_POSIX_C_SOURCE=200112L")
+
 
 # Add .c and .h files of project root directory as source file
 set(SOURCE_FILES_CLIENT configurationClient/administrator.c configurationClient/include/administrator.h configurationClient/input_parser.c configurationClient/include/input_parser.h configurationClient/main.c configurationClient/include/client_request.h configurationClient/include/response.h configurationClient/send_request.c configurationClient/include/send_request.h configurationClient/serializer.c configurationClient/include/serializer.h configurationClient/receive_response.c configurationClient/deserializer.c configurationClient/include/admin_deserializer.h configurationClient/include/receive_response.h configurationClient/utils.c configurationClient/include/utils.h)

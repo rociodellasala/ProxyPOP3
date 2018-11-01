@@ -112,8 +112,6 @@ void destroy_queue(struct msg_queue * queue) {
     struct queue_node * first = queue->first;
     struct queue_node * aux;
 
-    puts("aca");
-
     while (first != NULL) {
         aux = first->next;
         free(first);
