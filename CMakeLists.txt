@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)                     # CMake version check
 project(proxypop3)                                      # Create project "proxypop3"
 set(CMAKE_C_STANDARD 11)                                # Enable c standard
-set(CMAKE_C_FLAGS    " -pthread -lsctp ")
+set(CMAKE_C_FLAGS    " -pthread -lsctp --std=c99 -pedantic -pedantic-errors -Wall -Wextra -Werror -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L")
 link_libraries(-lsctp)
 
 

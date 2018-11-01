@@ -10,7 +10,7 @@
 
 #define MAX_CONCURRENT_INVALID_COMMANDS 5
 
-enum request_state {
+typedef enum request_state {
     request_cmd,
     request_param,
     request_newline,
@@ -23,7 +23,7 @@ enum request_state {
     request_error_cmd_too_long,
     request_error_param_too_long,
     request_error_cmd_incorrect_status,
-};
+} request_state;
 
 struct request_parser {
     struct pop3_request *   request;
@@ -37,7 +37,6 @@ void request_parser_reset (struct request_parser *);
 enum request_state request_parser_feed (struct request_parser *, uint8_t);
 enum request_state request_consume(buffer *, struct request_parser *, bool *);
 bool request_is_done(enum request_state, bool *);
-void request_parser_close(struct request_parser *);
-size_t request_marshall(struct pop3_request *, buffer *);
+
 
 #endif //PROXYPOP3_REQUEST_PARSER_H

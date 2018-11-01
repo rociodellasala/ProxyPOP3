@@ -8,9 +8,9 @@
 #include "include/utils.h"
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
-#define CMD_SIZE	(capa + 1)
+#define CMD_QUANTITY	(capa + 1)
 
-const struct pop3_request_cmd commands[CMD_SIZE] = {
+const struct pop3_request_cmd commands[CMD_QUANTITY] = {
         {
                 .id 	= user,
                 .name 	= "user",
@@ -57,7 +57,7 @@ const struct pop3_request_cmd * get_cmd(const char * cmd) {
     const char * aux = cmd;
     struct pop3_request_cmd * i_cmd;
 
-    for (i = 0; i < CMD_SIZE; i++) {
+    for (i = 0; i < CMD_QUANTITY; i++) {
         if (compare_strings(cmd, commands[i].name)) {
             return &commands[i];
         }

@@ -102,9 +102,11 @@ int parse_admin_request(struct admin * admin) {
         admin->current_request = request;
         parse_req_commands(admin);
     }
+
     if (admin->req_status == COULD_NOT_READ_REQUEST) {
         return -1;
     }
 
+    return 0;
 }
 

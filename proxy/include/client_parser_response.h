@@ -12,7 +12,6 @@
 #include "parser.h"
 
 #define STATUS_SIZE         4
-#define MAX_RESPONSE_SIZE   512
 
 enum response_state {
     response_status_indicator,

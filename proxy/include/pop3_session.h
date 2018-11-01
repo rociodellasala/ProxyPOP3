@@ -27,7 +27,9 @@ struct pop3_session {
     struct msg_queue * request_queue;
 };
 
-void pop3_session_init(struct pop3_session *s, bool pipelining);
+void pop3_session_init(struct pop3_session *, bool);
+
+void pop3_session_close(struct pop3_session *);
 
 #endif //PROXYPOP3_POP3_SESSION_H
 

@@ -15,7 +15,7 @@ extern double metrics[METRICS_SIZE];
 
 void initialize_metrics();
 
-char * metric_get_name(unsigned char *, int *);
+char * metric_get_name(const char *, int *);
 
 void metric_add_transfered_bytes(double);
 
