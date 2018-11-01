@@ -1,5 +1,9 @@
 gcc -o test delimiter.c parser_creator.c stack.c mimeList.c mime_type.c mime_chars.c parser_utils.c mime_msg.c multi_pop3_parser.c mimeFilter.c
 
+Flags para compilar que estan buenos:
+
+-Wall -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-align -Wstrict-overflow=5 -Waggregate-return -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Werror -pedantic-errors -Wmissing-prototypes -pedantic -std=c99 -D_DEFAULT_SOURCEs
+
 
 501) OK
 

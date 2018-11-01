@@ -8,6 +8,20 @@
 #define WILDCARD "*"
 
 
+static void destroy_node(struct subtype_node *node) {
+	if (node->name != NULL && node->wildcard) {
+		free((void *) node->name);
+	}
+	if (node->def != NULL) {
+		parser_utils_strcmpi_destroy(node->def);
+		free(node->def);
+	}
+	if (node->parser != NULL) {
+		parser_destroy(node->parser);
+	}
+}
+
+
 struct List* create_list(void){
 
 	struct List* list = malloc(sizeof(*list));
@@ -266,19 +280,6 @@ struct type_node *removeSubtypes(struct type_node* node){
 
 	node->subtypes = NULL;
 	return node;
-}
-
-static void destroy_node(struct subtype_node *node) {
-	if (node->name != NULL && node->wildcard) {
-		free((void *) node->name);
-	}
-	if (node->def != NULL) {
-		parser_utils_strcmpi_destroy(node->def);
-		free(node->def);
-	}
-	if (node->parser != NULL) {
-		parser_destroy(node->parser);
-	}
 }
 
 void make_subtype_wildcard(struct type_node* node, char* type, bool typeExists){	

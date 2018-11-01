@@ -15,8 +15,6 @@ struct element {
 
 struct stack * stack_init();
 
-static struct element * create_element(void * data);
-
 void * stack_push(struct stack *s, void * data);
 
 void * stack_pop(struct stack *s);
