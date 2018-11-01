@@ -1,5 +1,5 @@
-#ifndef MIMELIST_H_
-#define MIMELIST_H_
+#ifndef MIME_LIST_H_
+#define MIME_LIST_H_
 #include "parser_creator.h"
 
 struct type_node{

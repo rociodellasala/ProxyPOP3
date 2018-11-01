@@ -1,7 +1,7 @@
 
 #include "parser_creator.h"
-#include "mimeList.h"
-#include "mimeFilter.h"
+#include "mime_list.h"
+#include "mime_filter.h"
 
 struct parser *parser_init(const unsigned *classes, const struct parser_definition *def) {
     struct parser *ret = malloc(sizeof(*ret));

@@ -1,8 +1,8 @@
-#ifndef MIMEFILTER_H_
-#define MIMEFILTER_H_
+#ifndef MIME_FILTER_H_
+#define MIME_FILTER_H_
 
 #include <stdint.h>
-#include "mimeList.h"
+#include "mime_list.h"
 #define MAX 2048
 
 
@@ -19,6 +19,9 @@ struct ctx {
 
     /* detector de field-name "Content-Transfer-Encoding" */
     struct parser *transfer_encoding_header;
+
+    /* detector de field-name "Content-Disposition" */
+    struct parser *disposition_header;
 
     /* parser mime type "tipo-rfc 2045" */
     struct parser *mime_type;
@@ -44,6 +47,9 @@ struct ctx {
 
     /* detecamos un content transfer encoding */
     bool *msg_transfer_encoding_detected;
+
+    /* detecamos un content disposition */
+    bool *msg_disposition_detected;
 
     /* ¿hemos detectado si el field-name que estamos procesando refiere
      * a Content-Type?. Utilizando dentro msg para los field-name.

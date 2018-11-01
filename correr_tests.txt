@@ -1,4 +1,4 @@
-gcc -o test delimiter.c parser_creator.c stack.c mimeList.c mime_type.c mime_chars.c parser_utils.c mime_msg.c multi_pop3_parser.c mimeFilter.c
+gcc -o test delimiter.c parser_creator.c stack.c mime_list.c mime_type.c mime_chars.c parser_utils.c mime_msg.c multi_pop3_parser.c mime_filter.c
 
 Flags para compilar que estan buenos:
 
