@@ -38,7 +38,7 @@ Flags para compilar que estan buenos:
 
 	diff -u ii_images.mbox out
 
-505) OK (TBD) Ver q pasa con mas de uno anidado!
+505) OK 
 
 	Objetivo: Censure partes jpeg y png
 

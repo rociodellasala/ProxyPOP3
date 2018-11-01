@@ -17,6 +17,9 @@ struct ctx {
     /* detector de field-name "Content-Type" */
     struct parser *ctype_header;
 
+    /* detector de field-name "Content-Transfer-Encoding" */
+    struct parser *transfer_encoding_header;
+
     /* parser mime type "tipo-rfc 2045" */
     struct parser *mime_type;
 
@@ -38,6 +41,9 @@ struct ctx {
     /* booleanos auxiliares*/
     bool replace;
     bool replaced;
+
+    /* detecamos un content transfer encoding */
+    bool *msg_transfer_encoding_detected;
 
     /* ¿hemos detectado si el field-name que estamos procesando refiere
      * a Content-Type?. Utilizando dentro msg para los field-name.
