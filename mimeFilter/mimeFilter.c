@@ -24,6 +24,7 @@
 #define ANY (1 << 9) 
 
 bool isWildcard = false;
+bool new_boundary_push = true;
 static bool T = true;
 static bool F = false;
 
@@ -141,18 +142,25 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                 boundary_analizer(ctx, c);
                 break;
             case MIME_DELIMITER_START:
-                if (ctx->boundary_detected != 0 && *ctx->boundary_detected) {
+                if ((ctx->boundary_detected != 0 && *ctx->boundary_detected)) {
                     struct delimiter_st *dlm = delimiter_init();
                     if (dlm == NULL) {
                         abort();
                     }
-                    stack_push(ctx->boundary_delimiter, dlm);
+                    if(new_boundary_push == true){
+                        stack_push(ctx->boundary_delimiter, dlm);
+                        new_boundary_push = false;
+                    }
+                    
+                    
 
                 }
+                
                 break;
             case MIME_DELIMITER:
                 if (ctx->boundary_detected != 0 && *ctx->boundary_detected) {
                     for (int i = 0; i < e->n; i++) {
+
                         extend(e->data[i], stack_peek(ctx->boundary_delimiter));
                     }
                 }
@@ -255,6 +263,11 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 char * testing = strstr(ctx->buffer, "message");
                 if(testing != NULL){
                     ctx->attachment = true;
+                }
+
+                char * testing2 = strstr(ctx->buffer, "multipart/alternative");
+                if(testing2 != NULL){
+                    new_boundary_push = true;
                 }
 
                 if (ctx->to_be_censored != 0 && *ctx->to_be_censored) {

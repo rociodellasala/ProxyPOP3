@@ -48,4 +48,14 @@ Flags para compilar que estan buenos:
 
 506)
 
+	No debe haber diferencias en la salida. También es importante ver la relaciones de tiempo de ejecución entre cat (sin filtro) y
+	stripmime (sin filtro).
+
+	time cat ../test_cases/i_big.mbox  > /dev/null FILTER_MEDIAS=a/b time cat ../test_cases/i_big.mbox | ./test | pv > out
+
 507)
+
+	Se busca la parte de más megas del mensaje. Que únicamente la parte application/x-cd-image quede fuera del mensaje.
+
+
+	FILTER_MEDIAS=application/x-cd-image time cat ../test_cases/i_big.mbox | ./test | pv > out
