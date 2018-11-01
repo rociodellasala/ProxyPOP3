@@ -25,7 +25,7 @@ unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, 
 }
 
 unsigned char * deserialize_response(unsigned char * buffer, response * response) {
-    /* deserializamos la version del proxy */
+    /* deserializamos la version del pop3filter */
     buffer = deserialize_char(buffer, &response->version);
 
     /* deserializamos el estado de la respuesta (OK o ERROR) */

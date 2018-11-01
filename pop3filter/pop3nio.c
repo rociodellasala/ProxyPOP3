@@ -245,7 +245,7 @@ void pop3_pool_destroy(void) {
 
 /*
  * Declaración de los handlers de selección de una conexión
- * establecida entre un cliente y el proxy.
+ * establecida entre un cliente y el pop3filter.
  */
 static void pop3_read(struct selector_key * key);
 static void pop3_write(struct selector_key * key);
@@ -510,7 +510,7 @@ static unsigned welcome_read(struct selector_key * key) {
     struct welcome_st * welcome         = &ATTACHMENT(key)->orig.welcome;
     enum pop3_state     stm_next_status = WELCOME_WRITE;
 
-    // proxy welcome message
+    // pop3filter welcome message
     ptr = buffer_write_ptr(welcome->write_buffer, &count);
     n   = recv(key->fd, ptr, count, 0);
     buffer_write_adv(welcome->write_buffer, n);

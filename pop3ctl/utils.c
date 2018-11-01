@@ -6,15 +6,15 @@ void print_msg(const response_status status, const response response) {
     if (response.length > 0 && response.data != NULL) {
 
         if (status == OK) {
-            printf("Answer from proxy: +OK: %s\n", response.data);
+            printf("Answer from pop3filter: +OK: %s\n", response.data);
         } else {
-            printf("Answer from proxy: -ERR: %s\n", response.data);
+            printf("Answer from pop3filter: -ERR: %s\n", response.data);
         }
     } else {
         if (status == OK) {
-            printf("Answer from proxy: +OK\n");
+            printf("Answer from pop3filter: +OK\n");
         } else {
-            printf("Answer from proxy: -ERR\n");
+            printf("Answer from pop3filter: -ERR\n");
         }
     }
 }

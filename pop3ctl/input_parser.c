@@ -84,7 +84,7 @@ int validate_options(const int argc, char ** argv) {
 }
 
 void print_usage() {
-    printf("USAGE: ./configurationClient [ POSIX style options ] \n"
+    printf("USAGE: ./pop3ctl [ POSIX style options ] \n"
            "POSIX style options: \n"
            "\t-L [management address]: Specifies the address where the management service will serve. By default is localhost. \n"
            "\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n");

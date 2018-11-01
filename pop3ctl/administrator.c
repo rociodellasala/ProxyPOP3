@@ -40,7 +40,7 @@ void handle_receive_msg(response_status * r_status) {
     recv_bytes = receive_response(r_status, &response);
 
     if (recv_bytes < 0) {
-        printf("An error occured while receiving message from proxy.\n");
+        printf("An error occured while receiving message from pop3filter.\n");
         *r_status = ERROR_RECEIVING;
         return;
     }
@@ -218,7 +218,7 @@ void communicate_with_proxy() {
     show_menu_authentication();
 
     while (running) {
-        printf("\nInsert a command to run on proxy: ");
+        printf("\nInsert a command to run on pop3filter: ");
 
         if (fgets(buffer_option, MAX_BUFFER, stdin) == NULL) {
             printf("An error occured while reading from STDIN.\n");

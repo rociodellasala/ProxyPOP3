@@ -45,12 +45,12 @@ void initialize_sctp_socket() {
         exit(EXIT_FAILURE);
     }
 
-    /* Establece la conexion al proxy */
+    /* Establece la conexion al pop3filter */
     if (connect(socket_fd, managementaddrinfo->ai_addr, managementaddrinfo->ai_addrlen) < 0) {
-        perror("Connection to POP3 proxy failed");
+        perror("Connection to POP3 pop3filter failed");
         exit(EXIT_FAILURE);
     } else {
-        printf("Success! Connected to POP3 proxy\n");
+        printf("Success! Connected to POP3 pop3filter\n");
     }
 
     freeaddrinfo(managementaddrinfo);
@@ -73,9 +73,9 @@ int main(int argc, char ** argv) {
 
     initialize_sctp_socket();
 
-    /* Recibe el mensaje de bienvenida del proxy */
+    /* Recibe el mensaje de bienvenida del pop3filter */
     sctp_recvmsg(socket_fd, (void *) recv_buffer, MAX_BUFFER, NULL, 0, 0, 0);
-    printf("\nMessage from proxy: %s", recv_buffer);
+    printf("\nMessage from pop3filter: %s", recv_buffer);
 
     communicate_with_proxy();
 
