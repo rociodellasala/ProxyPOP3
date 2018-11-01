@@ -184,6 +184,27 @@ static void content_type_header(struct ctx *ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
+/* Detecta si un header-field-name equivale a Content-Transfer-Encoding.
+ * Deja el valor en `ctx->msg_transfer_encoding_detected'. Tres valores
+ * posibles: NULL (no tenemos información suficiente todavia, por ejemplo
+ * viene diciendo Conten), true si matchea, false si no matchea.
+ */
+static void transfer_encoding_header(struct ctx *ctx, const uint8_t c) {
+    const struct parser_event *e = parser_feed(ctx->transfer_encoding_header, c);
+    do {
+
+        switch (e->type) {
+            case STRING_CMP_EQ:
+                ctx->msg_transfer_encoding_detected = &T;
+                break;
+            case STRING_CMP_NEQ:
+                ctx->msg_transfer_encoding_detected = &F;
+                break;
+        }
+        e = e->next;
+    } while (e != NULL);
+}
+
 /**
  * Procesa un mensaje `tipo-rfc822'.
  * Si reconoce un al field-header-name Content-Type lo interpreta.
@@ -198,16 +219,21 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
         switch (e->type) {
             case MIME_MSG_NAME:
-                if (ctx->msg_content_type_field_detected == 0
-                    || *ctx->msg_content_type_field_detected) {
+                if (ctx->msg_content_type_field_detected == 0 || *ctx->msg_content_type_field_detected) {
                     for (int i = 0; i < e->n; i++) {
                         content_type_header(ctx, e->data[i]);
                     }
 
                 }
+                if(ctx->msg_transfer_encoding_detected == 0 || *ctx->msg_transfer_encoding_detected){
+                    for (int i = 0; i < e->n; i++) {
+                        transfer_encoding_header(ctx, e->data[i]);
+                    }
+                }
                 break;
             case MIME_MSG_NAME_END:
                 parser_reset(ctx->ctype_header);
+                parser_reset(ctx->transfer_encoding_header);
                 break;
             case MIME_MSG_VALUE:
                 for (int i = 0; i < e->n; i++) {
@@ -234,6 +260,8 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 if (ctx->to_be_censored != 0 && *ctx->to_be_censored) {
                     ctx->replace = true;
                     printf("text/plain\r\n");
+                }else if(ctx->replace && ctx->msg_transfer_encoding_detected != 0 && *ctx->msg_transfer_encoding_detected){
+                    printf(" 7bit\n");
                 } else {
                     printf("%s\r\n", ctx->buffer);
                 }
@@ -246,6 +274,8 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 parser_reset(ctx->mime_type);
                 clean_list(ctx->mime_list);
                 parser_reset(ctx->boundary);
+                parser_reset(ctx->transfer_encoding_header);
+                ctx->msg_transfer_encoding_detected = 0;
                 ctx->msg_content_type_field_detected = 0;
                 ctx->to_be_censored = &F;
                 break;
@@ -304,6 +334,8 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                     parser_reset(ctx->mime_type);
                     parser_reset(ctx->boundary);
                     parser_reset(ctx->ctype_header);
+                    parser_reset(ctx->transfer_encoding_header);
+                    ctx->msg_transfer_encoding_detected = NULL;
                     delimiter_reset(stack_peek(ctx->boundary_delimiter));
                 }
                 if (stack_peek(ctx->boundary_delimiter) != NULL) {
@@ -358,6 +390,7 @@ static void pop3_multi(struct ctx *ctx, const uint8_t c) {
                 // arrancamos de vuelta
                 parser_reset(ctx->msg);
                 ctx->msg_content_type_field_detected = NULL;
+                ctx->msg_transfer_encoding_detected = NULL;
                 break;
         }
         e = e->next;
@@ -476,9 +509,13 @@ int main(int argc, char ** argv) {
 
     struct parser_definition boundary_def = parser_utils_strcmpi("boundary");
 
+    struct parser_definition encoding_def = parser_utils_strcmpi("content-transfer-encoding");
+
     struct parser *ctypeParser = parser_init(no_class,  &media_header_def); 
 
     struct parser *boundaryParser = parser_init(no_class,  &boundary_def); 
+
+    struct parser *transferParser = parser_init(no_class,  &encoding_def); 
 
     struct parser *messageParser = parser_init(init_char_class(), mime_message_parser()); 
 
@@ -490,6 +527,7 @@ int main(int argc, char ** argv) {
             .multi                  = multiParser,
             .msg                    = messageParser,
             .ctype_header           = ctypeParser,
+            .transfer_encoding_header = transferParser,
             .mime_type              = mimeTypeParser,
             .boundary               = boundaryParser,
             .mime_list              = list,
