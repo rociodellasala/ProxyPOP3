@@ -24,7 +24,7 @@ unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, 
     return buffer;
 }
 
-unsigned char * deserialize_response(unsigned char * buffer, response * response) {
+unsigned char * deserialize_response(unsigned char * buffer, struct response * response) {
     /* deserializamos la version del pop3filter */
     buffer = deserialize_char(buffer, &response->version);
 

@@ -1,11 +1,11 @@
 #ifndef PROXYPOP3_RESPONSE_H
 #define PROXYPOP3_RESPONSE_H
 
-typedef struct {
+struct response_admin{
     unsigned char   version;
     unsigned char   status;
     unsigned int    length;
     unsigned char * data;
-} response_admin;
+};
 
 #endif //PROXYPOP3_RESPONSE_H

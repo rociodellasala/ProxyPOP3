@@ -2,7 +2,7 @@
 #include <string.h>
 #include "include/response.h"
 
-void print_msg(const response_status status, const response response) {
+void print_msg(const enum response_status status, const struct response response) {
     if (response.length > 0 && response.data != NULL) {
 
         if (status == OK) {

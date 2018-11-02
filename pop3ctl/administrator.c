@@ -3,15 +3,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
-#include "include/administrator.h"
-#include "include/client_request.h"
 #include "include/send_request.h"
-#include "include/response.h"
 #include "include/receive_response.h"
 #include "include/utils.h"
 
 file_descriptor socket_fd;
-/* TODO: MANDAR POR STREAMS, MIRAR BIEN TODO LO QUE AHORA ESTA EN CERO EN SEND Y RECEIVE (no se si es necesario) */
 
 struct parse_action {
     admin_status status;
@@ -33,9 +29,9 @@ static struct parse_action * action_list[] = {
         &trans_action,
 };
 
-void handle_receive_msg(response_status * r_status) {
-    ssize_t recv_bytes;
-    response response;
+void handle_receive_msg(enum response_status * r_status) {
+    ssize_t     recv_bytes;
+    struct response    response;
 
     recv_bytes = receive_response(r_status, &response);
 
@@ -53,15 +49,15 @@ void handle_receive_msg(response_status * r_status) {
 }
 
 cmd_status assemble_req(int i, const char * buffer_option, const b_cmd command) {
-    char param[MAX_PARAM]  = {0};
-    int j                   = 0;
+    char    param[MAX_PARAM]    = {0};
+    int     j                   = 0;
 
     if(buffer_option[i] != SPACE){
         return BAD_SINTAXIS;
     } else {
         i++;
 
-        for (; j < MAX_PARAM && buffer_option[i] != '\n'; i++) {
+        for (; j < MAX_PARAM && buffer_option[i] != NEW_LINE; i++) {
             param[j++] = buffer_option[i];
         }
 
@@ -78,8 +74,8 @@ cmd_status assemble_req(int i, const char * buffer_option, const b_cmd command) 
 }
 
 cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_option_on) {
-    int i = 0;
-    cmd_status cmd_status;
+    int         i = 0;
+    cmd_status  cmd_status;
 
     switch (c) {
         case A:
@@ -87,7 +83,7 @@ cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_opt
             break;
         case Q:
             i++;
-            if (buffer_option[i] != NEWLINE) {
+            if (buffer_option[i] != NEW_LINE) {
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
@@ -109,8 +105,8 @@ cmd_status authenticate(const cmd c, const char * buffer_option, bool * quit_opt
 }
 
 cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_option_on) {
-    int i = 0;
-    cmd_status cmd_status;
+    int         i = 0;
+    cmd_status  cmd_status;
 
     switch (c) {
         case SET_T:
@@ -118,7 +114,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
             break;
         case GET_T:
             i++;
-            if (buffer_option[i] != NEWLINE) {
+            if (buffer_option[i] != NEW_LINE) {
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
@@ -128,7 +124,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
             }
         case SWITCH_T:
             i++;
-            if (buffer_option[i] != NEWLINE) {
+            if (buffer_option[i] != NEW_LINE) {
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
@@ -141,7 +137,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
             break;
         case GET_MI:
             i++;
-            if (buffer_option[i] != NEWLINE) {
+            if (buffer_option[i] != NEW_LINE) {
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
@@ -157,7 +153,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
             break;
         case Q:
             i++;
-            if (buffer_option[i] != NEWLINE) {
+            if (buffer_option[i] != NEW_LINE) {
                 cmd_status = BAD_SINTAXIS;
                 break;
             } else {
@@ -179,7 +175,7 @@ cmd_status transaction(const cmd c, const char * buffer_option, bool * quit_opti
 }
 
 
-void parse_cmd_status(cmd_status cmd_status, response_status * r_status) {
+void parse_cmd_status(cmd_status cmd_status, enum response_status * r_status) {
     switch (cmd_status) {
         case BAD_SINTAXIS:
                 printf("Incorrect sintax of command. Press HELP option (0) to display menu again.\n");
@@ -213,7 +209,7 @@ void communicate_with_proxy() {
     admin_status a_status               = ST_AUTH;
     bool running                        = true;
     bool quit_option_on                 = false;
-    response_status r_status            = OK;
+    enum response_status r_status       = OK;
 
     show_menu_authentication();
 

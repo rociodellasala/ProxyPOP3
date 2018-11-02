@@ -7,9 +7,9 @@
 #include "include/serializer.h"
 #include "include/administrator.h"
 
-ssize_t send_request(request * request) {
-    ssize_t sent_bytes;
-    unsigned char buffer[MAX_BUFFER];
+ssize_t send_request(struct request * request) {
+    ssize_t         sent_bytes;
+    unsigned char   buffer[MAX_BUFFER];
     unsigned char * pointer = serialize_request(buffer, request);
 
     sent_bytes = sctp_sendmsg(socket_fd, buffer, pointer-buffer, NULL, 0, 0, 0, 0, 0, 0);
@@ -22,7 +22,7 @@ ssize_t send_request(request * request) {
 }
 
 void send_request_one_param(const char * parameter, b_cmd cmd) {
-    request * request   = malloc(sizeof(*request));
+    struct request * request   = malloc(sizeof(*request));
 
     request->version    = VERSION;
     request->cmd        = cmd;
@@ -37,7 +37,7 @@ void send_request_one_param(const char * parameter, b_cmd cmd) {
 }
 
 void send_request_without_param(b_cmd cmd) {
-    request * request   = malloc(sizeof(*request));
+    struct request * request   = malloc(sizeof(*request));
 
     request->version    = VERSION;
     request->cmd        = cmd;

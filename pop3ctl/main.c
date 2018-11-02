@@ -2,20 +2,16 @@
 #include <netinet/sctp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <netdb.h>
 #include "include/administrator.h"
-#include "include/input_parser.h"
 
 options parameters;
 
-/* TODO: VER CASO DONDE SE ROMPA EL PROXY, DESCONECTAR AL ADMIN ?????? */
-
-struct addrinfo * resolution(){
-    struct addrinfo * list_result = 0;
-    char service[5];
-
+struct addrinfo * resolution() {
+    char                service[5];
+    struct addrinfo *   list_result = 0;
+   
     snprintf(service, sizeof(service), "%hu", parameters->management_port);
 
     struct addrinfo hints = {
@@ -28,7 +24,7 @@ struct addrinfo * resolution(){
             .ai_next      = NULL,
     };
 
-    if (getaddrinfo(parameters->management_address, service, &hints, &list_result) != 0){
+    if (getaddrinfo(parameters->management_address, service, &hints, &list_result) != 0) {
         fprintf(stderr,"Domain Name System (DNS) resolution error\n");
     }
 

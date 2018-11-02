@@ -1,31 +1,24 @@
-
 #include <stdlib.h>
 #include <netinet/sctp.h>
 #include <string.h>
-#include <stdio.h>
-#include <errno.h>
 #include "include/input_parser.h"
-#include "include/deserializer.h"
+#include "include/admin_deserializer.h"
 #include "include/admin.h"
-#include "include/admin_serializer.h"
-#include "include/admin_request.h"
 #include "include/admin_actions.h"
-#include "include/admin_response.h"
-#include "include/utils.h"
 
 void parse_action(struct admin * admin) {
-    request_admin * r = admin->current_request;
+    struct request_admin * r = admin->current_request;
     
     switch (r->cmd) {
         case A_CMD:
-            if(check_password((const char *) r->data) == 1){
+            if (check_password((const char *) r->data) == 1) {
                 admin->a_status = ST_CONNECTED;
             } else {
                 admin->req_status = INCORRECT_PASS;
             }
             break;
         case SET_T_CMD:
-            /* TODO: Algun chequeo necesario ? */
+            /* TODO: Algun chequeo necesario ? Quiza que no sea string vacio */
             parameters->filter_command->program_name = r->data;
             break;
         case GET_T_CMD:
@@ -52,16 +45,15 @@ void parse_action(struct admin * admin) {
             //forbid_mime()
             break;
         case Q_CMD:
-            admin->quit = 1;
+            admin->quit = true;
             break;
         default:
             break;
     }
-    
 }
 
-void parse_req_commands(struct admin * admin){
-    if (admin->current_request->version > VERSION){
+void parse_req_commands(struct admin * admin) {
+    if (admin->current_request->version > VERSION) {
         admin->req_status = VERSION_UNSOPPORTED;
     } else {
         parse_action(admin);
@@ -82,21 +74,20 @@ void parse_req_commands(struct admin * admin){
         default:
             break;
     }
-
 }
 
 /* TODO: VER MALLOC QUE SE PIERDE VALGRIND */
 int parse_admin_request(struct admin * admin) {
-    int read_bytes;
-    unsigned char buffer[MAX_ADMIN_BUFFER];
-    request_admin * request     = malloc(sizeof(*request));
+    int                     read_bytes;
+    unsigned char           buffer[MAX_ADMIN_BUFFER];
+    struct request_admin *  request     = malloc(sizeof(*request));
 
     read_bytes = sctp_recvmsg(admin->fd, buffer, MAX_ADMIN_BUFFER, NULL, 0, 0, 0);
 
     if (read_bytes <= 0) {
-        admin->req_status = COULD_NOT_READ_REQUEST;
-        admin->resp_data = "Server Error while reading. Please try again.";
-        admin->resp_length = strlen((const char *) admin->resp_data);
+        admin->req_status   = COULD_NOT_READ_REQUEST;
+        admin->resp_data    = "Server Error while reading. Please try again.";
+        admin->resp_length  = strlen((const char *) admin->resp_data);
     } else {
         deserialize_request(buffer, request);
         admin->current_request = request;

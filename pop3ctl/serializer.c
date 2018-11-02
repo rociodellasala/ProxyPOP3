@@ -28,7 +28,7 @@ unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, co
 }
 
 
-unsigned char * serialize_request(unsigned char * buffer, request * request) {
+unsigned char * serialize_request(unsigned char * buffer, struct request * request) {
     /* serializamos la version del pop3filter */
     buffer = serialize_char(buffer, request->version);
     

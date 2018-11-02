@@ -2,12 +2,12 @@
 #include <netinet/sctp.h>
 #include <stdio.h>
 #include <string.h>
-#include "include/admin_deserializer.h"
+#include "include/deserializer.h"
 #include "include/response.h"
 #include "include/utils.h"
 #include "include/administrator.h"
 
-ssize_t receive_response(response_status * status, response * response) {
+ssize_t receive_response(enum response_status * status, struct response * response) {
     ssize_t read_quan;
     unsigned char buffer[MAX_BUFFER];
     
@@ -19,7 +19,7 @@ ssize_t receive_response(response_status * status, response * response) {
 
     deserialize_response(buffer, response);
 
-    *status = (response_status) response->status;
+    *status = (enum response_status) response->status;
    
     return read_quan;
 }

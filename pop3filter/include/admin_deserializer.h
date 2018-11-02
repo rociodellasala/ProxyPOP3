@@ -3,6 +3,6 @@
 
 #include "admin_request.h"
 
-unsigned char * deserialize_request(unsigned char *, request_admin *);
+unsigned char * deserialize_request(unsigned char *, struct request_admin *);
 
 #endif //PROXYPOP3_DESERIALIZER_H

@@ -5,9 +5,6 @@
 #include "utils.h"
 #include <stdbool.h>
 
-#define SPACE ' '
-#define NEWLINE '\n'
-
 typedef enum {
     HELP        = '0',
     A           = '1',

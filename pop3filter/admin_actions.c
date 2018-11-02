@@ -9,6 +9,7 @@
 
 int check_password(const char * pass) {
     const char * password = "1234";
+
     if (strcmp(pass, password) == 0) {
         return 1;
     } else {
@@ -16,11 +17,12 @@ int check_password(const char * pass) {
     }
 }
 
-void switch_transformation_program(struct admin * admin){
+void switch_transformation_program(struct admin * admin) {
     bool * pointer = &(parameters->filter_command->switch_program);
+
     *pointer = !(*pointer);
 
-    if(*pointer == false){
+    if (*pointer == false) {
         admin->resp_data = "OFF";
     } else {
         admin->resp_data = "ON";
@@ -29,21 +31,23 @@ void switch_transformation_program(struct admin * admin){
     admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
 }
 
-void return_metric(struct admin * admin, const char * data){
-    int index;
-    char * name = metric_get_name(data, &index);
-    char * resp;
-    char * value;
-    double metric;
-    int size;
+void return_metric(struct admin * admin, const char * data) {
+    int     index;
+    int     size;
+    char *  resp;
+    char *  value;
+    char *  name;
+    double  metric;
+
+    name = metric_get_name(data, &index);
     
-    if(index >= METRICS_SIZE ){
+    if (index >= METRICS_SIZE ){
         admin->req_status =  INCORRECT_METRIC;
         return;
     }
 
-    metric = metrics[index];
-    size = get_int_len(metric);
+    metric  = metrics[index];
+    size    = get_int_len((int) metric);
     
     value = malloc(size *  sizeof(char *));
     sprintf(value, "%.0f", metric);
@@ -51,8 +55,8 @@ void return_metric(struct admin * admin, const char * data){
     resp = malloc((strlen(name) + 2 + size ) * sizeof(char *));
     sprintf(resp, "%s: %s", name, value);
 
-    admin->resp_data = resp;
-    admin->resp_length = (unsigned int) strlen((const char *) admin->resp_data);
+    admin->resp_data    = resp;
+    admin->resp_length  = (unsigned int) strlen((const char *) admin->resp_data);
 
     free(value);
     free(resp);

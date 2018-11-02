@@ -51,7 +51,7 @@ inline static void jump(struct state_machine * stm, int next, struct selector_ke
             stm->current->on_arrival(key);
         }
     }
-    
+
 }
 
 int stm_handler_read(struct state_machine * stm, struct selector_key * key) {
