@@ -25,6 +25,7 @@
 
 bool is_wildcard = false;
 bool new_boundary_push = true;
+bool first_attempt = true;
 static bool T = true;
 static bool F = false;
 
@@ -143,7 +144,8 @@ static void content_type_value(struct ctx *ctx, const uint8_t c) {
                 if ((ctx->boundary_detected != 0 && *ctx->boundary_detected)) {
                     struct delimiter_st *dlm = delimiter_init();
                     if (dlm == NULL) {
-                        abort();
+                        abort(); //mandar esto adentro del if de abajo. y compara como hice con multipar/alternatvie tmbn con mixed
+                                // y que new_boundary_push empiece en false!
                     }
                     if(new_boundary_push == true){
                         stack_push(ctx->boundary_delimiter, dlm);
@@ -292,8 +294,23 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
 
                 char * testing2 = strstr(ctx->buffer, "multipart/alternative");
                 if(testing2 != NULL){
-                    new_boundary_push = true;
+                    if(first_attempt == true){
+                        first_attempt = false;
+                    }else{
+                        new_boundary_push = true;
+                    }                 
+                }else{
+                    char * testing3 = strstr(ctx->buffer, "multipart/mixed");
+                    if(testing3 != NULL){
+                        if(first_attempt == true){
+                            first_attempt = false;
+                        }else{
+                            new_boundary_push = true;
+                        }   
+                    }
                 }
+                
+                
 
                 if (ctx->to_be_censored != 0 && *ctx->to_be_censored) {
                     ctx->replace = true;

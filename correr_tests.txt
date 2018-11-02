@@ -51,7 +51,16 @@ Flags para compilar que estan buenos:
 	No debe haber diferencias en la salida. También es importante ver la relaciones de tiempo de ejecución entre cat (sin filtro) y
 	stripmime (sin filtro).
 
-	time cat ../test_cases/i_big.mbox  > /dev/null FILTER_MEDIAS=a/b time cat ../test_cases/i_big.mbox | ./test | pv > out
+	EN PAMPERO LO CORRI EL 1ERO DE NOVIEMBRE
+
+	time cat ../test_cases/i_big.mbox  > /dev/null 
+	real    0m58.821s
+	user    0m0.017s
+	sys     0m1.161s
+
+
+	FILTER_MEDIAS=a/b time cat ../test_cases/i_big.mbox | ./test | pv > out
+	
 
 507)
 
