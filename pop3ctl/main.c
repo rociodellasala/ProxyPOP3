@@ -9,7 +9,7 @@
 #include "include/admin.h"
 #include "include/input_parser.h"
 
-options parameters;
+options clt_parameters;
 
 /* TODO: VER LA CONEXION Y EL INPUT PARSER QUE ESTA CON -L Y SERIA COMO OS EN EL PROXY */
 
@@ -17,7 +17,7 @@ struct addrinfo * resolution() {
     char                service[5];
     struct addrinfo *   list_result = 0;
 
-    snprintf(service, sizeof(service), "%hu", parameters->management_port);
+    snprintf(service, sizeof(service), "%hu", clt_parameters->server_port);
 
     struct addrinfo hints = {
             .ai_family    = AF_UNSPEC,
@@ -29,7 +29,7 @@ struct addrinfo * resolution() {
             .ai_next      = NULL,
     };
 
-    if (getaddrinfo(parameters->server_address, service, &hints, &list_result) != 0) {
+    if (getaddrinfo(clt_parameters->server_address, service, &hints, &list_result) != 0) {
         fprintf(stderr,"Domain Name System (DNS) resolution error\n");
     }
 
@@ -64,13 +64,13 @@ int main(int argc, char ** argv) {
         return -1;
     }
 
-    initialize_values();
+    set_options_values(argc,argv);
 
-    if (argc > 2) {
-        set_options_values(argc, argv);
-    } else {
-        printf("Default server address and port values: \n - [ip] : 127.0.0.1 \n - [port] : 9090 \n");
-    }
+    printf("Server address and port values: \n - [ip] : %s \n - [port] : %d \n",
+           clt_parameters->server_address, clt_parameters->server_port);
+
+    printf("server address: %s\n",clt_parameters->server_address);
+    printf("port: %d\n",clt_parameters->server_port);
 
     initialize_sctp_socket();
 
