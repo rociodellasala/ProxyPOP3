@@ -33,6 +33,7 @@ enum request_state check_request_against_current_session_status(enum pop3_sessio
             case noop:
             case top:
             case rset:
+            case uidl:
             case capa:
             case quit:
                 ret_state = request_done;
@@ -70,7 +71,6 @@ void send_error_request(enum request_state state, char *name, file_descriptor fd
     }
 
     send(fd, dest, strlen(dest), 0);
-    free(dest);
 }
 
 int request_marshall(struct pop3_request * request, buffer * buffer) {

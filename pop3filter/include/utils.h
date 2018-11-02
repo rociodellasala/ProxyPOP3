@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-#define SOCKADDR_TO_HUMAN_MIN (INET6_ADDRSTRLEN + 5 + 1)
 #define VERSION 0X01
 #define MAX_ADMIN_DATA 100
 #define MAX_ADMIN_BUFFER 9 + MAX_ADMIN_DATA /* 3 version (uchar), 3 cmd (uchar), 3 length y 100 max data (definido por nosotros) */

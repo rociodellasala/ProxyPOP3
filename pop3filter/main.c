@@ -5,6 +5,8 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include "include/selector.h"
 #include "include/pop3nio.h"
 #include "include/admin.h"
@@ -153,7 +155,7 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
     return ret;
 }
 
-int initialize_sockets(options opt) {
+int initialize_sockets() {
     struct addrinfo * mua_addr      = resolution(parameters->listen_address, parameters->port);
     struct addrinfo * admin_addr    = resolution(parameters->management_address, parameters->management_port);
 
@@ -162,21 +164,21 @@ int initialize_sockets(options opt) {
 
     /* Marca el socket como pasivo para que se quede escuchando conexiones entrantes y las acepte */
     if (listen(mua_tcp_socket, BACKLOG) < 0) {
-        fprintf(stderr, "Unable to listen on port %d", opt->port);
+        fprintf(stderr, "Unable to listen on port %d", parameters->port);
         perror("");
         exit(EXIT_FAILURE);
     }
 
-    printf("Listening on TCP port %d\n", opt->port);
+    printf("Listening on TCP port %d\n", parameters->port);
 
     /* Marca el socket como pasivo para que se quede escuchando conexiones entrantes y las acepte */
     if (listen(admin_sctp_socket, BACKLOG) < 0) {
-        fprintf(stderr, "Unable to listen on port %d", opt->management_port);
+        fprintf(stderr, "Unable to listen on port %d", parameters->management_port);
         perror("");
         exit(EXIT_FAILURE);
     }
 
-    printf("Listening on SCTP port %d\n", opt->management_port);
+    printf("Listening on SCTP port %d\n", parameters->management_port);
 
     printf("Waiting for connections ...\n");
 
@@ -185,7 +187,6 @@ int initialize_sockets(options opt) {
 
 
 int main(int argc, char ** argv) {
-    options opt;
 
     if (parse_input(argc, argv) < 0) {
         return -1;
@@ -193,7 +194,7 @@ int main(int argc, char ** argv) {
 
     initialize_metrics();
     initialize_values();
-    opt = set_options_values(argc, argv);
+    set_options_values(argc, argv);
 
-    return initialize_sockets(opt);
+    return initialize_sockets();
 }

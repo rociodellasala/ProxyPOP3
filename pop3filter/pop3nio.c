@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <ctype.h>
 #include <memory.h>
+#include <netdb.h>
 
 #include "include/pop3_session.h"
 #include "include/buffer.h"
@@ -32,9 +33,7 @@
 
 /* Maquina de estados general */
 enum pop3_state {
-            //estado terminal (error)
             ERROR = -1,
-
             ORIGIN_SERVER_RESOLUTION,
             CONNECTING_TO_OS,
             WELCOME_READ,
@@ -42,10 +41,7 @@ enum pop3_state {
             CAPA,
             REQUEST,
             RESPONSE,
-
-            // estado terminales (exito)
             DONE,
-
 };
 
 
@@ -315,7 +311,7 @@ static enum pop3_state origin_server_connect(struct selector_key * key);
  * Tenemos que resolver el nombre (operación bloqueante), por ende disparamos
  * la resolución en un thread que luego notificará al selector que ha terminado.
  */
-unsigned origin_server_resolution(struct selector_key * key){
+int origin_server_resolution(struct selector_key * key){
     pthread_t tid;
     struct selector_key * k               = malloc(sizeof(*key));
     enum pop3_state       stm_next_status = ORIGIN_SERVER_RESOLUTION;
@@ -371,7 +367,7 @@ static void * origin_server_resolution_blocking(void * data) {
     return 0;
 }
 
-unsigned origin_server_resolution_done(struct selector_key * key) {
+int origin_server_resolution_done(struct selector_key * key) {
     struct pop3 * pop3 =  ATTACHMENT(key);
 
     if (pop3->origin_resolution == 0) {
@@ -454,7 +450,7 @@ static enum pop3_state origin_server_connect(struct selector_key * key) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned connecting(struct selector_key * key) {
+int connecting(struct selector_key * key) {
     int error;
     socklen_t len = sizeof(error);
     struct pop3 * d = ATTACHMENT(key);
@@ -502,7 +498,7 @@ static void welcome_init(struct selector_key * key) {
 }
 
 /* Lee todos los bytes del mensaje de tipo `welcome' de server_fd */
-static unsigned welcome_read(struct selector_key * key) {
+static int welcome_read(struct selector_key * key) {
     uint8_t *   ptr;
     size_t      count;
     ssize_t     n;
@@ -528,7 +524,7 @@ static unsigned welcome_read(struct selector_key * key) {
 }
 
 /* Escribe todos los bytes del mensaje `welcome' en client_fd */
-static unsigned welcome_write(struct selector_key * key) {
+static int welcome_write(struct selector_key * key) {
     uint8_t *   ptr;
     size_t      count;
     ssize_t     n;
@@ -581,7 +577,7 @@ void send_capability_to_origin_server(struct selector_key * key) {
 }
 
 /* Lee la respuesta al comando capa */
-static unsigned capa_read(struct selector_key * key) {
+static int capa_read(struct selector_key * key) {
     struct response_st * response = &ATTACHMENT(key)->orig.response;
     enum pop3_state stm_next_status = CAPA;
 
@@ -637,7 +633,7 @@ static void request_init(struct selector_key * key) {
 }
 
 /* Lee todos los bytes del mensaje de tipo `request' y inicia su proceso */
-static unsigned request_read(struct selector_key * key) {
+static int request_read(struct selector_key * key) {
     uint8_t *   ptr;
     size_t      count;
     ssize_t     n;
@@ -709,7 +705,7 @@ enum pop3_state process(struct selector_key * key, struct request_st * request) 
 }
 
 /* Escribe la request en el server */
-static unsigned request_write(struct selector_key * key) {
+static int request_write(struct selector_key * key) {
     struct request_st * request            = &ATTACHMENT(key)->client.request;
     enum pop3_state     stm_next_status    = REQUEST;
     buffer * buffer                        = request->write_buffer;
@@ -826,7 +822,7 @@ response_process_capa(struct response_st *d) {
  * Lee la respuesta del origin server. Si la respuesta corresponde al comando retr y se cumplen las condiciones,
  *  se ejecuta una transformacion externa
  */
-static unsigned
+static int
 response_read(struct selector_key *key) {
     struct response_st *d = &ATTACHMENT(key)->orig.response;
     enum pop3_state  stm_next_status     = RESPONSE;
@@ -877,7 +873,7 @@ response_read(struct selector_key *key) {
 }
 
 /* Escribe la respuesta en el cliente */
-static unsigned
+static int
 response_write(struct selector_key *key) {
     struct response_st *d = &ATTACHMENT(key)->orig.response;
 
@@ -967,6 +963,7 @@ response_process(struct selector_key *key, struct response_st * d) {
 
     return stm_next_status;
 }
+
 
 /* Definición de handlers para cada estado */
 static const struct state_definition client_states[] = {

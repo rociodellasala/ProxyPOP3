@@ -1,7 +1,6 @@
 #ifndef PROXYPOP3_POP3_H
 #define PROXYPOP3_POP3_H
 
-#include <netdb.h>
 #include "selector.h"
 
 /* Handler del socket pasivo que atiende conexiones pop3 */

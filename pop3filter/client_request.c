@@ -39,6 +39,9 @@ const struct pop3_request_cmd commands[CMD_QUANTITY] = {
                 .id 	= rset,
                 .name 	= "rset",
         },{
+                .id 	= uidl,
+                .name 	= "uidl",
+        },{
                 .id 	= quit,
                 .name 	= "quit",
         },{

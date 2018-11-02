@@ -3,12 +3,14 @@
  *         del selector.c
  */
 #include <stdlib.h>
+#include <stdio.h>
 #include "include/stm.h"
+#include "include/client_request.h"
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
 
 void stm_init(struct state_machine * stm) {
-    unsigned int i;
+    int i;
 
     // verificamos que los estados son correlativos, y que están bien asignados.
     for (i = 0 ; i <= stm->max_state; i++) {
@@ -33,12 +35,12 @@ inline static void handle_first(struct state_machine * stm, struct selector_key 
     }
 }
 
-inline static void jump(struct state_machine * stm, unsigned next, struct selector_key * key) {
+inline static void jump(struct state_machine * stm, int next, struct selector_key * key) {
     if (next > stm->max_state) {
         abort();
     }
 
-    if (stm->current != stm->states + next) {
+    if (next != error && stm->current != stm->states + next) {
         if(stm->current != NULL && stm->current->on_departure != NULL) {
             stm->current->on_departure(key);
         }
@@ -49,42 +51,43 @@ inline static void jump(struct state_machine * stm, unsigned next, struct select
             stm->current->on_arrival(key);
         }
     }
+    
 }
 
-unsigned stm_handler_read(struct state_machine * stm, struct selector_key * key) {
+int stm_handler_read(struct state_machine * stm, struct selector_key * key) {
     handle_first(stm, key);
 
     if (stm->current->on_read_ready == 0) {
         abort();
     }
 
-    const unsigned int ret = stm->current->on_read_ready(key);
+    const int ret = stm->current->on_read_ready(key);
     jump(stm, ret, key);
 
     return ret;
 }
 
-unsigned stm_handler_write(struct state_machine * stm, struct selector_key * key) {
+int stm_handler_write(struct state_machine * stm, struct selector_key * key) {
     handle_first(stm, key);
 
     if (stm->current->on_write_ready == 0) {
         abort();
     }
 
-    const unsigned int ret = stm->current->on_write_ready(key);
+    const int ret = stm->current->on_write_ready(key);
     jump(stm, ret, key);
 
     return ret;
 }
 
-unsigned stm_handler_block(struct state_machine * stm, struct selector_key * key) {
+int stm_handler_block(struct state_machine * stm, struct selector_key * key) {
     handle_first(stm, key);
 
     if(stm->current->on_block_ready == 0) {
         abort();
     }
 
-    const unsigned int ret = stm->current->on_block_ready(key);
+    const int ret = stm->current->on_block_ready(key);
     jump(stm, ret, key);
 
     return ret;

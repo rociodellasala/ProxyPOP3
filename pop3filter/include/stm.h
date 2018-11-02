@@ -23,12 +23,12 @@
 
 struct state_machine {
     // declaración de cual es el estado inicial
-    unsigned                        initial;
+    int                             initial;
 
     //declaracion de los estados
     const struct state_definition * states;
     // cantidad de estados
-    unsigned                        max_state;
+    int                             max_state;
 
     // estado actual
     const struct state_definition * current;
@@ -41,18 +41,18 @@ struct selector_key * key;
  */
 struct state_definition {
     // identificador del estado
-    unsigned state;
+    int state;
 
     // ejecutado al arribar al estado
     void     (* on_arrival)    (struct selector_key * key);
     // ejecutado al salir del estado
     void     (* on_departure)  (struct selector_key * key);
     // ejecutado cuando hay datos disponibles para ser leidos
-    unsigned (* on_read_ready) (struct selector_key * key);
+    int      (* on_read_ready) (struct selector_key * key);
     // ejecutado cuando hay datos disponibles para ser escritos
-    unsigned (* on_write_ready)(struct selector_key * key);
+    int      (* on_write_ready)(struct selector_key * key);
     // ejecutado cuando hay una resolución de nombres lista
-    unsigned (* on_block_ready)(struct selector_key * key);
+    int      (* on_block_ready)(struct selector_key * key);
 };
 
 
@@ -60,13 +60,13 @@ struct state_definition {
 void stm_init(struct state_machine *);
 
 /* Indica que ocurrió el evento read. retorna nuevo id de nuevo estado. */
-unsigned stm_handler_read(struct state_machine *, struct selector_key *);
+int stm_handler_read(struct state_machine *, struct selector_key *);
 
 /* Indica que ocurrió el evento write. retorna nuevo id de nuevo estado. */
-unsigned stm_handler_write(struct state_machine *, struct selector_key *);
+int stm_handler_write(struct state_machine *, struct selector_key *);
 
 /* Indica que ocurrió el evento block. retorna nuevo id de nuevo estado. */
-unsigned stm_handler_block(struct state_machine *, struct selector_key *);
+int stm_handler_block(struct state_machine *, struct selector_key *);
 
 
 #endif //PROXYPOP3_STM_H
