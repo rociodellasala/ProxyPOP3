@@ -1,9 +1,9 @@
 #ifndef PROXYPOP3_OPTIONSPARSER_H
 #define PROXYPOP3_OPTIONSPARSER_H
 
-struct options{
-    char *  management_address;              // -L
-    int     management_port;                 // -o
+struct options {
+    char *  server_address;              // -L
+    int     management_port;              // -o
 };
 
 typedef struct options * options;

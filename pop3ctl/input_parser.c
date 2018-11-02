@@ -100,9 +100,9 @@ int parse_input(const int argc, char **argv) {
 }
 
 void initialize_values() {
-    parameters                         = malloc(sizeof(*parameters));
-    parameters->management_address     = "127.0.0.1";
-    parameters->management_port        = 9090;
+    parameters                          = malloc(sizeof(*parameters));
+    parameters->server_address          = "127.0.0.1";
+    parameters->management_port         = 9090;
 }
 
 void set_options_values(const int argc, char ** argv) {
@@ -112,7 +112,7 @@ void set_options_values(const int argc, char ** argv) {
     while ((c = getopt(argc, argv, "L:o:")) != -1) {
         switch (c) {
             case 'L':
-                parameters->management_address = optarg;
+                parameters->server_address = optarg;
                 break;
             case 'o':
                 parameters->management_port = atoi(optarg);

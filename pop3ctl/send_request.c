@@ -5,7 +5,7 @@
 #include "include/client_request.h"
 #include "include/send_request.h"
 #include "include/serializer.h"
-#include "include/administrator.h"
+#include "include/admin.h"
 
 ssize_t send_request(struct request * request) {
     ssize_t         sent_bytes;

@@ -5,7 +5,7 @@
 #include "include/deserializer.h"
 #include "include/response.h"
 #include "include/utils.h"
-#include "include/administrator.h"
+#include "include/admin.h"
 
 ssize_t receive_response(enum response_status * status, struct response * response) {
     ssize_t read_quan;

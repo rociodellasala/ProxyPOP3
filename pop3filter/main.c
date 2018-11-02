@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <strings.h>
+#include <netinet/sctp.h>
 #include "include/selector.h"
 #include "include/pop3nio.h"
 #include "include/admin.h"
@@ -68,6 +70,33 @@ file_descriptor new_socket(int protocol, struct addrinfo * address) {
     return master_socket;
 }
 
+file_descriptor create_mua_socket(){
+    file_descriptor master_socket;
+
+    master_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (master_socket < 0) {
+        fprintf(stderr, "Unable to create pasive TCP socket");
+        perror("");
+        exit(EXIT_FAILURE);
+    }
+
+    struct sockaddr_in servAddr;
+    memset(&servAddr, 0, sizeof(servAddr));
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servAddr.sin_port = htons(parameters->port);
+
+    setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+
+    /* Enlaza el socket a la dirección especificada (puerto localhost)  */
+    if (bind(master_socket, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0) {
+        perror("Unable to bind socket");
+        exit(EXIT_FAILURE);
+    }
+
+    return master_socket;
+}
 
 int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sctp_socket) {
     const char * err_msg;
@@ -156,11 +185,7 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
 }
 
 int initialize_sockets() {
-    struct addrinfo * mua_addr      = resolution(parameters->listen_address, parameters->port);
-    struct addrinfo * admin_addr    = resolution(parameters->management_address, parameters->management_port);
-
-    file_descriptor mua_tcp_socket      = new_socket(IPPROTO_TCP, mua_addr);       // 1110
-    file_descriptor admin_sctp_socket   = new_socket(IPPROTO_SCTP, admin_addr);    // 9090
+    file_descriptor mua_tcp_socket      = create_mua_socket();
 
     /* Marca el socket como pasivo para que se quede escuchando conexiones entrantes y las acepte */
     if (listen(mua_tcp_socket, BACKLOG) < 0) {
@@ -170,6 +195,9 @@ int initialize_sockets() {
     }
 
     printf("Listening on TCP port %d\n", parameters->port);
+
+    struct addrinfo * admin_addr    = resolution(parameters->management_address, parameters->management_port);
+    file_descriptor admin_sctp_socket   = new_socket(IPPROTO_SCTP, admin_addr);    // 9090
 
     /* Marca el socket como pasivo para que se quede escuchando conexiones entrantes y las acepte */
     if (listen(admin_sctp_socket, BACKLOG) < 0) {

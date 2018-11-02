@@ -4,14 +4,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <netdb.h>
-#include "include/administrator.h"
+#include <strings.h>
+#include <memory.h>
+#include "include/admin.h"
+#include "include/input_parser.h"
 
 options parameters;
+
+/* TODO: VER LA CONEXION Y EL INPUT PARSER QUE ESTA CON -L Y SERIA COMO OS EN EL PROXY */
 
 struct addrinfo * resolution() {
     char                service[5];
     struct addrinfo *   list_result = 0;
-   
+
     snprintf(service, sizeof(service), "%hu", parameters->management_port);
 
     struct addrinfo hints = {
@@ -24,7 +29,7 @@ struct addrinfo * resolution() {
             .ai_next      = NULL,
     };
 
-    if (getaddrinfo(parameters->management_address, service, &hints, &list_result) != 0) {
+    if (getaddrinfo(parameters->server_address, service, &hints, &list_result) != 0) {
         fprintf(stderr,"Domain Name System (DNS) resolution error\n");
     }
 
@@ -64,7 +69,7 @@ int main(int argc, char ** argv) {
     if (argc > 2) {
         set_options_values(argc, argv);
     } else {
-        printf("Default ip and address values: \n - [ip] : 127.0.0.1 \n - [port] : 9090 \n");
+        printf("Default server address and port values: \n - [ip] : 127.0.0.1 \n - [port] : 9090 \n");
     }
 
     initialize_sctp_socket();

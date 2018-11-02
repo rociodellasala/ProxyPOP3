@@ -16,7 +16,7 @@ typedef struct extern_transformation * transformation;
 
 extern transformation e_transformation;
 
-struct options{
+struct options {
     uint16_t            port;                 // -p
     char *              error_file;           // -e
     char *              listen_address;       // -l

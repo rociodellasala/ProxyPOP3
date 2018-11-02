@@ -7,13 +7,13 @@
 #include <assert.h>
 #include <errno.h>
 #include <unistd.h>
-
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <ctype.h>
 #include <memory.h>
 #include <netdb.h>
 
+#include "include/pop3_handler.h"
 #include "include/pop3_session.h"
 #include "include/buffer.h"
 #include "include/stm.h"
@@ -29,120 +29,6 @@
 #include "include/client_request_utils.h"
 
 
-#define N(x) (sizeof(x)/sizeof((x)[0]))
-
-/* Maquina de estados general */
-enum pop3_state {
-            ERROR = -1,
-            ORIGIN_SERVER_RESOLUTION,
-            CONNECTING_TO_OS,
-            WELCOME_READ,
-            WELCOME_WRITE,
-            CAPA,
-            REQUEST,
-            RESPONSE,
-            DONE,
-};
-
-
-////////////////////////////////////////////////////////////////////
-// Definición de variables para cada estado
-
-/* Usado por WELCOME_READ y WELCOME_WRITE */
-struct welcome_st {
-    // buffer utilizado para I/O
-    buffer *                    write_buffer;
-};
-
-/* Usado por REQUEST */
-struct request_st {
-    // buffer utilizado para I/O
-    buffer *                    read_buffer;
-    buffer *                    write_buffer;
-
-    struct pop3_request         request;
-
-    // parser
-    struct request_parser       request_parser;
-
-};
-
-/* Usado por RESPONSE */
-struct response_st {
-    // buffer utilizado para I/O
-    buffer *                    read_buffer;
-    buffer *                    write_buffer;
-
-    struct pop3_request *       request;
-
-    // parser
-    struct response_parser      response_parser;
-};
-
-
-/* Tamaño de los buffers de I/O */
-/* TODO: ver de achicarlo */
-#define BUFFER_SIZE 60
-
-/*
- * Si bien cada estado tiene su propio struct que le da un alcance
- * acotado, disponemos de la siguiente estructura para hacer una única
- * alocación cuando recibimos la conexión.
- *
- * Se utiliza un contador de referencias (references) para saber cuando debemos
- * liberarlo finalmente, y un pool para reusar alocaciones previas.
- */
-struct pop3 {
-    // información del cliente
-    struct sockaddr_storage       client_addr;
-    file_descriptor               client_fd;
-
-    // resolución de la dirección del origin server
-    struct addrinfo *             origin_resolution;
-
-    // información del origin server
-    struct sockaddr_storage       origin_addr;
-    socklen_t                     origin_addr_len;
-    int                           origin_domain;
-    file_descriptor               origin_fd;
-
-    struct pop3_session           session;
-
-    // maquinas de estados
-    struct state_machine          stm;
-
-    // estados para el client_fd
-    union {
-        struct request_st         request;
-    } client;
-
-    // estados para el origin_fd
-    union {
-        struct welcome_st         welcome;
-        struct response_st        response;
-    } orig;
-
-
-    // buffers para ser usados read_buffer, write_buffer
-    uint8_t raw_buff_a[BUFFER_SIZE], raw_buff_b[BUFFER_SIZE];
-    buffer read_buffer, write_buffer;
-
-    uint8_t raw_super_buffer[BUFFER_SIZE];
-    buffer super_buffer;
-
-    uint8_t raw_extern_read_buffer[BUFFER_SIZE];
-    buffer extern_read_buffer;
-
-    // cantidad de referencias a este objeto
-    // si es uno se debe destruir
-    unsigned                        references;
-
-
-    // siguiente en el pool
-    struct pop3 * next;
-};
-
-
 /**
  * Pool de `struct pop3', para ser reusados.
  *
@@ -155,7 +41,6 @@ static struct pop3 *   pool      = 0;  // pool propiamente dicho
 
 static const struct state_definition * pop3_describe_states(void);
 
-/* Crea un nuevo `struct pop3' */
 static struct pop3 * pop3_new(int client_fd) {
     struct pop3 * pop3;
 
@@ -196,7 +81,6 @@ static struct pop3 * pop3_new(int client_fd) {
     return pop3;
 }
 
-/* Realmente destruye */
 static void pop3_destroy_(struct pop3 * pop3) {
     if (pop3->origin_resolution != NULL) {
         freeaddrinfo(pop3->origin_resolution);
@@ -206,11 +90,7 @@ static void pop3_destroy_(struct pop3 * pop3) {
     free(pop3);
 }
 
-/**
- * Destruye un `struct pop3', tiene en cuenta las referencias
- * y el pool de objetos.
- */
-static void pop3_destroy(struct pop3 * pop3) {
+void pop3_destroy(struct pop3 * pop3) {
     if (pop3 == NULL) {
         // nada para hacer
     } else if (pop3->references == 1) {
@@ -236,18 +116,10 @@ void pop3_pool_destroy(void) {
     }
 }
 
-/* Obtiene el struct (pop3 *) desde la llave de selección  */
-#define ATTACHMENT(key) ((struct pop3 *)(key)->data)
-
 /*
  * Declaración de los handlers de selección de una conexión
  * establecida entre un cliente y el pop3filter.
  */
-static void pop3_read(struct selector_key * key);
-static void pop3_write(struct selector_key * key);
-static void pop3_block(struct selector_key * key);
-static void pop3_close(struct selector_key * key);
-
 static const struct fd_handler pop3_handler = {
         .handle_read   = pop3_read,
         .handle_write  = pop3_write,
@@ -255,7 +127,9 @@ static const struct fd_handler pop3_handler = {
         .handle_block  = pop3_block,
 };
 
-/* Intenta aceptar la nueva conexión entrante */
+/*
+ * Intenta aceptar la nueva conexión entrante
+ */
 void pop3_accept_connection(struct selector_key * key) {
     struct sockaddr_storage     client_addr;
     socklen_t                   client_addr_len = sizeof(client_addr);
@@ -276,9 +150,6 @@ void pop3_accept_connection(struct selector_key * key) {
     state = pop3_new(client);
 
     if (state == NULL) {
-        // sin un estado, nos es imposible manejaro.
-        // tal vez deberiamos apagar accept() hasta que detectemos
-        // que se liberó alguna conexión.
         goto fail;
     }
 
@@ -299,10 +170,16 @@ void pop3_accept_connection(struct selector_key * key) {
     pop3_destroy(state);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// ORIGIN SERVER RESOLUTION
-////////////////////////////////////////////////////////////////////////////////
-
+/*
+ *    ESTADO: ORIGIN SERVER RESOLUTION
+ *
+ *    Se hace una resolucion DNS del address del origin server a traves
+ *    de un thread para que no se bloquee
+ *
+ *    Transiciones:
+ *      - CONNECTING TO OS  una vez que se resuelve el nombre
+ *      - ERROR             si se produce un fallo en la resolucion
+ */
 static void * origin_server_resolution_blocking(void * data);
 
 static enum pop3_state origin_server_connect(struct selector_key * key);
@@ -331,37 +208,37 @@ int origin_server_resolution(struct selector_key * key){
 }
 
 /**
- * Realiza la resolución de DNS bloqueante.
+ * Realiza la resolución de DNS bloqueante
  *
  * Una vez resuelto notifica al selector para que el evento esté
- * disponible en la próxima iteración.
+ * disponible en la próxima iteración
  */
 static void * origin_server_resolution_blocking(void * data) {
-    struct selector_key * key   = (struct selector_key *) data;
-    struct pop3 *         pop3  = ATTACHMENT(key);
+    char                    service[7];
+    struct selector_key *   key   = (struct selector_key *) data;
+    struct pop3 *           pop3  = ATTACHMENT(key);
 
     pthread_detach(pthread_self());
+
     pop3->origin_resolution = 0;
 
     struct addrinfo hints = {
-            .ai_family    = AF_UNSPEC,
-            .ai_socktype  = SOCK_STREAM,
-            .ai_flags     = AI_PASSIVE,
-            .ai_protocol  = 0,
-            .ai_canonname = NULL,
-            .ai_addr      = NULL,
-            .ai_next      = NULL,
+                .ai_family    = AF_UNSPEC,    /* Allow IPv4 or IPv6 */
+                .ai_socktype  = SOCK_STREAM,  /* Datagram socket */
+                .ai_flags     = AI_PASSIVE,   /* For wildcard IP address */
+                .ai_protocol  = 0,            /* Any protocol */
+                .ai_canonname = NULL,
+                .ai_addr      = NULL,
+                .ai_next      = NULL,
     };
 
-    char buff[7];
-    snprintf(buff, sizeof(buff), "%hu", parameters->origin_port);
-    /* TODO: ROMPE */
-    if (0 != getaddrinfo(parameters->origin_server, buff, &hints, &pop3->origin_resolution)){
+    snprintf(service, sizeof(service), "%hu", parameters->origin_port);
+
+    if (getaddrinfo(parameters->origin_server, service, &hints, &pop3->origin_resolution) != 0){
         fprintf(stderr,"Domain name resolution error\n");
     }
 
     selector_notify_block(key->s, key->fd);
-
     free(data);
 
     return 0;
@@ -371,7 +248,7 @@ int origin_server_resolution_done(struct selector_key * key) {
     struct pop3 * pop3 =  ATTACHMENT(key);
 
     if (pop3->origin_resolution == 0) {
-        char * msg = "-ERR Invalid domain.\r\n";
+        char * msg = "-ERR 0Invalid domain.\r\n";
         send(ATTACHMENT(key)->client_fd, msg, strlen(msg), 0);
         return ERROR;
     } else {
@@ -404,19 +281,15 @@ static enum pop3_state origin_server_connect(struct selector_key * key) {
         goto error;
     }
 
-    /* Establish the connection to the origin server */
     if (connect(sock,(const struct sockaddr *)&ATTACHMENT(key)->origin_addr,
                       ATTACHMENT(key)->origin_addr_len) == -1) {
         if (errno == EINPROGRESS) {
-            // es esperable,  tenemos que esperar a la conexión
 
-            // dejamos de pollear el socket del cliente
             selector_status st = selector_set_interest_key(key, OP_NOOP);
             if(SELECTOR_SUCCESS != st) {
                 goto error;
             }
 
-            // esperamos la conexion en el nuevo socket
             st = selector_register(key->s, sock, &pop3_handler,
                                    OP_WRITE, key->data);
             if (SELECTOR_SUCCESS != st) {
@@ -427,7 +300,6 @@ static enum pop3_state origin_server_connect(struct selector_key * key) {
             goto error;
         }
     } else {
-        // estamos conectados sin esperar... no parece posible
         abort();
     }
 
@@ -439,17 +311,20 @@ static enum pop3_state origin_server_connect(struct selector_key * key) {
 
     if (sock != -1) {
         close(sock);
-        //ATTACHMENT(key)->origin_fd = -1;
     }
 
     return stm_next_status;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// CONNECTING TO ORIGIN SERVER
-////////////////////////////////////////////////////////////////////////////////
-
-
+/*
+ *    ESTADO: CONNECTING TO ORIGIN SERVER
+ *
+ *    Nos conectamos al servidor origen
+ *
+ *    Transiciones:
+ *      - WELCOME READ      una vez que se establece la conexion
+ *      - ERROR             si se produce un fallo al intentar conectarse
+ */
 int connecting(struct selector_key * key) {
     int error;
     socklen_t len = sizeof(error);
@@ -1007,61 +882,3 @@ static const struct state_definition * pop3_describe_states(void) {
     return client_states;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Handlers top level de la conexión pasiva.
-// son los que emiten los eventos a la maquina de estados.
-
-static void pop3_done(struct selector_key * key);
-
-static void pop3_read(struct selector_key * key) {
-    struct state_machine * stm      = &ATTACHMENT(key)->stm;
-    const enum pop3_state st        = (enum pop3_state) stm_handler_read(stm, key);
-
-    if (ERROR == st || DONE == st) {
-        pop3_done(key);
-    }
-}
-
-static void pop3_write(struct selector_key * key) {
-    struct state_machine * stm   = &ATTACHMENT(key)->stm;
-    const enum pop3_state st    = (enum pop3_state)stm_handler_write(stm, key);
-
-    if (ERROR == st || DONE == st) {
-        pop3_done(key);
-    }
-}
-
-static void pop3_block(struct selector_key * key) {
-    struct state_machine *stm   = &ATTACHMENT(key)->stm;
-    const enum pop3_state st    = (enum pop3_state) stm_handler_block(stm, key);
-
-    if (ERROR == st || DONE == st) {
-        pop3_done(key);
-    }
-}
-
-static void pop3_close(struct selector_key * key) {
-    pop3_destroy(ATTACHMENT(key));
-}
-
-static void pop3_done(struct selector_key * key) {
-    unsigned int i;
-
-    const int fds[] = {
-            ATTACHMENT(key)->client_fd,
-            ATTACHMENT(key)->origin_fd,
-    };
-
-    metric_remove_current_connection();
-
-    for (i = 0; i < N(fds); i++) {
-        if (fds[i] != -1) {
-            if (SELECTOR_SUCCESS != selector_unregister_fd(key->s, fds[i])) {
-                abort();
-            }
-            close(fds[i]);
-        }
-    }
-
-    pop3_session_close(&ATTACHMENT(key)->session);
-}
