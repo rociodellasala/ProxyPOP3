@@ -29,16 +29,10 @@ unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, co
 
 
 unsigned char * serialize_request(unsigned char * buffer, struct request * request) {
-    /* serializamos la version del pop3filter */
     buffer = serialize_char(buffer, request->version);
-    
-    /* serializamos el comando a enviar */
     buffer = serialize_char(buffer, request->cmd);
-
-    /* serializamos la longitud de los datos (puede ser 0) */
     buffer = serialize_int(buffer, request->length);
 
-    /* serializamos la data a enviar (si la hay) */
     if (request->length > 0) {
         buffer = serialize_string(buffer, request->data, request->length);
     }

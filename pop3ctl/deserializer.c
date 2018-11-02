@@ -25,16 +25,10 @@ unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, 
 }
 
 unsigned char * deserialize_response(unsigned char * buffer, struct response * response) {
-    /* deserializamos la version del pop3filter */
     buffer = deserialize_char(buffer, &response->version);
-
-    /* deserializamos el estado de la respuesta (OK o ERROR) */
     buffer = deserialize_char(buffer, &response->status);
-
-    /* deserializamos la longitud de los datos (puede ser 0) */
     buffer = deserialize_int(buffer, &response->length);
 
-    /* deserializamos la data a enviar (si la hay) */
     if (response->length > 0) {
         response->data = malloc((response->length + 1) * sizeof(unsigned char *));
 
