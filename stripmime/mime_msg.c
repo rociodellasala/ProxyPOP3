@@ -278,7 +278,7 @@ mime_msg_event(enum mime_msg_event_type type) {
             ret = "wait()";
             break;
         case MIME_MSG_UNEXPECTED:
-            ret = "unexepected(c)";
+            ret = "unexpected(c)";
             break;
         default:
             break;
