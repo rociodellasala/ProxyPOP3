@@ -1,8 +1,28 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 #include "include/filter_list.h"
+
+/*
+*	Si tenemos prohibido image/png desps ponemos image/* lo reemplaza y funca.
+*	Si tenemos prohibido image/* y queremos ALLOW image/png no se puede.
+*	
+*/
+
+/*
+int main(void){
+
+	struct filter_list* list = filter_list_init();
+	forbid_new("image", "png", list);
+	forbid_new("text", "plain", list);
+	//forbid_new("image", "*", list);
+	allow_type("image", "*", list);
+
+	printf("%s\n", get_forbidden_types(list));
+	return 0;
+}*/
 
 
 struct filter_list* filter_list_init(){
@@ -22,11 +42,13 @@ int forbid_new(char* type, char* subtype, struct filter_list* list){
 	//while(curr_type != NULL){
 		curr_type = search_for_type(type, list, &type_found);
 		if(type_found){
+
 			if(curr_type->wildcard){
 				return 0; //no hace falta agregarlo
 			}
 			if(strcasecmp(subtype, "*") == 0){
 				make_subtype_wildcard(curr_type);
+				return 0;
 			}
 
 			struct subtype_node* curr_subtype;
@@ -38,14 +60,13 @@ int forbid_new(char* type, char* subtype, struct filter_list* list){
 
 			if(curr_subtype == NULL){
 				if(curr_type == NULL){
-					delete(list, type);
+					delete_media_type(list, type);
 				}
 				return -1; //error
 			}
 
 			curr_subtype->name = subtype;
 			curr_subtype->next = NULL;
-
 			if(curr_type->first == NULL){
 				curr_type->first = curr_subtype;
 			}else{
@@ -57,10 +78,10 @@ int forbid_new(char* type, char* subtype, struct filter_list* list){
 				aux->next = curr_subtype;
 				curr_subtype->next = NULL;
 			}
-
 			return 0;
 		}else{
 			//no encontro el tipo
+			
 			curr_type = malloc(sizeof(struct type_node));
 			if(curr_type == NULL){
 				return -1;
@@ -82,13 +103,14 @@ int forbid_new(char* type, char* subtype, struct filter_list* list){
 
 			if(strcasecmp(subtype, "*") == 0){
 				make_subtype_wildcard(curr_type);
+				return 0;
 			}
 
 			struct subtype_node* curr_subtype = malloc(sizeof(struct subtype_node));
 
 			if(curr_subtype == NULL){
 				if(curr_type == NULL){
-					delete(list, type);
+					delete_media_type(list, type);
 				}
 				return -1; //error
 			}
@@ -104,10 +126,11 @@ int forbid_new(char* type, char* subtype, struct filter_list* list){
 struct subtype_node* search_for_subtype(char* subtype, struct type_node* type, bool* subtype_found){
 	struct subtype_node* curr = type->first;
 	while(curr != NULL){
-		if(strcasecmp(curr->name, subtype)){
+		if(strcasecmp(curr->name, subtype) == 0){
 			*subtype_found = true;
 			return curr;
 		}
+		curr = curr->next;
 	}
 	subtype_found = false;
 	return curr;
@@ -116,10 +139,11 @@ struct subtype_node* search_for_subtype(char* subtype, struct type_node* type, b
 struct type_node* search_for_type(char* type, struct filter_list* list, bool* type_found){
 	struct type_node* curr = list->first;
 	while(curr != NULL){
-		if(strcasecmp(curr->name, type)){
+		if(strcasecmp(curr->name, type) == 0){
 			*type_found = true;
 			return curr;
 		}
+		curr = curr->next;
 	}
 	type_found = false;
 	return curr;
@@ -130,8 +154,8 @@ void make_subtype_wildcard(struct type_node* node){
 	struct subtype_node* aux = NULL;
 
 	while(curr != NULL){
-		aux = aux->next;
-		free(curr->name);
+		aux = curr->next;
+		//free(curr->name);
 		free(curr);
 		curr = aux;
 	}
@@ -140,20 +164,20 @@ void make_subtype_wildcard(struct type_node* node){
 	return;
 }
 
-int delete(struct filter_list* list, char* type){
+int delete_media_type(struct filter_list* list, char* type){
 	struct type_node* curr = list->first;
 	struct type_node* aux = NULL;
 	struct type_node* prev = NULL;
 
 	while(curr != NULL){
 		aux = curr->next;
-		if(strcasecmp(curr->name, type)){
+		if(strcasecmp(curr->name, type) == 0){
 			if(prev == NULL){
 				list->first = aux;
 			}else{
 				prev->next = aux;
 			}
-			free(curr->name);
+			//free(curr->name);
 			free(curr);
 		}
 		prev = curr;
@@ -163,7 +187,7 @@ int delete(struct filter_list* list, char* type){
 	return 0;
 }
 
-int allow_type(struct filter_list* list, char* type, char* subtype){
+int allow_type(char* type, char* subtype, struct filter_list* list){
 
 	bool type_found = false;
 	bool subtype_found = false;
@@ -174,14 +198,12 @@ int allow_type(struct filter_list* list, char* type, char* subtype){
 	if(type_found == false){
 		return -1;
 	}
-
-	if(strcmp("*", subtype)){
+	if(strcmp("*", subtype) == 0){
 		//borrar completamente el tipo
 		// ya que ahora se permite todo
 		completely_allow_type(list, curr_type);
 		return 1;
 	}
-
 	if(curr_type->wildcard){
 		return -1;//no se puede permitir un subtipo si
 				// antes se prohibieron todos los subtipos
@@ -189,23 +211,21 @@ int allow_type(struct filter_list* list, char* type, char* subtype){
 	struct subtype_node* n = curr_type->first;
 	struct subtype_node* aux = NULL;
 	struct subtype_node* prev = NULL;
-
 	while(n != NULL){
 		aux = n->next;
-		if(strcasecmp(n->name, subtype)){
+		if(strcasecmp(n->name, subtype) == 0){
 			if(prev == NULL){
 				curr_type->first = aux;
 			}else{
 				prev->next = aux;
 			}
-			free(n->name);
+			//free(n->name);
 			free(n);
 			return 1;
 		}
 		prev = n;
 		n = aux;
 	}
-
 	return -1;
 }
 
@@ -215,26 +235,31 @@ void completely_allow_type(struct filter_list* list, struct type_node* type){
 	struct subtype_node* aux = NULL;
 	while(subtype != NULL){
 		aux = subtype->next;
-		free(subtype->name);
+		//free(subtype->name);
 		free(subtype);
 		subtype = aux;
 	}	
 
-	if(strcasecmp(list->first->name, type->name)){
-		free(type->name);
+	if(strcasecmp(list->first->name, type->name) == 0){
+		//free(type->name);
+		if(type->next == NULL){
+			list->first = NULL;
+		}else{
+			list->first = type->next;
+		}
 		free(type);
-		list->first = NULL;
+		
 		return;
 	}
 
 	struct type_node* prev = list->first;
-	while(!strcasecmp(prev->next->name, type->name)){
+	while(!strcasecmp(prev->next->name, type->name) == 0){
 		prev = prev->next;
 	}
 
 	prev->next = type->next;
 
-	free(type->name);
+	//free(type->name);
 	free(type);
 	return;
 
@@ -250,8 +275,11 @@ char* get_forbidden_types(struct filter_list* list){
 		struct subtype_node* n = node->first;
 		size_t type_length = strlen(node->name);
 
-		while(n != NULL){
-			size_t subtype_length = strlen(n->name);
+		if(node->wildcard){
+
+
+			size_t subtype_length =	strlen("*");
+
 			if(size <= index + type_length + subtype_length + 2){
 				size_t growth = ((size - index)/ BUFFER + 2)*BUFFER;
 				void *aux = realloc(str, size + growth);
@@ -264,7 +292,29 @@ char* get_forbidden_types(struct filter_list* list){
 			strcpy(str + index, node->name);
 			index = index + type_length;
 			str[index++] = '/';
-			strcpy(str + index, n->name);
+			strcpy(str + index, "*");			
+			index = index + subtype_length;
+			str[index++] = ',';
+
+		}
+
+		while(n != NULL){
+
+			size_t subtype_length = strlen(n->name);
+
+			if(size <= index + type_length + subtype_length + 2){
+				size_t growth = ((size - index)/ BUFFER + 2)*BUFFER;
+				void *aux = realloc(str, size + growth);
+				if(aux == NULL){
+					return NULL;
+				}
+				str = aux;
+				size += growth;
+			}
+			strcpy(str + index, node->name);
+			index = index + type_length;
+			str[index++] = '/';
+			strcpy(str + index, n->name);			
 			index = index + subtype_length;
 			str[index++] = ',';
 			n = n->next;
