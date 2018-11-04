@@ -97,6 +97,17 @@ void allow_mime(struct request_admin * request, enum parse_req_status* status){
         }
         bool is_there = find_mime(parameters->filtered_media_types, type, subtype);
         if(!is_there){
+
+
+            if(strcasecmp(subtype, "*") == 0){
+                int allow_status = allow_type(type, subtype, parameters->filtered_media_types);
+                if(allow_status == -1){
+                    *status = ALLOW_ERROR;
+                    return;
+                }
+                *status = REQ_PARSE_OK;
+                return;
+            }
             *status = MIME_ALREADY_ALLOWED; // no estaba en la lista de prohibidos
             return;
         }
