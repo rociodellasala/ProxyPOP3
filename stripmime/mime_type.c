@@ -1,6 +1,6 @@
-#include "include/parser_creator.h"
-#include "include/mime_chars.h"
-#include "include/mime_type.h"
+#include "parser_creator.h"
+#include "mime_chars.h"
+#include "mime_type.h"
 
 /**
  *
