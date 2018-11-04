@@ -138,7 +138,7 @@ char * init_enviroment_variables(struct pop3_session * session){
                     strlen(pop3_username) + strlen(session->user_name) + 2 +
                     strlen(pop3_server) + strlen(parameters->origin_server) + 2 +
                     strlen((const char *) parameters->filter_command->program_name) +6 ;
-    printf("sieze : %d\n", (int) size);
+
     enviroment_var = malloc(size);
 
     sprintf(enviroment_var, "%s=%s %s=\"%s\" %s=\"%s\" %s=\"%s\" %s=\"%s\" %s",
@@ -151,6 +151,31 @@ char * init_enviroment_variables(struct pop3_session * session){
 
     //free(censored_medias_typed);
     return enviroment_var;
+}
+
+enum et_status add_to_selector(file_descriptor pipeChildToFather[2], file_descriptor pipeFatherToChild[2]) {
+    struct pop3 * data = ATTACHMENT(key);
+
+    if (selector_register(key->s, pipeChildToFather[READ], &ext_handler, OP_READ, data) == 0 &&
+        selector_fd_set_nio(pipeChildToFather[READ]) == 0) {
+        data->extern_read_fd = pipeChildToFather[READ];
+    } else {
+        close(pipeChildToFather[READ]);
+        close(pipeFatherToChild[WRITE]);
+        return et_status_err;
+    }// read from.
+
+    if (selector_register(key->s, pipeFatherToChild[WRITE], &ext_handler, OP_WRITE, data) == 0 &&
+        selector_fd_set_nio(pipeFatherToChild[WRITE]) == 0) {
+        data->extern_write_fd = pipeFatherToChild[WRITE];
+    } else {
+        selector_unregister_fd(key->s, pipeFatherToChild[1]);
+        close(pipeChildToFather[READ]);
+        close(pipeFatherToChild[WRITE]);
+        return et_status_err;
+    } // write to.
+
+    return et_status_done;
 }
 
 enum et_status start_external_transformation(struct selector_key * key, struct pop3_session * session) {
@@ -179,6 +204,7 @@ enum et_status start_external_transformation(struct selector_key * key, struct p
         if(dup2(pipeFatherToChild[READ], STDIN_FILENO) == -1) {
             return et_status_err;
         }
+
         if (dup2(pipeChildToFather[WRITE], STDOUT_FILENO) == -1) {
             return et_status_err;
         }
@@ -187,39 +213,30 @@ enum et_status start_external_transformation(struct selector_key * key, struct p
         close(pipeChildToFather[READ]);
 
         FILE * f = freopen(parameters->error_file, "a+", stderr);
-        if (f == NULL)
-            exit(-1);
+
+        if (f == NULL) {
+            exit(EXIT_FAILURE);
+        }
 
         int value = execve("/bin/bash", argv, NULL);
         perror("execve");
+
         if (value == -1){
             fprintf(stderr, "Error\n");
         }
-    }else{
+
+    } else {
         close(pipeFatherToChild[READ]);
         close(pipeChildToFather[1]);
         free(enviroment_var);
-        struct pop3 * data = ATTACHMENT(key);
-        if (selector_register(key->s, pipeChildToFather[READ], &ext_handler, OP_READ, data) == 0 &&
-            selector_fd_set_nio(pipeChildToFather[READ]) == 0){
-            data->extern_read_fd = pipeChildToFather[READ];
-        }else{
-            close(pipeChildToFather[READ]);
-            close(pipeFatherToChild[WRITE]);
+
+        if (add_to_selector(pipeChildToFather, pipeFatherToChild) == et_status_err) {
             return et_status_err;
-        } // read from.
-        if (selector_register(key->s, pipeFatherToChild[WRITE], &ext_handler, OP_WRITE, data) == 0 &&
-            selector_fd_set_nio(pipeFatherToChild[WRITE]) == 0){
-            data->extern_write_fd = pipeFatherToChild[WRITE];
-        }else{
-            selector_unregister_fd(key->s, pipeFatherToChild[1]);
-            close(pipeChildToFather[READ]);
-            close(pipeFatherToChild[WRITE]);
-            return et_status_err;
-        } // write to.
+        }
 
         return et_status_ok;
     }
+
     return et_status_err;
 }
 

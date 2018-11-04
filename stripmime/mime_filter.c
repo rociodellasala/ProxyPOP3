@@ -6,16 +6,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include "mime_list.h"
-#include "mime_filter.h"
-#include "mime_type.h"
-#include "parser_utils.h"
-#include "parser_creator.h"
-#include "multi_pop3_parser.h"
-#include "mime_chars.h"
-#include "mime_msg.h"
-#include "delimiter.h"
-#include "stack.h"
+#include "include/mime_list.h"
+#include "include/mime_filter.h"
+#include "include/mime_type.h"
+#include "include/parser_utils.h"
+#include "include/parser_creator.h"
+#include "include/multi_pop3_parser.h"
+#include "include/mime_chars.h"
+#include "include/mime_msg.h"
+#include "include/delimiter.h"
+#include "include/stack.h"
 
 
 //variables de entorno del manual pop3filter.8
