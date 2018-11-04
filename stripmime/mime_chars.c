@@ -1,4 +1,4 @@
-#include "include/mime_chars.h"
+#include "mime_chars.h"
 
 static unsigned classes[256];
 

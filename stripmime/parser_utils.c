@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "include/parser_utils.h"
+#include "parser_utils.h"
 
 static void
 eq(struct parser_event *ret, const uint8_t c) {

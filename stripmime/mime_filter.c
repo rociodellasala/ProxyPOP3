@@ -6,16 +6,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include "include/mime_list.h"
-#include "include/mime_filter.h"
-#include "include/mime_type.h"
-#include "include/parser_utils.h"
-#include "include/parser_creator.h"
-#include "include/multi_pop3_parser.h"
-#include "include/mime_chars.h"
-#include "include/mime_msg.h"
-#include "include/delimiter.h"
-#include "include/stack.h"
+#include "mime_list.h"
+#include "mime_filter.h"
+#include "mime_type.h"
+#include "parser_utils.h"
+#include "parser_creator.h"
+#include "multi_pop3_parser.h"
+#include "mime_chars.h"
+#include "mime_msg.h"
+#include "delimiter.h"
+#include "stack.h"
 
 
 //variables de entorno del manual pop3filter.8
@@ -270,16 +270,15 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 parser_reset(ctx->transfer_encoding_header);
                 parser_reset(ctx->disposition_header);
                 break;
-
             case MIME_MSG_VALUE:
-                //EN NUESTROS LINUX SE QUEDA SIEMPRE EN ESTE CASO Y NUNCA PASA A MIME_MSG_VALUE_END
-                // EN PAMPERO FUNCIONA BIEN
+                //printf("ESTOY EN ESTE CASO\n");
                 for (int i = 0; i < e->n; i++) {
                     ctx->buffer[ctx->i++] = e->data[i];
 
                     if (ctx->i >= MAX) {
-                        abort(); //eventualmente termina abortando
+                        abort();
                     }
+
                     if (ctx->msg_content_type_field_detected != 0
                         && *ctx->msg_content_type_field_detected) {
                         content_type_value(ctx, e->data[i]);
@@ -288,7 +287,6 @@ static void mime_msg(struct ctx *ctx, const uint8_t c) {
                 }
                 break;
             case MIME_MSG_VALUE_END:
-                //printf("IM DONE\n");
                 ;
                 char * testing = strstr(ctx->buffer, "message");
                 if(testing != NULL){
@@ -637,10 +635,6 @@ int main(int argc, char ** argv) {
     parser_destroy(ctx.boundary);
     parser_utils_strcmpi_destroy(&boundary_def);
     destroy_list(ctx.mime_list);
-    parser_destroy(ctx.disposition_header);
-    parser_destroy(ctx.transfer_encoding_header);
-    parser_utils_strcmpi_destroy(&disposition_def);
-    parser_utils_strcmpi_destroy(&encoding_def);
 
     while(!(ctx.boundary_delimiter->size == 0)) {
         struct delimiter_st *dlm = stack_pop(ctx.boundary_delimiter);

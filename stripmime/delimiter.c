@@ -2,10 +2,10 @@
 #include <wchar.h>
 #include <memory.h>
 #include <stdlib.h>
-#include "include/delimiter.h"
-#include "include/parser_creator.h"
-#include "include/parser_utils.h"
-#include "include/mime_chars.h"
+#include "delimiter.h"
+#include "parser_creator.h"
+#include "parser_utils.h"
+#include "mime_chars.h"
 
 struct delimiter_st * delimiter_init() {
     
