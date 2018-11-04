@@ -81,4 +81,5 @@ int main(int argc, char ** argv) {
     communicate_with_proxy();
 
     close(socket_fd);
+    return 0;
 }

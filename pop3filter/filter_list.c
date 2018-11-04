@@ -5,8 +5,8 @@
 #include <ctype.h>
 #include "include/filter_list.h"
 /*
-*	Si tenemos prohibido image/png desps ponemos image/* lo reemplaza y funca.
-*	Si tenemos prohibido image/* y queremos ALLOW image/png no se puede.
+*	Si tenemos prohibido image/png desps ponemos image/a* lo reemplaza y funca.
+*	Si tenemos prohibido image/a* y queremos ALLOW image/png no se puede.
 *	
 */
 
@@ -194,6 +194,7 @@ int allow_type(char* type, char* subtype, struct filter_list* list){
 	struct type_node* curr_type = list->first;
 
 	curr_type = search_for_type(type, list, &type_found);
+
 	if(type_found == false){
 		return -1;
 	}

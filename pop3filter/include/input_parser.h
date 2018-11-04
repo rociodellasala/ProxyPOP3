@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "include/filter_list.h"
+#include "filter_list.h"
 
 #define DELIM "."
 #define BACKLOG 10
