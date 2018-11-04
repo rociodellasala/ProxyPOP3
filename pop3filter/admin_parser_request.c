@@ -5,6 +5,7 @@
 #include "include/admin_deserializer.h"
 #include "include/admin.h"
 #include "include/admin_actions.h"
+#include "include/filter_list.h"
 
 void parse_action(struct admin * admin) {
     struct request_admin * r = admin->current_request;
@@ -32,17 +33,15 @@ void parse_action(struct admin * admin) {
             return_metric(admin, (const char *) r->data);
             break;
         case GET_MI_CMD:
-            admin->resp_data = parameters->filtered_media_types;
+            //TODO ojo si data es muy largo. 
+            admin->resp_data = get_forbidden_types(parameters->filtered_media_types);
             admin->resp_length = strlen((const char *) admin->resp_data);
             break;
         case ALLOW_MI_CMD:
-            /* TODO: Ale cuidado cuando agregues un mime a la lista porque las respuestas tienen un maximo de
-             * 100 caracteres para la parte de data y entonces si despues agregamos tantos que eso se sobrepasa
-             * y hacemos el comando 6 para pedir, va a explotar toodo */
-            //allow_mime()
+            allow_mime(r, admin->req_status);     
             break;
         case FORBID_MI_CMD:
-            //forbid_mime()
+            forbid_mime(r, admin->req_status);
             break;
         case Q_CMD:
             admin->quit = true;
@@ -66,6 +65,26 @@ void parse_req_commands(struct admin * admin) {
             break;
         case INCORRECT_METRIC:
             admin->resp_data    = "Incorrect metric. It does not exists.";
+            admin->resp_length  =  strlen((const char *) admin->resp_data);
+            break;
+        case MIME_ALREADY_FORBID:
+            admin->resp_data    = "MIME type was already forbidden.";
+            admin->resp_length  =  strlen((const char *) admin->resp_data);
+            break;
+        case MIME_ALREADY_ALLOWED:
+            admin->resp_data    = "MIME type was already allowed.";
+            admin->resp_length  =  strlen((const char *) admin->resp_data);
+            break;
+        case FORBID_ERROR:
+            admin->resp_data    = "Error trying to forbid MIME type.";
+            admin->resp_length  =  strlen((const char *) admin->resp_data);
+            break;
+        case ALLOW_ERROR:
+            admin->resp_data    = "Error trying to allow MIME type.";
+            admin->resp_length  =  strlen((const char *) admin->resp_data);
+            break;
+        case CANNOT_ALLOW_BECAUSE_WILDCARD:
+            admin->resp_data    = "You cannot allow a specific subtype if you previously forbid the whole type.";
             admin->resp_length  =  strlen((const char *) admin->resp_data);
             break;
         case VERSION_UNSOPPORTED:

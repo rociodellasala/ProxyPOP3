@@ -7,6 +7,7 @@
 #include <netdb.h>
 #include "include/input_parser.h"
 #include "include/utils.h"
+#include "include/filter_list.h"
 
 void print_usage() {
     printf("USAGE: ./pop3filter [ POSIX style options ] <origin-server> \n"
@@ -318,7 +319,7 @@ void initialize_values() {
     parameters->management_port                 = 9090;
     parameters->listen_address                  = "0.0.0.0";
     parameters->replacement_msg                 = "Parte reemplazada.";
-    parameters->filtered_media_types            = "text/plain"; /* Default value ?? */
+    parameters->filtered_media_types            = filtered_list_init(); 
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
     parameters->filter_command->switch_program  = false;

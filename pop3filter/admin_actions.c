@@ -6,6 +6,7 @@
 #include "include/admin_parser.h"
 #include "include/input_parser.h"
 #include "include/utils.h"
+#include "include/admin.h"
 
 int check_password(const char * pass) {
     const char * password = "1234";
@@ -62,26 +63,60 @@ void return_metric(struct admin * admin, const char * data) {
     free(resp);
 }
 
-/* TODO: creo que hay que llamar a lo que hicimos en el tp2 para saber si el mime no esta ya incluido
-void forbid_mime(request_admin * request, int * status, char * media_types){
-    int ret; //check_mime_not_in(request->data, media_types);
-    if(ret == -1) {
-        //add_mime();
-    } else {
-        *status = 0;
+
+void forbid_mime(request_admin * request, int * status){
+
+    char* type = malloc(strlen(request->data)*sizeof(char));
+    char* subtype = malloc(strlen(request->data)*sizeof(char));
+    if(check_mime_format(request->data, type, subtype) == -1){
+        *status = FORBID_ERROR; //error
+        return;
     }
+    bool already_there = find_mime(parameter->filtered_media_types, type, subtype);
+    if(already_there){
+        *status = MIME_ALREADY_FORBID; //ya estaba
+        return;
+    }
+
+
+    int forbid_status = forbid_new(type, subtype, parameter->filtered_media_types);
+    if(forbid_status != 0){
+        *status = FORBID_ERROR; //error
+        return;
+    }
+
+    *status = REQ_PARSE_OK;
+    return;
 }
 
-void allow_mime(request_admin * request, int * status, char * media_types){
-    int ret; //check_mime_not_in(request->data, media_types);
-    if(ret == -1) {
-        //remove_mime();
-    } else {
-        *status = 0;
-    }
+void allow_mime(request_admin * request, int * status){
+        char* type = malloc(strlen(request->data)*sizeof(char));
+        char* subtype = malloc(strlen(request->data)*sizeof(char));
+        if(check_mime_format(request->data, type, subtype) == -1){
+            *status = ALLOW_ERROR; //error
+            return;
+        }
+        bool is_there = find_mime(parameter->filtered_media_types, type, subtype);
+        if(!is_there){
+            *status = MIME_ALREADY_ALLOWED; // no estaba en la lista de prohibidos
+            return;
+        }
+
+
+        int allow_status = allow_type(type, subtype, parameter->filtered_media_types);
+        if(allow_status == -2){
+            *status = CANNOT_ALLOW_BECAUSE_WILDCARD; //error
+            return;
+        }else if(allow_status == -1){
+            *status = ALLOW_ERROR;
+            return;
+        }
+
+        *status = REQ_PARSE_OK;
+        return;
 }
 
-*/
+
 
 void quit_admin(struct admin * admin) {
     send_response_without_data(admin, 1);

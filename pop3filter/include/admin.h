@@ -25,11 +25,16 @@ enum admin_status {
 };
 
 enum parse_req_status {
-    REQ_PARSE_OK            = 0,
-    INCORRECT_PASS          = 1,
-    COULD_NOT_READ_REQUEST  = 2,
-    INCORRECT_METRIC        = 3,
-    VERSION_UNSOPPORTED     = 4,
+    REQ_PARSE_OK                  = 0,
+    INCORRECT_PASS                = 1,
+    COULD_NOT_READ_REQUEST        = 2,
+    INCORRECT_METRIC              = 3,
+    VERSION_UNSOPPORTED           = 4,
+    MIME_ALREADY_FORBID           = 5,
+    FORBID_ERROR                  = 6,
+    MIME_ALREADY_ALLOWED          = 7,
+    CANNOT_ALLOW_BECAUSE_WILDCARD = 8,
+    ALLOW_ERROR                   = 9,
 };
 
 enum parse_resp_status {

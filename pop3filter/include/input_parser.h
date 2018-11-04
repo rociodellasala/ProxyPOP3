@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "include/filter_list.h"
 
 #define DELIM "."
 #define BACKLOG 10
@@ -23,7 +24,7 @@ struct options {
     char *              management_address;   // -L
     uint16_t            management_port;      // -o
     char *              replacement_msg;      // -m
-    char *              filtered_media_types; // -M
+    struct filter_list* filtered_media_types; // -M
     char *              origin_server;        // This is the argument origin_server, it's not an option
     uint16_t            origin_port;          // -P
     transformation      filter_command;       // -t

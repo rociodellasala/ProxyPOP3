@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "include/filter_list.h"
-
 /*
 *	Si tenemos prohibido image/png desps ponemos image/* lo reemplaza y funca.
 *	Si tenemos prohibido image/* y queremos ALLOW image/png no se puede.
@@ -205,7 +204,7 @@ int allow_type(char* type, char* subtype, struct filter_list* list){
 		return 1;
 	}
 	if(curr_type->wildcard){
-		return -1;//no se puede permitir un subtipo si
+		return -2;//no se puede permitir un subtipo si
 				// antes se prohibieron todos los subtipos
 	}
 	struct subtype_node* n = curr_type->first;
