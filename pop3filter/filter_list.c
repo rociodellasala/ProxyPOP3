@@ -131,7 +131,7 @@ struct subtype_node* search_for_subtype(char* subtype, struct type_node* type, b
 		}
 		curr = curr->next;
 	}
-	subtype_found = false;
+	*subtype_found = false;
 	return curr;
 }
 
@@ -144,7 +144,7 @@ struct type_node* search_for_type(char* type, struct filter_list* list, bool* ty
 		}
 		curr = curr->next;
 	}
-	type_found = false;
+	*type_found = false;
 	return curr;
 }
 
@@ -363,7 +363,7 @@ bool find_mime(struct filter_list* list, char* type, char* subtype){
 
 	struct type_node* aux = search_for_type(type, list, &type_found);
 
-	if(aux->wildcard){
+	if(aux != NULL && aux->wildcard){
 		return true;
 	}else if(subtype_found && type_found){
 		return true;
