@@ -173,7 +173,7 @@ int validate_transformation(const char * parameter) {
 }
 
 int validate_parameters(char * next_option, char * parameter) {
-    if (strcmp(next_option, "-l") == 0) {
+    /*if (strcmp(next_option, "-l") == 0) {
         if (validate_address(parameter) != 0) {
             printf("Invalid listen address\n");
             return -1;
@@ -183,7 +183,7 @@ int validate_parameters(char * next_option, char * parameter) {
             printf("Invalid management address\n");
             return -1;
         }
-    } else if (strcmp(next_option, "-e") == 0) {
+    } else */ if (strcmp(next_option, "-e") == 0) {
         if (validate_error_file(parameter) != 0){
             printf("Invalid error file\n");
             return -1;

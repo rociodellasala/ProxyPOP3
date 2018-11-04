@@ -153,7 +153,7 @@ char * init_enviroment_variables(struct pop3_session * session){
     return enviroment_var;
 }
 
-enum et_status add_to_selector(file_descriptor pipeChildToFather[2], file_descriptor pipeFatherToChild[2]) {
+enum et_status add_to_selector(struct selector_key * key, file_descriptor pipeChildToFather[2], file_descriptor pipeFatherToChild[2]) {
     struct pop3 * data = ATTACHMENT(key);
 
     if (selector_register(key->s, pipeChildToFather[READ], &ext_handler, OP_READ, data) == 0 &&
@@ -230,7 +230,7 @@ enum et_status start_external_transformation(struct selector_key * key, struct p
         close(pipeChildToFather[1]);
         free(enviroment_var);
 
-        if (add_to_selector(pipeChildToFather, pipeFatherToChild) == et_status_err) {
+        if (add_to_selector(key, pipeChildToFather, pipeFatherToChild) == et_status_err) {
             return et_status_err;
         }
 

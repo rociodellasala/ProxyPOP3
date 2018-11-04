@@ -1,6 +1,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <netinet/sctp.h>
+#include <strings.h>
 #include "include/admin.h"
 #include "include/metrics.h"
 #include "include/admin_parser.h"

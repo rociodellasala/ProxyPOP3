@@ -71,31 +71,30 @@ file_descriptor new_socket(int protocol, struct addrinfo * address) {
 }
 
 file_descriptor create_mua_socket(){
-    file_descriptor master_socket;
+    file_descriptor master_socket6;
 
-    master_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    master_socket6 = socket(AF_INET6, SOCK_STREAM, 0);
 
-    if (master_socket < 0) {
+    if (master_socket6 < 0) {
         fprintf(stderr, "Unable to create pasive TCP socket");
         perror("");
         exit(EXIT_FAILURE);
     }
 
-    struct sockaddr_in servAddr;
-    memset(&servAddr, 0, sizeof(servAddr));
-    servAddr.sin_family = AF_INET;
-    servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servAddr.sin_port = htons(parameters->port);
+    struct sockaddr_in6 servAddr6;
+    memset(&servAddr6, 0, sizeof(servAddr6));
+    servAddr6.sin6_family = AF_INET6;
+    servAddr6.sin6_addr = in6addr_any;
+    servAddr6.sin6_port = htons(parameters->port);
 
-    setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+    setsockopt(master_socket6, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
 
-    /* Enlaza el socket a la dirección especificada (puerto localhost)  */
-    if (bind(master_socket, (struct sockaddr*) &servAddr, sizeof(servAddr)) < 0) {
+    if (bind(master_socket6, (struct sockaddr*) &servAddr6, sizeof(servAddr6)) < 0) {
         perror("Unable to bind socket");
         exit(EXIT_FAILURE);
     }
 
-    return master_socket;
+    return master_socket6;
 }
 
 int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sctp_socket) {
@@ -198,6 +197,7 @@ int initialize_sockets() {
 
     struct addrinfo * admin_addr    = resolution(parameters->management_address, parameters->management_port);
     file_descriptor admin_sctp_socket   = new_socket(IPPROTO_SCTP, admin_addr);    // 9090
+
 
     /* Marca el socket como pasivo para que se quede escuchando conexiones entrantes y las acepte */
     if (listen(admin_sctp_socket, BACKLOG) < 0) {

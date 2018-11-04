@@ -896,7 +896,6 @@ static void external_transformation_init(struct selector_key *key) {
         et->parser_write = parser_init(parser_no_classes(), pop3_multi_parser());
     }
 
-
     parser_reset(et->parser_read);
     parser_reset(et->parser_write);
 
