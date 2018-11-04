@@ -130,7 +130,7 @@ char * init_enviroment_variables(struct pop3_session * session){
     char * pop3_username        = "POP3_USERNAME=";
     char * pop3_server          = "POP3_SERVER=";
 
-    char * censored_medias_typed = "text/plain"; //llamar a funcion
+    char * censored_medias_typed = get_forbidden_types(parameters->filtered_media_types); //llamar a funcion
 
     size_t size =   strlen(filter_medias) + strlen(censored_medias_typed) +
                     strlen(filter_msg) + strlen(parameters->replacement_msg) + 2 +

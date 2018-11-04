@@ -73,7 +73,9 @@ file_descriptor new_socket(int protocol, struct addrinfo * address) {
 file_descriptor create_mua_socket(){
     file_descriptor master_socket6;
 
-    master_socket6 = socket(AF_INET6, SOCK_STREAM, 0);
+    master_socket6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+
+    setsockopt(master_socket6, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
 
     if (master_socket6 < 0) {
         fprintf(stderr, "Unable to create pasive TCP socket");
@@ -86,9 +88,7 @@ file_descriptor create_mua_socket(){
     servAddr6.sin6_family = AF_INET6;
     servAddr6.sin6_addr = in6addr_any;
     servAddr6.sin6_port = htons(parameters->port);
-
-    setsockopt(master_socket6, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
-
+    
     if (bind(master_socket6, (struct sockaddr*) &servAddr6, sizeof(servAddr6)) < 0) {
         perror("Unable to bind socket");
         exit(EXIT_FAILURE);
@@ -184,7 +184,7 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
 }
 
 int initialize_sockets() {
-    file_descriptor mua_tcp_socket      = create_mua_socket();
+    file_descriptor mua_tcp_socket  = create_mua_socket();
 
     /* Marca el socket como pasivo para que se quede escuchando conexiones entrantes y las acepte */
     if (listen(mua_tcp_socket, BACKLOG) < 0) {
