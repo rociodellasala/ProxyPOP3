@@ -363,7 +363,9 @@ bool find_mime(struct filter_list* list, char* type, char* subtype){
 
 	struct type_node* aux = search_for_type(type, list, &type_found);
 
-	if(subtype_found && type_found){
+	if(aux->wildcard){
+		return true;
+	}else if(subtype_found && type_found){
 		return true;
 	}
 
