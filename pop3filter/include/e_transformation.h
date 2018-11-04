@@ -3,6 +3,9 @@
 
 #include "buffer.h"
 
+#define READ 0
+#define WRITE 1
+
 enum et_status {
     et_status_ok,
     et_status_err,

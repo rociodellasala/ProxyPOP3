@@ -814,7 +814,7 @@ enum pop3_state process_response(struct selector_key *key, struct response_st * 
             ATTACHMENT(key)->session.state = POP3_UPDATE;
             return DONE;
         case user:
-            ATTACHMENT(key)->session.user = d->request->args;
+            ATTACHMENT(key)->session.user_name = d->request->args;
             break;
         case pass:
             if (d->request->response->status == response_status_ok) {
@@ -896,6 +896,7 @@ static void external_transformation_init(struct selector_key *key) {
         et->parser_write = parser_init(parser_no_classes(), pop3_multi_parser());
     }
 
+
     parser_reset(et->parser_read);
     parser_reset(et->parser_write);
 
@@ -911,7 +912,6 @@ static void external_transformation_init(struct selector_key *key) {
     if (et->status == et_status_err) {
         printf(ptr, err_msg);
         buffer_write_adv(b, strlen(err_msg));
-
         selector_set_interest(key->s, *et->client_fd, OP_WRITE);
     } else {
         printf(ptr, ok_msg);
@@ -997,7 +997,7 @@ static int external_transformation_write(struct selector_key *key) {
         et->write_error = true;
         buffer_reset(b);
         ptr = buffer_write_ptr(b, &count);
-        char * err_msg = "- ERR could not open external transformation.\r\n";
+        char * err_msg = "- ERR Could not open transformation.\r\n";
         sprintf((char *) ptr, "%s", err_msg);
         buffer_write_adv(b, strlen(err_msg));
     }

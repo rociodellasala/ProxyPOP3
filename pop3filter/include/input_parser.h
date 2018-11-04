@@ -28,7 +28,7 @@ struct options {
     char *              origin_server;        // This is the argument origin_server, it's not an option
     uint16_t            origin_port;          // -P
     transformation      filter_command;       // -t
-    int                 version;
+    char *              version;
 };
 
 typedef struct options * options;

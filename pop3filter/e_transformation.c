@@ -120,78 +120,101 @@ bool finished_et(struct external_transformation *et) {
     return false;
 }
 
+
+char * init_enviroment_variables(struct pop3_session * session){
+    char * enviroment_var;
+
+    char * filter_medias        = "FILTER_MEDIAS=";
+    char * filter_msg           = "FILTER_MSG=";
+    char * pop3_filter_version  = "POP3_FILTER_VERSION=";
+    char * pop3_username        = "POP3_USERNAME=";
+    char * pop3_server          = "POP3_SERVER=";
+
+    char * censored_medias_typed = "text/plain"; //llamar a funcion
+
+    size_t size =   strlen(filter_medias) + strlen(censored_medias_typed) +
+                    strlen(filter_msg) + strlen(parameters->replacement_msg) + 2 +
+                    strlen(pop3_filter_version) + strlen(parameters->version) + 2 +
+                    strlen(pop3_username) + strlen(session->user_name) + 2 +
+                    strlen(pop3_server) + strlen(parameters->origin_server) + 2 +
+                    strlen((const char *) parameters->filter_command->program_name) +6 ;
+    printf("sieze : %d\n", (int) size);
+    enviroment_var = malloc(size);
+
+    sprintf(enviroment_var, "%s=%s %s=\"%s\" %s=\"%s\" %s=\"%s\" %s=\"%s\" %s",
+            filter_medias, censored_medias_typed,
+            filter_msg, parameters->replacement_msg,
+            pop3_filter_version, parameters->version,
+            pop3_username, session->user_name,
+            pop3_server, parameters->origin_server,
+            (char *) parameters->filter_command->program_name);
+
+    //free(censored_medias_typed);
+    return enviroment_var;
+}
+
 enum et_status start_external_transformation(struct selector_key * key, struct pop3_session * session) {
+    char * enviroment_var = init_enviroment_variables(session);
 
-    char * censored_medias_typed = "text/plain";
-
-    size_t size = 14 + strlen(censored_medias_typed) + 13 + strlen(parameters->replacement_msg) + 23 +
-                  strlen("1.0") + 17 + strlen(session->user) + 15 +
-                  strlen(parameters->origin_server) + 2 +
-                  strlen((const char *) parameters->filter_command->program_name) + 2;
-    char * env_cat = malloc(size);
-
-    sprintf(env_cat, "FILTER_MEDIAS=%s FILTER_MSG=\"%s\" "
-                     "POP3_FILTER_VERSION=\"%s\" POP3_USERNAME=\"%s\" POP3_SERVER=\"%s\" %s ",
-            censored_medias_typed, parameters->replacement_msg, "1.0", session->user,
-            parameters->origin_server, (char *) parameters->filter_command->program_name);
-
-    //free(medias);
+    char argc = 4;
+    char * argv[argc];
+    argv[0] = "bash";
+    argv[1] = "-c";
+    argv[2] = enviroment_var;
+    argv[3] = NULL;
 
     pid_t pid;
-    char * args[4];
-    args[0] = "bash";
-    args[1] = "-c";
-    args[2] = env_cat;
-    args[3] = NULL;
+    file_descriptor pipeChildToFather[2];
+    file_descriptor pipeFatherToChild[2];
 
-
-    int fd_read[2];
-    int fd_write[2];
-
-    int r1 = pipe(fd_read);
-    int r2 = pipe(fd_write);
-
-    if (r1 < 0 || r2 < 0)
+    if (pipe(pipeChildToFather) < 0 || pipe(pipeFatherToChild) < 0) {
         return et_status_err;
+    }
 
-    if ((pid = fork()) == -1)
+    pid = fork();
+
+    if (pid == -1) {
         perror("fork error");
-    else if (pid == 0) {
-        dup2(fd_write[0], STDIN_FILENO);
-        dup2(fd_read[1], STDOUT_FILENO);
+    } else if (pid == 0) {
+        if(dup2(pipeFatherToChild[READ], STDIN_FILENO) == -1) {
+            return et_status_err;
+        }
+        if (dup2(pipeChildToFather[WRITE], STDOUT_FILENO) == -1) {
+            return et_status_err;
+        }
 
-        close(fd_write[1]);
-        close(fd_read[0]);
+        close(pipeFatherToChild[WRITE]);
+        close(pipeChildToFather[READ]);
 
         FILE * f = freopen(parameters->error_file, "a+", stderr);
         if (f == NULL)
             exit(-1);
 
-        int value = execve("/bin/bash", args, NULL);
+        int value = execve("/bin/bash", argv, NULL);
         perror("execve");
         if (value == -1){
             fprintf(stderr, "Error\n");
         }
     }else{
-        close(fd_write[0]);
-        close(fd_read[1]);
-        free(env_cat);
+        close(pipeFatherToChild[READ]);
+        close(pipeChildToFather[1]);
+        free(enviroment_var);
         struct pop3 * data = ATTACHMENT(key);
-        if (selector_register(key->s, fd_read[0], &ext_handler, OP_READ, data) == 0 &&
-            selector_fd_set_nio(fd_read[0]) == 0){
-            data->extern_read_fd = fd_read[0];
+        if (selector_register(key->s, pipeChildToFather[READ], &ext_handler, OP_READ, data) == 0 &&
+            selector_fd_set_nio(pipeChildToFather[READ]) == 0){
+            data->extern_read_fd = pipeChildToFather[READ];
         }else{
-            close(fd_read[0]);
-            close(fd_write[1]);
+            close(pipeChildToFather[READ]);
+            close(pipeFatherToChild[WRITE]);
             return et_status_err;
         } // read from.
-        if (selector_register(key->s, fd_write[1], &ext_handler, OP_WRITE, data) == 0 &&
-            selector_fd_set_nio(fd_write[1]) == 0){
-            data->extern_write_fd = fd_write[1];
+        if (selector_register(key->s, pipeFatherToChild[WRITE], &ext_handler, OP_WRITE, data) == 0 &&
+            selector_fd_set_nio(pipeFatherToChild[WRITE]) == 0){
+            data->extern_write_fd = pipeFatherToChild[WRITE];
         }else{
-            selector_unregister_fd(key->s, fd_write[1]);
-            close(fd_read[0]);
-            close(fd_write[1]);
+            selector_unregister_fd(key->s, pipeFatherToChild[1]);
+            close(pipeChildToFather[READ]);
+            close(pipeFatherToChild[WRITE]);
             return et_status_err;
         } // write to.
 

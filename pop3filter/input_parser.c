@@ -32,7 +32,7 @@ void print_help() {
 }
 
 void print_version() {
-    printf("Version: POP3 Proxy 1.0\n");
+    printf("Version: POP3 Proxy %s\n", parameters->version);
 }
 
 void free_options(char ** options, int size) {
@@ -329,7 +329,7 @@ void initialize_values() {
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
     parameters->filter_command->switch_program  = true;
     parameters->filter_command->program_name    = (unsigned char *) "sed s/o/0/g";
-    parameters->version                         = VERSION;
+    parameters->version                         = "1.0";
 }
 
 options set_options_values(const int argc, char ** argv) {
