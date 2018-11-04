@@ -140,10 +140,15 @@ int validate_message(const char * parameter) {
 }
 
 int validate_media_type(const char * parameter) {
-    if(parameter){
-        //PONGO ESTO PARA QUE AL COMPILAR NO ME TIRE ERROR DE Q NO ESTOY USANDO PARAMETER
+    char* aux = malloc(strlen(parameter)*sizeof(char));
+    char* type = malloc(strlen(parameter)*sizeof(char));
+    char* subtype = malloc(strlen(parameter)*sizeof(char));
+    strcpy(aux, parameter);                    
+    if(check_mime_format(aux, &type, &subtype) != 1){
+        return -1; 
+    }else{
+        return 0;
     }
-    return 0; //TODO
 }
 
 /* TODO Ale: Si cambias algo en esta funcion o en validate_address --> en clients esta copypasteada la misma, cambiar ahi tmb */
