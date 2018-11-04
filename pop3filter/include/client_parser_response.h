@@ -57,5 +57,4 @@ enum response_state response_consume(buffer *b, buffer *wb, struct response_pars
 bool response_is_done(enum response_state st, bool *errored);
 
 
-
 #endif //PROXYPOP3_RESPONSE_PARSER_H

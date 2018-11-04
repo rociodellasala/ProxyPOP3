@@ -3,6 +3,18 @@
 
 #include <stdbool.h>
 
+struct queue_node {
+    void *                  data;
+    struct queue_node *     next;
+};
+
+struct msg_queue {
+    struct queue_node *     first,
+            *     last,
+            *     current;
+    int 				    size;
+};
+
 /* */
 struct msg_queue * new_queue(void);
 

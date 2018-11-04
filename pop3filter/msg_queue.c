@@ -1,18 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
-struct queue_node {
-    void *                  data;
-    struct queue_node *     next;
-};
-
-struct msg_queue {
-    struct queue_node *     first,
-                      *     last,
-                      *     current;
-    int 				    size;
-};
+#include "include/msg_queue.h"
 
 struct msg_queue * new_queue() {
     struct msg_queue * new_q = malloc(sizeof(*new_q));
@@ -96,6 +85,7 @@ void * peek_data(struct msg_queue * queue) {
 
 void * queue_get_next(struct msg_queue * queue) {
     void * ret;
+
 
     if (queue->current != NULL) {
         ret = queue->current->data;

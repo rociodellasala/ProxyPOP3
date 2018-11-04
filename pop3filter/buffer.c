@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
+#include <printf.h>
 
 #include "include/buffer.h"
 

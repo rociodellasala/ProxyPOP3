@@ -62,8 +62,8 @@ int stm_handler_read(struct state_machine * stm, struct selector_key * key) {
     }
 
     const int ret = stm->current->on_read_ready(key);
-    jump(stm, ret, key);
 
+    jump(stm, ret, key);
     return ret;
 }
 

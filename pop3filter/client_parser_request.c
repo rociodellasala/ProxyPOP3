@@ -34,6 +34,7 @@ static enum request_state cmd(const uint8_t c, struct request_parser * parser) {
             }
         }
     } else if (parser->i >= CMD_SIZE) {
+        request->cmd = (struct pop3_request_cmd *) get_cmd(parser->cmd_buffer);
         next = request_error_cmd_too_long;
     } else {
         parser->cmd_buffer[parser->i++] = c;
@@ -42,16 +43,29 @@ static enum request_state cmd(const uint8_t c, struct request_parser * parser) {
     return next;
 }
 
-static enum request_state parameter(const uint8_t c, struct request_parser * parser) {
+static enum request_state parameter(const uint8_t c, struct request_parser * parser, bool * is_space) {
     enum request_state ret          = request_param;
     struct pop3_request * request   = parser->request;
 
-    if (c == CR || c == NEWLINE) {
+    if (*is_space && c != SPACE && c != CR && c != NEWLINE){
+        parser->request->params++;
+    }
+
+    *is_space = false;
+
+    if (c == SPACE) {
+        *is_space = true;
+    }
+
+    if (parser->request->params > parser->request->cmd->max_params) {
+        ret = request_error_too_many_params_for_cmd;
+    } else if (c == CR || c == NEWLINE) {
         char * aux = parser->param_buffer;
         int count = 0;
         while (*aux  != 0) {
-            if (*aux == ' ' || *aux == '\t')
+            if (*aux == ' ' || *aux == '\t') {
                 count++;
+            }
             aux++;
         }
 
@@ -75,6 +89,14 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
     return ret;
 }
 
+static enum request_state newline(const uint8_t c, struct request_parser * p) {
+    if (c != '\n') {
+        return request_error_inexistent_cmd;
+    }
+
+    return request_done;
+}
+
 extern void request_parser_reset(struct request_parser * parser) {
     memset(parser->request, 0, sizeof(*(parser->request)));
     memset(parser->cmd_buffer, 0, CMD_SIZE);
@@ -83,7 +105,7 @@ extern void request_parser_reset(struct request_parser * parser) {
     parser->i = parser->j = 0;
 }
 
-extern enum request_state request_parser_feed(struct request_parser * p, const uint8_t c) {
+extern enum request_state request_parser_feed(struct request_parser * p, const uint8_t c, bool * is_space) {
     enum request_state next;
 
     switch(p->state) {
@@ -91,19 +113,16 @@ extern enum request_state request_parser_feed(struct request_parser * p, const u
             next = cmd(c, p);
             break;
         case request_param:
-            next = parameter(c, p);
+            next = parameter(c, p, is_space);
             break;
         case request_newline:
-            if (c != CR) {
-                next = request_error_inexistent_cmd;
-            } else {
-                next = request_done;
-            }
+            next = newline(c, p);
             break;
         case request_done:
         case request_error_inexistent_cmd:
         case request_error_cmd_too_long:
         case request_error_param_too_long:
+        case request_error_too_many_params_for_cmd:
             next = p->state;
             break;
         default:
@@ -127,25 +146,27 @@ void clean_buffer(buffer * buffer, uint8_t c, enum request_state * st) {
         c = buffer_read(buffer);
     }
 
-    if (c != NEWLINE) {
+    if (c != '\n') {
         *st = request_cmd;
     }
+
 }
 
 enum request_state request_consume(buffer * buffer, struct request_parser * parser, bool * errored) {
     enum request_state st = parser->state;
     uint8_t c = 0;
+    bool is_space;
 
     while (buffer_can_read(buffer)) {
         c = buffer_read(buffer);
-        st = request_parser_feed(parser, c);
+        st = request_parser_feed(parser, c, &is_space);
         if(request_is_done(st, errored)) {
             break;
         }
     }
 
     if (st >= request_error_inexistent_cmd && c != '\n') {
-       clean_buffer(buffer, c, &st);
+        clean_buffer(buffer, c, &st);
     }
 
     return st;

@@ -56,8 +56,14 @@ enum response_state newline(const uint8_t c, struct response_parser *p) {
                 ret = response_capa;
                 break;
             case top:
-            case uidl:
                 ret = response_multiline;
+                break;
+            case uidl:
+                if (p->request->args != NULL) {
+                   ret = response_done;
+                } else {
+                    ret = response_multiline;
+                }
                 break;
             default:
                 break;

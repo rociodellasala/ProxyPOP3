@@ -6,65 +6,21 @@
 #include "include/utils.h"
 #include "include/client_request.h"
 
-#define ERROR (-1)
-
-enum request_state check_request_against_current_session_status(enum pop3_session_state state, struct pop3_request * request){
-    enum request_state ret_state = request_error_cmd_incorrect_status;
-
-    if (state == POP3_AUTHORIZATION) {
-        switch (request->cmd->id) {
-            case user:
-            case pass:
-            case capa:
-            case quit:
-                ret_state = request_done;
-                break;
-            default:
-                ret_state = request_error_cmd_incorrect_status;
-                break;
-
-        }
-    } else if (state == POP3_TRANSACTION) {
-        switch (request->cmd->id) {
-            case retr:
-            case list:
-            case stat:
-            case dele:
-            case noop:
-            case top:
-            case rset:
-            case uidl:
-            case capa:
-            case quit:
-                ret_state = request_done;
-                break;
-            default:
-                ret_state = request_error_cmd_incorrect_status;
-                break;
-
-        }
-    }
-
-    return ret_state;
-}
-
-void send_error_request(enum request_state state, char *name, file_descriptor fd) {
+void send_error_request(enum request_state state, file_descriptor fd) {
     char * dest = NULL;
-    char * msg = NULL;
 
     switch (state) {
         case request_error_inexistent_cmd:
-            msg = "-ERR: Unknown command ";
-            dest = append_cmd(dest, msg, name);
+            dest = "- ERR Unknown command for proxy.\r\n";
             break;
         case request_error_cmd_too_long:
-            dest = "-ERR: Command too long\r\n";
+            dest = "- ERR Command too long: Max 4 characters.\r\n";
             break;
         case request_error_param_too_long:
-            dest = "-ERR: Parameter too long\r\n";
+            dest = "- ERR Parameter too long: Max 40 characters per argument.\r\n";
             break;
-        case request_error_cmd_incorrect_status:
-            dest = "-ERR: Command not correct for current session status\n";
+        case request_error_too_many_params_for_cmd:
+            dest = "- ERR Too many parameters for command.\r\n";
             break;
         default:
             break;
@@ -91,7 +47,7 @@ int request_marshall(struct pop3_request * request, buffer * buffer) {
         total   = i + j + 3;
     }
 
-    if(n < total) {
+    if (n < total) {
         return -1;
     }
 
@@ -112,25 +68,30 @@ int request_marshall(struct pop3_request * request, buffer * buffer) {
 }
 
 
-int request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct msg_queue * queue) {
-    char * msg = "Error while copying request to buffer\n";
-
-    if (pipelining == false) { // si el server no soporta pipelining solo copio la primer request
-        pop3_request = peek_data(queue);
-        if (request_marshall(pop3_request, buffer) == -1) {
-            fprintf(stderr, "%s", msg);
-            perror("");
-            return ERROR;
-        }
-    } else { // si el server soporta pipelining entonces copio al buffer todas las request encoladas
-        while ((pop3_request = queue_get_next(queue)) != NULL) {
+struct pop3_request * request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct msg_queue * queue) {
+    if(pop3_request == NULL) {
+        if (pipelining == false) { // si el server no soporta pipelining solo copio la primer request
+            pop3_request = peek_data(queue);
             if (request_marshall(pop3_request, buffer) == -1) {
-                fprintf(stderr, "%s", msg);
-                perror("");
-                return ERROR;
+                return pop3_request;
+            }
+        } else { // si el server soporta pipelining entonces copio al buffer todas las request encoladas
+            while ((pop3_request = queue_get_next(queue)) != NULL) {
+                printf("pop 3 request a meter: name: %s args %s\n", pop3_request->cmd->name, pop3_request->args);
+                if (request_marshall(pop3_request, buffer) == -1) {
+                    return pop3_request;
+                }
+            }
+        }
+    } else {
+        request_marshall(pop3_request, buffer);
+        while ((pop3_request = queue_get_next(queue)) != NULL) {
+            printf("pop 3 request a meter: name: %s args %s\n", pop3_request->cmd->name, pop3_request->args);
+            if (request_marshall(pop3_request, buffer) == -1) {
+                return pop3_request;
             }
         }
     }
 
-    return 0;
+    return NULL;
 }

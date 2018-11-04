@@ -7,10 +7,8 @@
 #include "buffer.h"
 #include "client_parser_request.h"
 
-request_state check_request_against_current_session_status(enum pop3_session_state, struct pop3_request *);
+void send_error_request(request_state, file_descriptor);
 
-void send_error_request(request_state, char *, file_descriptor);
-
-int request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct msg_queue * queue);
+struct pop3_request * request_to_buffer(buffer *, bool, struct pop3_request *, struct msg_queue *);
 
 #endif //PROXYPOP3_CLIENT_REQUEST_UTILS_H

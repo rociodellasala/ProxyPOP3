@@ -33,7 +33,8 @@ enum pop3_state {
  * Definición de variables para cada estado
  */
 struct welcome_st {
-    buffer *                    write_buffer;
+    buffer *                    buffer;
+    bool                        msg_not_finished;
 };
 
 struct request_st {
@@ -41,7 +42,6 @@ struct request_st {
     buffer *                    write_buffer;
 
     struct pop3_request         request;
-
     struct request_parser       request_parser;
 
 };
@@ -58,7 +58,7 @@ struct response_st {
 
 
 /* TODO: ver de achicarlo */
-#define BUFFER_SIZE 60
+#define BUFFER_SIZE 45
 
 /*
  * Si bien cada estado tiene su propio struct que le da un alcance

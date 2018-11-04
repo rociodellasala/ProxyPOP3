@@ -12,46 +12,59 @@
 
 const struct pop3_request_cmd commands[CMD_QUANTITY] = {
         {
-                .id 	= user,
-                .name 	= "user",
+                .id 	    = user,
+                .max_params = 1,
+                .name 	    = "user",
         },{
-                .id 	= pass,
-                .name 	= "pass",
+                .id 	    = pass,
+                .max_params = 1,
+                .name 	    = "pass",
         },{
-                .id 	= retr,
-                .name 	= "retr",
+                .id 	    = retr,
+                .max_params = 1,
+                .name 	    = "retr",
         },{
-                .id 	= list,
-                .name 	= "list",
+                .id 	    = list,
+                .max_params = 1,
+                .name 	    = "list",
         },{
-                .id 	= stat,
-                .name 	= "stat",
+                .id 	    = stat,
+                .max_params = 0,
+                .name 	    = "stat",
         },{
-                .id 	= dele,
-                .name 	= "dele",
+                .id 	    = dele,
+                .max_params = 1,
+                .name 	    = "dele",
         },{
-                .id 	= noop,
-                .name 	= "noop",
+                .id 	    = noop,
+                .max_params = 0,
+                .name 	    = "noop",
         },{
-                .id 	= top,
-                .name 	= "top",
+                .id 	    = top,
+                .max_params = 2,
+                .name 	    = "top",
         },{
-                .id 	= rset,
-                .name 	= "rset",
+                .id 	    = rset,
+                .max_params = 1,
+                .name 	    = "rset",
         },{
-                .id 	= uidl,
-                .name 	= "uidl",
+                .id 	    = uidl,
+                .max_params = 1,
+                .name 	    = "uidl",
         },{
-                .id 	= quit,
-                .name 	= "quit",
+                .id 	    = quit,
+                .max_params = 0,
+                .name 	    = "quit",
         },{
-                .id 	= capa,
-                .name 	= "capa",
+                .id 	    = capa,
+                .max_params = 1,
+                .name 	    = "capa",
         },
 };
 
 struct pop3_request_cmd invalid_cmd = {
         .id     = error,
+        .max_params = 0,
         .name   = NULL,
 };
 
@@ -81,6 +94,7 @@ struct pop3_request * new_request(const struct pop3_request_cmd * cmd, char * ar
     } else {
         request->cmd = (struct pop3_request_cmd *) cmd;
         request->args = args;
+        request->params = 0;
 
         return request;
     }
