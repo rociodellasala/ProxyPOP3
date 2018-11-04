@@ -328,7 +328,7 @@ void initialize_values() {
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
     parameters->filter_command->switch_program  = true;
-    parameters->filter_command->program_name    = (unsigned char *) "sed s/o/0/g";
+    parameters->filter_command->program_name    = (unsigned char *) "../stripmime/stripmime";
     parameters->version                         = "1.0";
 }
 
