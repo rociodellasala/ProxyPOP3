@@ -327,8 +327,8 @@ void initialize_values() {
     parameters->filtered_media_types            = filter_list_init(); 
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
-    parameters->filter_command->switch_program  = false;
-    parameters->filter_command->program_name    = (unsigned char *) "cat";
+    parameters->filter_command->switch_program  = true;
+    parameters->filter_command->program_name    = (unsigned char *) "sed s/o/0/g";
     parameters->version                         = VERSION;
 }
 

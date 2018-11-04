@@ -8,6 +8,7 @@
 #include "client_parser_request.h"
 #include "pop3_session.h"
 #include "stm.h"
+#include "e_transformation.h"
 
 /* Obtiene el struct (pop3 *) desde la llave de selección  */
 #define ATTACHMENT(key) ((struct pop3 *)(key)->data)
@@ -25,9 +26,9 @@ enum pop3_state {
     CAPA,
     REQUEST,
     RESPONSE,
+    EXTERNAL_TRANSFORMATION,
     DONE,
 };
-
 
 /*
  * Definición de variables para cada estado
@@ -101,6 +102,10 @@ struct pop3 {
 
     uint8_t raw_extern_read_buffer[BUFFER_SIZE];
     buffer extern_read_buffer;
+
+    int                           extern_read_fd;
+    int                           extern_write_fd;
+    struct external_transformation  et;
 
     unsigned                        references;
 

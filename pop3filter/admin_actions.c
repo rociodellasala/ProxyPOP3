@@ -66,9 +66,9 @@ void return_metric(struct admin * admin, const char * data) {
 
 void forbid_mime(struct request_admin * request, enum parse_req_status* status){
 
-    char* type = malloc(strlen(request->data)*sizeof(char));
-    char* subtype = malloc(strlen(request->data)*sizeof(char));
-    if(check_mime_format(request->data, &type, &subtype) == -1){
+    char* type = malloc(strlen((const char *) request->data) * sizeof(char));
+    char* subtype = malloc(strlen((const char *) request->data) * sizeof(char));
+    if(check_mime_format((char *) request->data, &type, &subtype) == -1){
         *status = FORBID_ERROR; //error
         return;
     }
@@ -86,13 +86,12 @@ void forbid_mime(struct request_admin * request, enum parse_req_status* status){
     }
 
     *status = REQ_PARSE_OK;
-    return;
 }
 
 void allow_mime(struct request_admin * request, enum parse_req_status* status){
-        char* type = malloc(strlen(request->data)*sizeof(char));
-        char* subtype = malloc(strlen(request->data)*sizeof(char));
-        if(check_mime_format(request->data, &type, &subtype) == -1){
+        char* type = malloc(strlen((const char *) request->data) * sizeof(char));
+        char* subtype = malloc(strlen((const char *) request->data) * sizeof(char));
+        if(check_mime_format((char *) request->data, &type, &subtype) == -1){
             *status = ALLOW_ERROR; //error
             return;
         }
@@ -113,7 +112,6 @@ void allow_mime(struct request_admin * request, enum parse_req_status* status){
         }
 
         *status = REQ_PARSE_OK;
-        return;
 }
 
 

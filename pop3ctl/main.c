@@ -69,9 +69,6 @@ int main(int argc, char ** argv) {
     printf("Server address and port values: \n - [ip] : %s \n - [port] : %d \n",
            clt_parameters->server_address, clt_parameters->server_port);
 
-    printf("server address: %s\n",clt_parameters->server_address);
-    printf("port: %d\n",clt_parameters->server_port);
-
     initialize_sctp_socket();
 
     /* Recibe el mensaje de bienvenida del pop3filter */

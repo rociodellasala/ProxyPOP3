@@ -189,7 +189,7 @@ int delete_media_type(struct filter_list* list, char* type){
 int allow_type(char* type, char* subtype, struct filter_list* list){
 
 	bool type_found = false;
-	bool subtype_found = false;
+	//bool subtype_found = false;
 
 	struct type_node* curr_type = list->first;
 

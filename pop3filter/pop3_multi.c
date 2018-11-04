@@ -9,26 +9,22 @@ enum {
     FIN,
 };
 
-static void
-byte(struct parser_event *ret, const uint8_t c) {
+static void byte(struct parser_event *ret, const uint8_t c) {
     ret->type    = POP3_MULTI_BYTE;
     ret->n       = 1;
     ret->data[0] = c;
 }
 
-static void
-byte_cr(struct parser_event *ret, const uint8_t c) {
+static void byte_cr(struct parser_event *ret, const uint8_t c) {
     byte(ret, '\r');
 }
 
-static void
-wait(struct parser_event *ret, const uint8_t c) {
+static void wait(struct parser_event *ret, const uint8_t c) {
     ret->type    = POP3_MULTI_WAIT;
     ret->n       = 0;
 }
 
-static void
-fin(struct parser_event *ret, const uint8_t c) {
+static void fin(struct parser_event *ret, const uint8_t c) {
     ret->type    = POP3_MULTI_FIN;
     ret->n       = 0;
 }
@@ -63,10 +59,7 @@ static const struct parser_state_transition ST_FIN[] =  {
     {.when = ANY,        .dest = BYTE,        .act1 = byte_cr, .act2 = byte},
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// Declaración formal
-
-static const struct parser_state_transition *states [] = {
+static const struct parser_state_transition * states [] = {
     ST_NEWLINE,
     ST_BYTE,
     ST_CR,
@@ -93,7 +86,6 @@ static struct parser_definition definition = {
     .start_state  = NEWLINE,
 };
 
-const struct parser_definition *
-pop3_multi_parser(void) {
+const struct parser_definition * pop3_multi_parser(void) {
     return &definition;
 }
