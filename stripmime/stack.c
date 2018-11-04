@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "stack.h"
+#include "include/stack.h"
 
 
 static struct element * create_element(void * data) {

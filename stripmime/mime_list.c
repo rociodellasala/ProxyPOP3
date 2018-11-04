@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-#include "mime_list.h"
-#include "parser_utils.h"
+#include "include/mime_list.h"
+#include "include/parser_utils.h"
 
 #define WILDCARD "*"
 
