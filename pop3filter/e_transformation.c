@@ -120,11 +120,11 @@ bool finished_et(struct external_transformation *et) {
     return false;
 }
 
-enum et_status open_external_transformation(struct selector_key * key, struct pop3_session * session) {
+enum et_status start_external_transformation(struct selector_key * key, struct pop3_session * session) {
 
-    char * medias                = "text/plain";
+    char * censored_medias_typed = "text/plain";
 
-    size_t size = 14 + strlen(medias) + 13 + strlen(parameters->replacement_msg) + 23 +
+    size_t size = 14 + strlen(censored_medias_typed) + 13 + strlen(parameters->replacement_msg) + 23 +
                   strlen("1.0") + 17 + strlen(session->user) + 15 +
                   strlen(parameters->origin_server) + 2 +
                   strlen((const char *) parameters->filter_command->program_name) + 2;
@@ -132,7 +132,7 @@ enum et_status open_external_transformation(struct selector_key * key, struct po
 
     sprintf(env_cat, "FILTER_MEDIAS=%s FILTER_MSG=\"%s\" "
                      "POP3_FILTER_VERSION=\"%s\" POP3_USERNAME=\"%s\" POP3_SERVER=\"%s\" %s ",
-            medias, parameters->replacement_msg, "1.0", session->user,
+            censored_medias_typed, parameters->replacement_msg, "1.0", session->user,
             parameters->origin_server, (char *) parameters->filter_command->program_name);
 
     //free(medias);

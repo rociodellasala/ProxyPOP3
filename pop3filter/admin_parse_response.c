@@ -6,8 +6,6 @@
 #include "include/admin.h"
 #include "include/admin_serializer.h"
 
-typedef int file_descriptor;
-
 void ehlo_proxy(struct admin * admin){
     ssize_t send_bytes;
     char *  w_message = "Welcome to POP3 Proxy Management Server\n";
