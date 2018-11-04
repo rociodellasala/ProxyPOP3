@@ -141,14 +141,14 @@ char * init_enviroment_variables(struct pop3_session * session){
 
     enviroment_var = malloc(size);
 
-    sprintf(enviroment_var, "%s=%s %s=\"%s\" %s=\"%s\" %s=\"%s\" %s=\"%s\" %s",
+    sprintf(enviroment_var, "%s%s %s\"%s\" %s\"%s\" %s\"%s\" %s\"%s\" %s",
             filter_medias, censored_medias_typed,
             filter_msg, parameters->replacement_msg,
             pop3_filter_version, parameters->version,
             pop3_username, session->user_name,
             pop3_server, parameters->origin_server,
             (char *) parameters->filter_command->program_name);
-
+    printf("%s\n", enviroment_var);
     //free(censored_medias_typed);
     return enviroment_var;
 }
