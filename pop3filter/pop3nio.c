@@ -245,7 +245,7 @@ int origin_server_resolution_done(struct selector_key * key) {
     struct pop3 * pop3 =  ATTACHMENT(key);
 
     if (pop3->origin_resolution == 0) {
-        char * msg = "-ERR 0Invalid domain.\r\n";
+        char * msg = "- ERR Invalid domain.\r\n";
         send(ATTACHMENT(key)->client_fd, msg, strlen(msg), 0);
         return ERROR;
     } else {
@@ -327,7 +327,7 @@ int connecting(struct selector_key * key) {
     d->origin_fd = key->fd;
 
     if (getsockopt(key->fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
-        char * error_msg = "-ERR Connection refused.\r\n";
+        char * error_msg = "- ERR Connection refused.\r\n";
         send(d->client_fd, error_msg, strlen(error_msg), 0);
         fprintf(stderr, "Connection to origin server failed\n");
         selector_set_interest_key(key, OP_NOOP);
@@ -336,7 +336,7 @@ int connecting(struct selector_key * key) {
         if(error == 0) {
             d->origin_fd = key->fd;
         } else {
-            char * error_msg = "-ERR Connection refused.\r\n";
+            char * error_msg = "- ERR Connection refused.\r\n";
             send(d->client_fd, error_msg, strlen(error_msg), 0);
             fprintf(stderr, "Connection to origin server failed\n");
             selector_set_interest_key(key, OP_NOOP);
@@ -555,7 +555,7 @@ enum pop3_state process_request(struct selector_key * key, struct request_st * r
     if (request->request_parser.state >= request_error_inexistent_cmd) {
         send_error_request(request->request_parser.state, ATTACHMENT(key)->client_fd);
         if ((++ATTACHMENT(key)->session.concurrent_invalid_commands) >= MAX_CONCURRENT_INVALID_COMMANDS) {
-            char * msg = "-ERR Too many invalid commands.\n";
+            char * msg = "- ERR Too many invalid commands.\n";
             send(ATTACHMENT(key)->client_fd, msg, strlen(msg), 0);
             return DONE;
         }
@@ -867,8 +867,8 @@ enum pop3_state process_response(struct selector_key *key, struct response_st * 
 static void external_transformation_init(struct selector_key *key) {
     struct external_transformation *et = &ATTACHMENT(key)->et;
 
-    et->rb           = &ATTACHMENT(key)->write_buffer;
-    et->wb           = &ATTACHMENT(key)->extern_read_buffer;
+    et->read_buffer  = &ATTACHMENT(key)->write_buffer;
+    et->write_buffer = &ATTACHMENT(key)->extern_read_buffer;
     et->ext_rb       = &ATTACHMENT(key)->extern_read_buffer;
     et->ext_wb       = &ATTACHMENT(key)->write_buffer;
 
@@ -899,26 +899,26 @@ static void external_transformation_init(struct selector_key *key) {
     parser_reset(et->parser_read);
     parser_reset(et->parser_write);
 
-    et->status = open_external_transformation(key, &ATTACHMENT(key)->session);
+    et->status = start_external_transformation(key, &ATTACHMENT(key)->session);
 
-    buffer  *b = et->wb;
+    buffer  *b = et->write_buffer;
     char * ptr;
     size_t   count;
-    const char * err_msg = "-ERR could not open external transformation.\r\n";
-    const char * ok_msg  = "+OK sending mail.\r\n";
+    const char * err_msg = "- ERR Could not open external transformation.\r\n";
+    const char * ok_msg  = "+ OK Sending mail.\r\n";
 
     ptr = (char*) buffer_write_ptr(b, &count);
     if (et->status == et_status_err) {
-        sprintf(ptr, "-ERR could not open external transformation.\r\n");
+        printf(ptr, err_msg);
         buffer_write_adv(b, strlen(err_msg));
 
         selector_set_interest(key->s, *et->client_fd, OP_WRITE);
     } else {
-        sprintf(ptr, "+OK sending mail.\r\n");
+        printf(ptr, ok_msg);
         buffer_write_adv(b, strlen(ok_msg));
     }
 
-    b = et->rb;
+    b = et->read_buffer;
 
     ;//log_request(ATTACHMENT(key)->orig.response.request);
     if (parse_mail(b, et->parser_read, &et->send_bytes_read)){
@@ -932,7 +932,7 @@ static int external_transformation_read(struct selector_key *key) {
     struct external_transformation *et  = &ATTACHMENT(key)->et;
     enum pop3_state ret                 = EXTERNAL_TRANSFORMATION;
 
-    buffer  *b                          = et->rb;
+    buffer  *b                          = et->read_buffer;
     uint8_t *ptr;
     size_t   count;
     ssize_t  n;
@@ -988,7 +988,7 @@ static int external_transformation_write(struct selector_key *key) {
     struct external_transformation *et  = &ATTACHMENT(key)->et;
     enum pop3_state ret                 = EXTERNAL_TRANSFORMATION;
 
-    buffer  *b                          = et->wb;
+    buffer  *b                          = et->write_buffer;
     uint8_t *ptr;
     size_t   count;
     ssize_t  n;
@@ -997,7 +997,7 @@ static int external_transformation_write(struct selector_key *key) {
         et->write_error = true;
         buffer_reset(b);
         ptr = buffer_write_ptr(b, &count);
-        char * err_msg = "-ERR could not open external transformation.\r\n";
+        char * err_msg = "- ERR could not open external transformation.\r\n";
         sprintf((char *) ptr, "%s", err_msg);
         buffer_write_adv(b, strlen(err_msg));
     }

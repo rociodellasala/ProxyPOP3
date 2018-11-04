@@ -12,14 +12,18 @@ enum et_status {
 struct external_transformation {
     enum et_status              status;
 
-    buffer                      *rb, *wb;
-    buffer                      *ext_rb, *ext_wb;
+    buffer *                    read_buffer;
+    buffer *                    write_buffer;
+    buffer *                    ext_rb;
+    buffer *                    ext_wb;
 
-    int                         *client_fd, *origin_fd;
-    int                         *ext_read_fd, *ext_write_fd;
+    file_descriptor *           client_fd;
+    file_descriptor *           origin_fd;
+    file_descriptor *           ext_read_fd;
+    file_descriptor *           ext_write_fd;
 
-    struct parser               *parser_read;
-    struct parser               *parser_write;
+    struct parser *             parser_read;
+    struct parser *             parser_write;
 
     bool                        finish_wr;
     bool                        finish_rd;
@@ -34,9 +38,9 @@ struct external_transformation {
     size_t                      send_bytes_read;
 };
 
-void ext_write(struct selector_key * key);
-void ext_read(struct selector_key * key);
-void ext_close(struct selector_key * key);
+void ext_write(struct selector_key *);
+void ext_read(struct selector_key *);
+void ext_close(struct selector_key *);
 
 static const struct fd_handler ext_handler = {
         .handle_read   = ext_read,
@@ -45,10 +49,10 @@ static const struct fd_handler ext_handler = {
         .handle_block  = NULL,
 };
 
-enum et_status open_external_transformation(struct selector_key * key, struct pop3_session * session);
+enum et_status start_external_transformation(struct selector_key *, struct pop3_session *);
 
-bool parse_mail(buffer * b, struct parser * p, size_t * send_bytes);
+bool parse_mail(buffer *, struct parser *, size_t *);
 
-bool finished_et(struct external_transformation *et);
+bool finished_et(struct external_transformation *);
 
 #endif //PROXYPOP3_E_TRANSFORMATION_H
