@@ -8,8 +8,8 @@
 int check_password(const char *);
 void return_metric(struct admin *, const char *);
 void switch_transformation_program(struct admin *);
-//void forbid_mime(request *, int *, char *);
-//void allow_mime(request *, int *, char *);
+void forbid_mime(struct request_admin * request, enum parse_req_status* status);
+void allow_mime(struct request_admin * request, enum parse_req_status* status);
 void quit_admin(struct admin *);
 
 #endif //PROXYPOP3_ADMIN_ACTIONS_H

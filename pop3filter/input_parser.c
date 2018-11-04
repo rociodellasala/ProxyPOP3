@@ -319,7 +319,7 @@ void initialize_values() {
     parameters->management_port                 = 9090;
     parameters->listen_address                  = "0.0.0.0";
     parameters->replacement_msg                 = "Parte reemplazada.";
-    parameters->filtered_media_types            = filtered_list_init(); 
+    parameters->filtered_media_types            = filter_list_init(); 
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
     parameters->filter_command->switch_program  = false;
@@ -348,7 +348,16 @@ options set_options_values(const int argc, char ** argv) {
                 parameters->replacement_msg = optarg;
                 break;
             case 'M':
-                parameters->filtered_media_types = optarg;
+                ;
+                char* pt;
+                pt = strtok (optarg,",");
+                    while (pt != NULL) {
+                        char* type = malloc(strlen(pt)*sizeof(char));
+                        char* subtype = malloc(strlen(pt)*sizeof(char));
+                        check_mime_format(pt, &type, &subtype);
+                        forbid_new(type, subtype, parameters->filtered_media_types);
+                        pt = strtok (NULL, ",");
+                    }
                 break;
             case 'o':
                 parameters->management_port = (uint16_t) atoi(optarg);

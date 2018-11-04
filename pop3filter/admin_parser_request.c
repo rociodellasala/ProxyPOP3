@@ -38,10 +38,10 @@ void parse_action(struct admin * admin) {
             admin->resp_length = strlen((const char *) admin->resp_data);
             break;
         case ALLOW_MI_CMD:
-            allow_mime(r, admin->req_status);     
+            allow_mime(r, &admin->req_status);     
             break;
         case FORBID_MI_CMD:
-            forbid_mime(r, admin->req_status);
+            forbid_mime(r, &admin->req_status);
             break;
         case Q_CMD:
             admin->quit = true;
