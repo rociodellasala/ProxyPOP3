@@ -9,22 +9,22 @@ enum {
     FIN,
 };
 
-static void byte(struct parser_event *ret, const uint8_t c) {
+static void byte(struct parser_event * ret, const uint8_t c) {
     ret->type    = POP3_MULTI_BYTE;
     ret->n       = 1;
     ret->data[0] = c;
 }
 
-static void byte_cr(struct parser_event *ret, const uint8_t c) {
+static void byte_cr(struct parser_event * ret, const uint8_t c) {
     byte(ret, '\r');
 }
 
-static void wait(struct parser_event *ret, const uint8_t c) {
+static void wait(struct parser_event * ret, const uint8_t c) {
     ret->type    = POP3_MULTI_WAIT;
     ret->n       = 0;
 }
 
-static void fin(struct parser_event *ret, const uint8_t c) {
+static void fin(struct parser_event * ret, const uint8_t c) {
     ret->type    = POP3_MULTI_FIN;
     ret->n       = 0;
 }

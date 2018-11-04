@@ -37,8 +37,8 @@ const struct parser_event * parser_feed(struct parser * parser, const uint8_t c)
 
     parser->e1.next = parser->e2.next = 0;
 
-    const struct parser_state_transition *state = parser->def->states[parser->state];
-    const size_t n                              = parser->def->states_n[parser->state];
+    const struct parser_state_transition * state = parser->def->states[parser->state];
+    const size_t n                               = parser->def->states_n[parser->state];
     bool matched;
 
     for (i = 0; i < n ; i++) {
@@ -69,7 +69,6 @@ const struct parser_event * parser_feed(struct parser * parser, const uint8_t c)
 
     return &parser->e1;
 }
-
 
 static const unsigned classes[0xFF] = {0x00};
 
