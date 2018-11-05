@@ -701,6 +701,10 @@ int main(int argc, char ** argv) {
     parser_destroy(ctx.boundary);
     parser_utils_strcmpi_destroy(&boundary_def);
     destroy_list(ctx.mime_list);
+    parser_destroy(ctx.transfer_encoding_header);
+    parser_utils_strcmpi_destroy(&encoding_def);
+    parser_destroy(ctx.disposition_header);
+    parser_utils_strcmpi_destroy(&disposition_def);
 
     while (ctx.boundary_delimiter->size != 0) {
         struct delimiter_st *dlm = stack_pop(ctx.boundary_delimiter);
