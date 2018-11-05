@@ -344,12 +344,12 @@ static void mime_msg(struct ctx * ctx, const uint8_t c) {
                 break;
             case MIME_MSG_VALUE_END:
                 ;
-                char * testing = strcasestr(ctx->buffer, "message");
+                char * testing = strstr(ctx->buffer, "message");
                 if (testing != NULL) {
                     ctx->attachment = true;
                 }
 
-                char * testing2 = strcasestr(ctx->buffer, "multipart/alternative");
+                char * testing2 = strstr(ctx->buffer, "multipart/alternative");
                 if (testing2 != NULL) {
                     if (first_attempt == true) {
                         first_attempt = false;
@@ -357,7 +357,7 @@ static void mime_msg(struct ctx * ctx, const uint8_t c) {
                         new_boundary_push = true;
                     }                 
                 } else {
-                    char * testing3 = strcasestr(ctx->buffer, "multipart/mixed");
+                    char * testing3 = strstr(ctx->buffer, "multipart/mixed");
                     if (testing3 != NULL) {
                         if (first_attempt == true) {
                             first_attempt = false;
