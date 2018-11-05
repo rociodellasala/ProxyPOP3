@@ -8,6 +8,7 @@
 #include "client_parser_request.h"
 #include "pop3_session.h"
 #include "stm.h"
+#include "pop3_handler.h"
 #include "e_transformation.h"
 
 /* Obtiene el struct (pop3 *) desde la llave de selección  */
@@ -29,6 +30,18 @@ enum pop3_state {
     EXTERNAL_TRANSFORMATION,
     DONE,
 };
+
+/*
+ * Declaración de los handlers de selección de una conexión
+ * establecida entre un cliente y el pop3filter.
+ */
+static const struct fd_handler pop3_handler = {
+        .handle_read   = pop3_read,
+        .handle_write  = pop3_write,
+        .handle_close  = pop3_close,
+        .handle_block  = pop3_block,
+};
+
 
 /*
  * Definición de variables para cada estado
@@ -56,7 +69,6 @@ struct response_st {
 
     struct response_parser      response_parser;
 };
-
 
 /* TODO: ver de achicarlo */
 #define BUFFER_SIZE 45

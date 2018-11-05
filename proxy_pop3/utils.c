@@ -37,16 +37,6 @@ bool compare_strings(const char * str1, const char * str2) {
     return false;
 }
 
-char * append_cmd(char * dest, char * msg, const char * parse_cmd) {
-    char cmd[CMD_SIZE];
-    dest = malloc((strlen(msg) + CMD_SIZE + 2) * sizeof(char *));
-    strcpy(cmd,parse_cmd);
-    strcpy(dest, msg);
-    strcat(dest, cmd);
-    strcat(dest, "\r\n");
-    return dest;
-}
-
 char * to_upper(char * str) {
     char * aux = str;
     while (*aux != 0) {

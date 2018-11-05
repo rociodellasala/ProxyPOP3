@@ -13,7 +13,6 @@ int get_int_len(int);
 
 bool compare_strings(const char *, const char *);
 
-char * append_cmd(char *, char *, const char *);
 
 char * to_upper(char *);
 

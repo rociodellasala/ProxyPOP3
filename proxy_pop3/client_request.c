@@ -7,8 +7,7 @@
 #include "include/client_request.h"
 #include "include/utils.h"
 
-#define N(x) (sizeof(x)/sizeof((x)[0]))
-#define CMD_QUANTITY	(capa + 1)
+#define CMD_QUANTITY   (capa + 1)
 
 const struct pop3_request_cmd commands[CMD_QUANTITY] = {
         {
@@ -63,15 +62,15 @@ const struct pop3_request_cmd commands[CMD_QUANTITY] = {
 };
 
 struct pop3_request_cmd invalid_cmd = {
-        .id     = error,
+        .id         = error,
         .max_params = 0,
-        .name   = NULL,
+        .name       = NULL,
 };
 
 const struct pop3_request_cmd * get_cmd(const char * cmd) {
-    unsigned int i;
-    const char * aux = cmd;
-    struct pop3_request_cmd * i_cmd;
+    unsigned int                i;
+    struct pop3_request_cmd *   i_cmd;
+    const char *                aux = cmd;
 
     for (i = 0; i < CMD_QUANTITY; i++) {
         if (compare_strings(cmd, commands[i].name)) {
@@ -79,12 +78,16 @@ const struct pop3_request_cmd * get_cmd(const char * cmd) {
         }
     }
 
-    i_cmd = &invalid_cmd;
+    i_cmd       = &invalid_cmd;
     i_cmd->name = aux;
 
     return i_cmd;
 }
 
+int get_max_parameter(const char * cmd) {
+    const struct pop3_request_cmd * current_cmd = get_cmd(cmd);
+    return current_cmd->max_params;
+}
 
 struct pop3_request * new_request(const struct pop3_request_cmd * cmd, char * args) {
     struct pop3_request * request = malloc(sizeof(*request));
@@ -92,10 +95,8 @@ struct pop3_request * new_request(const struct pop3_request_cmd * cmd, char * ar
     if (request == NULL) {
         return NULL;
     } else {
-        request->cmd = (struct pop3_request_cmd *) cmd;
-        request->args = args;
-        request->params = 0;
-
+        request->cmd    = (struct pop3_request_cmd *) cmd;
+        request->args   = args;
         return request;
     }
 }

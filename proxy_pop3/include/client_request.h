@@ -3,8 +3,8 @@
 
 #include "client_response.h"
 
-#define CMD_SIZE    4
-#define PARAM_SIZE  (40 * 2)
+#define MAX_CMD_SIZE    4
+#define MAX_PARAM_SIZE  40
 
 enum pop3_cmd_id {
         error = -1,
@@ -118,11 +118,12 @@ struct pop3_request_cmd {
 struct pop3_request {
     struct pop3_request_cmd *       cmd;
     char *                          args;
-    unsigned int                    params;
     const struct pop3_response *    response;
 };
 
 const struct pop3_request_cmd * get_cmd(const char *);
+
+int get_max_parameter(const char *);
 
 struct pop3_request * new_request(const struct pop3_request_cmd *, char *);
 

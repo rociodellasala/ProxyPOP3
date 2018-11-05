@@ -10,19 +10,25 @@
 #include "include/client_parser_response.h"
 #include "include/pop3_multi.h"
 
-enum response_state status(const uint8_t c, struct response_parser* p) {
+enum response_state status(const uint8_t c, struct response_parser * parser) {
     enum response_state ret = response_status_indicator;
+
     if (c == ' ' || c == '\r') {
-        p->request->response = get_response(p->status_buffer);
-        if (c == ' ') {
-            ret = response_description;
+        parser->request->response = get_response(parser->status_buffer);
+
+        if (parser->request->response->status == response_status_invalid) {
+            ret = response_error;
         } else {
-            ret = response_newline;
+            if (c == ' ') {
+                ret = response_description;
+            } else {
+                ret = response_newline;
+            }
         }
-    } else if (p->i >= STATUS_SIZE) {
+    } else if (parser->i >= STATUS_SIZE) {
         ret = response_error;
     } else {
-        p->status_buffer[p->i++] = c;
+        parser->status_buffer[parser->i++] = c;
     }
 
     return ret;
@@ -37,27 +43,26 @@ enum response_state description(const uint8_t c) {
     return response_description;
 }
 
-enum response_state newline(const uint8_t c, struct response_parser *p) {
+enum response_state newline(const uint8_t c, struct response_parser * parser) {
     enum response_state ret = response_done;
 
-    if (p->request->response->status != response_status_err) {
-        switch (p->request->cmd->id) {
+    if (parser->request->response->status != response_status_err) {
+
+        switch (parser->request->cmd->id) {
             case retr:
+            case top:
                 ret = response_mail;
                 break;
             case list:
-                if (p->request->args == NULL) {
+                if (parser->request->args == NULL) {
                     ret = response_list;
                 }
                 break;
             case capa:
                 ret = response_capa;
                 break;
-            case top:
-                ret = response_multiline;
-                break;
             case uidl:
-                if (p->request->args != NULL) {
+                if (parser->request->args != NULL) {
                    ret = response_done;
                 } else {
                     ret = response_multiline;
@@ -69,15 +74,15 @@ enum response_state newline(const uint8_t c, struct response_parser *p) {
     }
 
     if (c == '\n') {
-        p->first_line_done = true;
+        parser->first_line_consumed = true;
     }
 
     return c != '\n' ? response_error : ret;
 }
 
-enum response_state mail(const uint8_t c, struct response_parser* p) {
-    const struct parser_event * e = parser_feed(p->pop3_multi_parser, c);
-    enum response_state ret = response_mail;
+enum response_state mail(const uint8_t c, struct response_parser * parser) {
+    const struct parser_event * e   = parser_feed(parser->pop3_multi_parser, c);
+    enum response_state         ret = response_mail;
 
     switch (e->type) {
         case POP3_MULTI_FIN:
@@ -90,13 +95,12 @@ enum response_state mail(const uint8_t c, struct response_parser* p) {
     return ret;
 }
 
-enum response_state plist(const uint8_t c, struct response_parser* p) {
-    const struct parser_event * e = parser_feed(p->pop3_multi_parser, c);
-    enum response_state ret = response_list;
+enum response_state plist(const uint8_t c, struct response_parser * parser) {
+    const struct parser_event * e   = parser_feed(parser->pop3_multi_parser, c);
+    enum response_state         ret = response_list;
 
     switch (e->type) {
         case POP3_MULTI_FIN:
-            puts("multi fin list");
             ret = response_done;
             break;
         default:
@@ -108,31 +112,37 @@ enum response_state plist(const uint8_t c, struct response_parser* p) {
 
 #define BLOCK_SIZE  20
 
-enum response_state pcapa(const uint8_t c, struct response_parser* p) {
-    const struct parser_event * e = parser_feed(p->pop3_multi_parser, c);
-    enum response_state ret = response_capa;
+enum response_state pcapa(const uint8_t c, struct response_parser * parser) {
+    const struct parser_event * e   = parser_feed(parser->pop3_multi_parser, c);
+    enum response_state         ret = response_capa;
 
-    // save capabilities to struct
-    if (p->j == p->capa_size) {
-        void * tmp = realloc(p->capa_response, p->capa_size + BLOCK_SIZE);
-        if (tmp == NULL)
+    if (parser->j == parser->capa_size) {
+        void * tmp = realloc(parser->capa_response, parser->capa_size + BLOCK_SIZE);
+
+        if (tmp == NULL) {
             return response_error;
-        p->capa_size += BLOCK_SIZE;
-        p->capa_response = tmp;
+        }
+
+        parser->capa_size += BLOCK_SIZE;
+        parser->capa_response = tmp;
     }
 
-    p->capa_response[p->j++] = c;
+    parser->capa_response[parser->j++] = c;
 
     switch (e->type) {
         case POP3_MULTI_FIN:
-            if (p->j == p->capa_size) {
-                void * tmp = realloc(p->capa_response, p->capa_size + 1);
-                if (tmp == NULL)
+            if (parser->j == parser->capa_size) {
+                void * tmp = realloc(parser->capa_response, parser->capa_size + 1);
+
+                if (tmp == NULL) {
                     return response_error;
-                p->capa_size++;
-                p->capa_response = tmp;
+                }
+
+                parser->capa_size++;
+                parser->capa_response = tmp;
             }
-            p->capa_response[p->j] = 0;
+
+            parser->capa_response[parser->j] = 0;
             ret = response_done;
             break;
         default:
@@ -142,8 +152,8 @@ enum response_state pcapa(const uint8_t c, struct response_parser* p) {
     return ret;
 }
 
-enum response_state multiline(const uint8_t c, struct response_parser* p) {
-    const struct parser_event * e = parser_feed(p->pop3_multi_parser, c);
+enum response_state multiline(const uint8_t c, struct response_parser * parser) {
+    const struct parser_event * e = parser_feed(parser->pop3_multi_parser, c);
     enum response_state ret = response_multiline;
 
     switch (e->type) {
@@ -157,65 +167,65 @@ enum response_state multiline(const uint8_t c, struct response_parser* p) {
     return ret;
 }
 
-extern void response_parser_init (struct response_parser* p) {
-    memset(p->status_buffer, 0, STATUS_SIZE);
-    p->state = response_status_indicator;
-    p->first_line_done = false;
-    p->i = 0;
+extern void response_parser_init (struct response_parser * parser) {
+    memset(parser->status_buffer, 0, STATUS_SIZE);
+    parser->state               = response_status_indicator;
+    parser->first_line_consumed = false;
+    parser->i                   = 0;
 
-    if (p->pop3_multi_parser == NULL) {
-        p->pop3_multi_parser = parser_init(parser_no_classes(), pop3_multi_parser());
+    if (parser->pop3_multi_parser == NULL) {
+        parser->pop3_multi_parser = parser_init(parser_no_classes(), pop3_multi_parser());
     }
 
-    parser_reset(p->pop3_multi_parser);
+    parser_reset(parser->pop3_multi_parser);
 
-    if (p->capa_response != NULL) {
-        free(p->capa_response);
-        p->capa_response = NULL;
+    if (parser->capa_response != NULL) {
+        free(parser->capa_response);
+        parser->capa_response = NULL;
     }
 
-    p->j = 0;
-    p->capa_size = 0;
+    parser->j           = 0;
+    parser->capa_size   = 0;
 }
 
-extern enum response_state response_parser_feed (struct response_parser* p, const uint8_t c) {
+extern enum response_state response_parser_feed (struct response_parser * parser, const uint8_t c) {
     enum response_state next;
 
-    switch(p->state) {
+    switch (parser->state) {
         case response_status_indicator:
-            next = status(c, p);
+            next = status(c, parser);
             break;
         case response_description:
             next = description(c);
             break;
         case response_newline:
-            next = newline(c, p);
+            next = newline(c, parser);
             break;
         case response_mail:
-            next = mail(c, p);
+            next = mail(c, parser);
             break;
         case response_list:
-            next = plist(c, p);
+            next = plist(c, parser);
             break;
         case response_capa:
-            next = pcapa(c, p);
+            next = pcapa(c, parser);
             break;
         case response_multiline:
-            next = multiline(c, p);
+            next = multiline(c, parser);
             break;
         case response_done:
         case response_error:
-            next = p->state;
+            next = parser->state;
             break;
         default:
             next = response_error;
             break;
     }
 
-    return p->state = next;
+    return parser->state = next;
 }
 
-extern bool response_is_done(const enum response_state st, bool *errored) {
+extern bool response_is_done(const enum response_state st, bool * errored) {
     if(st >= response_error && errored != 0) {
         *errored = true;
     }
@@ -225,18 +235,24 @@ extern bool response_is_done(const enum response_state st, bool *errored) {
 
 extern enum response_state response_consume(buffer * read_buffer, buffer * write_buffer, struct response_parser * parser, bool * errored) {
     enum response_state st = parser->state;
+    uint8_t       c  = 0;
 
     if (parser->state == response_done) {
         return st;
     }
 
     while(buffer_can_read(read_buffer)) {
-        const uint8_t c = buffer_read(read_buffer);
-        st = response_parser_feed(parser, c);
+        c   = buffer_read(read_buffer);
+        st  = response_parser_feed(parser, c);
+
+        if (st == response_error) {
+            return st;
+        }
         buffer_write(write_buffer, c);
-        if(response_is_done(st, errored) || parser->first_line_done) {
+        if (response_is_done(st, errored) || parser->first_line_consumed) {
             break;
         }
+
     }
 
     return st;

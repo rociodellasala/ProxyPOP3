@@ -16,12 +16,8 @@ enum pop3_session_state {
 /* Representa una sesion pop3 */
 struct pop3_session {
     char *                      user_name;
-
     enum pop3_session_state     state;
-    unsigned                    concurrent_invalid_commands;
-
     bool                        pipelining;
-
     struct msg_queue *          request_queue;
 };
 

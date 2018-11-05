@@ -27,8 +27,7 @@ static const struct pop3_response invalid_response = {
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
 
-const struct pop3_response *
-get_response(const char *response) {
+const struct pop3_response * get_response(const char *response) {
     for (unsigned i = 0; i < N(responses); i++) {
         if (strcmp(response, responses[i].name) == 0) {
             return &responses[i];

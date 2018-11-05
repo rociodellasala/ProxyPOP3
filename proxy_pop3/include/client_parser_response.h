@@ -39,7 +39,7 @@ struct response_parser {
 
     char                    status_buffer[STATUS_SIZE];
 
-    bool                    first_line_done;
+    bool                    first_line_consumed;
     struct parser *         pop3_multi_parser;
 
     char *                  capa_response;
