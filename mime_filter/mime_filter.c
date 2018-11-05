@@ -18,7 +18,7 @@
 #include "include/stack.h"
 
 
-//variables de entorno del manual pop3filter.8
+//variables de entorno del manual proxy_pop3.8
 #define FILTER_MEDIAS 	"FILTER_MEDIAS"
 #define FILTER_MSG 		"FILTER_MSG"
 #define ANY (1 << 9) 

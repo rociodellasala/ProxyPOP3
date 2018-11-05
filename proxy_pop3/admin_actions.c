@@ -10,7 +10,7 @@
 #include "include/admin.h"
 
 int check_password(const char * pass) {
-    const char * password = "1234";
+    const char * password = "protosgrupo3";
 
     if (strcmp(pass, password) == 0) {
         return 1;

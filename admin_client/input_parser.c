@@ -5,7 +5,7 @@
 #include "include/input_parser.h"
 
 void print_usage() {
-    printf("USAGE: ./pop3ctl <server-port> <server-address> \n"
+    printf("USAGE: ./admin_client <server-port> <server-address> \n"
            "POSIX style options: \n"
            "\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n");
 }

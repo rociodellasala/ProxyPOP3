@@ -6,15 +6,15 @@ void print_msg(const enum response_status status, const struct response response
     if (response.length > 0 && response.data != NULL) {
 
         if (status == OK) {
-            printf("Answer from pop3filter: +OK: %s\n", response.data);
+            printf("Answer from proxy_pop3: +OK: %s\n", response.data);
         } else {
-            printf("Answer from pop3filter: -ERR: %s\n", response.data);
+            printf("Answer from proxy_pop3: -ERR: %s\n", response.data);
         }
     } else {
         if (status == OK) {
-            printf("Answer from pop3filter: +OK\n");
+            printf("Answer from proxy_pop3: +OK\n");
         } else {
-            printf("Answer from pop3filter: -ERR\n");
+            printf("Answer from proxy_pop3: -ERR\n");
         }
     }
 }

@@ -10,11 +10,11 @@
 #include "include/filter_list.h"
 
 void print_usage() {
-    printf("USAGE: ./pop3filter [ POSIX style options ] <origin-server> \n"
+    printf("USAGE: ./proxy_pop3 [ POSIX style options ] <origin-server> \n"
            "POSIX style options: \n"
            "\t-e [error file]: Specifies the file where to redirect stderr. By default is '\\dev\\null'. \n"
            "\t-h : Prints out help and ends. \n"
-           "\t-l [listen address]: Specifies the address where the pop3filter will serve. \n"
+           "\t-l [listen address]: Specifies the address where the proxy_pop3 will serve. \n"
            "\t-L [management address]: Specifies the address where the management service will serve. \n"
            "\t-m [message of replacement]: Specifies the message to replace filtered text(option -M). \n"
            "\t-M [filtered media-type]: Specifies a media types to be censored. \n"
@@ -22,7 +22,7 @@ void print_usage() {
            "\t-p [port]: Specifies TCP port where to listen for incoming POP3 connections. By default is 1110. \n"
            "\t-P [origin port]: Specifies TCP port where the POP3 server is located. By default is 110. \n"
            "\t-t [filtered command]: Command used for external transformations. By default applies no transofrmations. \n"
-           "\t-v : Prints out the pop3filter version and ends. \n"
+           "\t-v : Prints out the proxy_pop3 version and ends. \n"
            "<origin-server>: Address of POP3 origin server.\n");
 }
 
@@ -317,7 +317,7 @@ void initialize_values() {
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
     parameters->filter_command->switch_program  = true; //tiene que estar seteado en false
-    parameters->filter_command->program_name    = (unsigned char *) "./stripmime"; //tiene que estar seteado en cat
+    parameters->filter_command->program_name    = (unsigned char *) "./mime_filter"; //tiene que estar seteado en cat
     parameters->version                         = "1.0";
 }
 
