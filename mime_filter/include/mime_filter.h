@@ -78,7 +78,7 @@ struct ctx {
     unsigned                i;
 };
 
-/* Busca los subtipos para cierto nodo */
+/* Busca el type y subtype correspondiente y asigna los subtypes a la estructura ctx */
 void context_setter(struct ctx *) ;
 
 /* Retorna un evento para el listado de subtipos y el caracter recibido */
