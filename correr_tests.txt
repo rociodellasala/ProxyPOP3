@@ -55,13 +55,23 @@ gcc -o test delimiter.c parser_creator.c stack.c mime_list.c mime_type.c mime_ch
 	user    0m0.017s
 	sys     0m1.161s
 
+	--EN LINUX--
+	real    0m0.093s
+	user    0m0.002s
+	sys     0m0.090s
+
+	--EN LINUX-- volcando a un out
+	real    0m9.727s
+	user    0m0.000s
+	sys     0m0.587s
+
 
 	FILTER_MEDIAS=a/b time cat ../test_cases/i_big.mbox | ./test | pv > out
 
 
 	---EN LINUX--
 
-	export FILER_MEDIAS=a/b
+	export FILTER_MEDIAS=a/b
 	time cat i_big.mbox | ./stripmime | pv > out
 	real    1m33.663s
 	user    1m28.835s
@@ -75,7 +85,7 @@ gcc -o test delimiter.c parser_creator.c stack.c mime_list.c mime_type.c mime_ch
 
 	FILTER_MEDIAS=application/x-cd-image time cat ../test_cases/i_big.mbox | ./test | pv > out
 
-	export FILER_MEDIAS=application/x-cd-image
+	export FILTER_MEDIAS=application/x-cd-image
 	time cat i_big.mbox | ./stripmime | pv > out
 	real    1m21.334s
 	user    1m21.096s
