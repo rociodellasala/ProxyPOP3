@@ -11,7 +11,7 @@
 #include "client_request.h"
 #include "parser.h"
 
-#define STATUS_SIZE         4
+#define STATUS_SIZE  4
 
 enum response_state {
     response_status_indicator,

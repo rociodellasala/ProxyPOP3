@@ -241,7 +241,7 @@ int validate_options(const int argc, char ** argv) {
         option = getopt(size, options, ":e:l:L:m:M:o:P:p:t:");
 
         parameter = optarg;
-        
+
         if (parameter != NULL) {
             if (parameter[0] == '-') {
                 printf("Parameters can't begin with '-'.\n");
@@ -316,8 +316,8 @@ void initialize_values() {
     parameters->filtered_media_types            = filter_list_init(); 
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
-    parameters->filter_command->switch_program  = true;
-    parameters->filter_command->program_name    = (unsigned char *) "./stripmime";
+    parameters->filter_command->switch_program  = true; //tiene que estar seteado en false
+    parameters->filter_command->program_name    = (unsigned char *) "./stripmime"; //tiene que estar seteado en cat
     parameters->version                         = "1.0";
 }
 

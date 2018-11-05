@@ -25,7 +25,8 @@ enum pop3_state {
     WELCOME_WRITE,
     CAPA,
     REQUEST,
-    RESPONSE,
+    RESPONSE_READ,
+    RESPONSE_WRITE,
     EXTERNAL_TRANSFORMATION,
     DONE,
 };
@@ -55,6 +56,8 @@ struct response_st {
     struct pop3_request *       request;
 
     struct response_parser      response_parser;
+
+    bool                        msg_not_finished;
 };
 
 

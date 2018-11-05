@@ -181,7 +181,6 @@ extern void response_parser_init (struct response_parser* p) {
 
 extern enum response_state response_parser_feed (struct response_parser* p, const uint8_t c) {
     enum response_state next;
-
     switch(p->state) {
         case response_status_indicator:
             next = status(c, p);
@@ -220,13 +219,17 @@ extern bool response_is_done(const enum response_state st, bool *errored) {
     if(st >= response_error && errored != 0) {
         *errored = true;
     }
+
     return st >= response_done;
 }
 
 extern enum response_state response_consume(buffer *b, buffer *wb, struct response_parser *p, bool *errored) {
     enum response_state st = p->state;
-    if (p->state == response_done)
+    if (p->state == response_done) {
         return st;
+    }
+
+
     while(buffer_can_read(b)) {
         const uint8_t c = buffer_read(b);
         st = response_parser_feed(p, c);
@@ -235,6 +238,6 @@ extern enum response_state response_consume(buffer *b, buffer *wb, struct respon
             break;
         }
     }
-
+    printf("st: %d\n", st);
     return st;
 }

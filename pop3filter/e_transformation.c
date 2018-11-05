@@ -146,8 +146,8 @@ char * init_enviroment_variables(struct pop3_session * session){
             pop3_username, session->user_name,
             pop3_server, parameters->origin_server,
             (char *) parameters->filter_command->program_name);
-    printf("%s\n", enviroment_var);
-    //free(censored_medias_typed);
+
+    free(censored_medias_typed);
     return enviroment_var;
 }
 
