@@ -30,13 +30,11 @@ enum response_state status(const uint8_t c, struct response_parser* p) {
 
 //ignoramos la descripcion
 enum response_state description(const uint8_t c) {
-    enum response_state ret = response_description;
-
     if (c == '\r') {
-        ret = response_newline;
+        return response_newline;
     }
 
-    return ret;
+    return response_description;
 }
 
 enum response_state newline(const uint8_t c, struct response_parser *p) {
@@ -98,6 +96,7 @@ enum response_state plist(const uint8_t c, struct response_parser* p) {
 
     switch (e->type) {
         case POP3_MULTI_FIN:
+            puts("multi fin list");
             ret = response_done;
             break;
         default:
@@ -181,6 +180,7 @@ extern void response_parser_init (struct response_parser* p) {
 
 extern enum response_state response_parser_feed (struct response_parser* p, const uint8_t c) {
     enum response_state next;
+
     switch(p->state) {
         case response_status_indicator:
             next = status(c, p);
@@ -223,21 +223,21 @@ extern bool response_is_done(const enum response_state st, bool *errored) {
     return st >= response_done;
 }
 
-extern enum response_state response_consume(buffer *b, buffer *wb, struct response_parser *p, bool *errored) {
-    enum response_state st = p->state;
-    if (p->state == response_done) {
+extern enum response_state response_consume(buffer * read_buffer, buffer * write_buffer, struct response_parser * parser, bool * errored) {
+    enum response_state st = parser->state;
+
+    if (parser->state == response_done) {
         return st;
     }
 
-
-    while(buffer_can_read(b)) {
-        const uint8_t c = buffer_read(b);
-        st = response_parser_feed(p, c);
-        buffer_write(wb, c);
-        if(response_is_done(st, errored) || p->first_line_done) {   // si se termino la respuesta o se termino de leer la primera linea
+    while(buffer_can_read(read_buffer)) {
+        const uint8_t c = buffer_read(read_buffer);
+        st = response_parser_feed(parser, c);
+        buffer_write(write_buffer, c);
+        if(response_is_done(st, errored) || parser->first_line_done) {
             break;
         }
     }
-    printf("st: %d\n", st);
+
     return st;
 }

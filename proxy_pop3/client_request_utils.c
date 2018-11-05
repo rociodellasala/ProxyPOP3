@@ -74,7 +74,6 @@ struct pop3_request * request_to_buffer(buffer * buffer, bool pipelining, struct
             }
         } else { // si el server soporta pipelining entonces copio al buffer todas las request encoladas
             while ((pop3_request = queue_get_next(queue)) != NULL) {
-                printf("pop 3 request a meter: name: %s args %s\n", pop3_request->cmd->name, pop3_request->args);
                 if (request_marshall(pop3_request, buffer) == -1) {
                     return pop3_request;
                 }
@@ -83,7 +82,6 @@ struct pop3_request * request_to_buffer(buffer * buffer, bool pipelining, struct
     } else {
         request_marshall(pop3_request, buffer);
         while ((pop3_request = queue_get_next(queue)) != NULL) {
-            printf("pop 3 request a meter: name: %s args %s\n", pop3_request->cmd->name, pop3_request->args);
             if (request_marshall(pop3_request, buffer) == -1) {
                 return pop3_request;
             }
