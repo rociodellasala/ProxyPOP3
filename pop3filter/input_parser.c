@@ -165,12 +165,6 @@ int validate_port(char * parameter) {
     return -1;
 }
 
-int validate_transformation(const char * parameter) {
-    if(parameter){
-        //PONGO ESTO PARA QUE AL COMPILAR NO ME TIRE ERROR DE Q NO ESTOY USANDO PARAMETER
-    }
-    return 1; //TODO
-}
 
 int validate_parameters(char * next_option, char * parameter) {
     /*if (strcmp(next_option, "-l") == 0) {
@@ -213,11 +207,6 @@ int validate_parameters(char * next_option, char * parameter) {
             printf("Invalid origin port\n");
             return -1;
         }
-    } else if (strcmp(next_option, "-t") == 0) {
-        if (validate_transformation(parameter) != 0) {
-            printf("Invalid transformation\n");
-            return -1;
-        }
     }
 
     return 0;
@@ -252,7 +241,7 @@ int validate_options(const int argc, char ** argv) {
         option = getopt(size, options, ":e:l:L:m:M:o:P:p:t:");
 
         parameter = optarg;
-
+        
         if (parameter != NULL) {
             if (parameter[0] == '-') {
                 printf("Parameters can't begin with '-'.\n");
