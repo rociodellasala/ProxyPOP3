@@ -88,7 +88,7 @@ file_descriptor create_mua_socket(){
     servAddr6.sin6_family = AF_INET6;
     servAddr6.sin6_addr = in6addr_any;
     servAddr6.sin6_port = htons(parameters->port);
-    
+
     if (bind(master_socket6, (struct sockaddr*) &servAddr6, sizeof(servAddr6)) < 0) {
         perror("Unable to bind socket");
         exit(EXIT_FAILURE);

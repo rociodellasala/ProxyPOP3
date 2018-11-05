@@ -22,7 +22,6 @@ typedef enum request_state {
     request_error_inexistent_cmd,
     request_error_cmd_too_long,
     request_error_param_too_long,
-    request_error_too_many_params_for_cmd,
 } request_state;
 
 struct request_parser {
@@ -34,7 +33,7 @@ struct request_parser {
 };
 
 void request_parser_reset (struct request_parser *);
-enum request_state request_parser_feed (struct request_parser *, uint8_t, bool *);
+enum request_state request_parser_feed (struct request_parser *, uint8_t);
 enum request_state request_consume(buffer *, struct request_parser *, bool *);
 bool request_is_done(enum request_state, bool *);
 

@@ -11,7 +11,6 @@
 
 void ext_read(struct selector_key * key) {
     struct external_transformation *et  = &ATTACHMENT(key)->et;
-    puts("ext_read");
     buffer  *b                          = et->ext_rb;
     uint8_t *ptr;
     size_t   count;
@@ -42,7 +41,6 @@ void ext_read(struct selector_key * key) {
 
 void ext_write(struct selector_key * key) {
     struct external_transformation *et  = &ATTACHMENT(key)->et;
-    puts("ext_write");
     buffer  *b                          = et->ext_wb;
     uint8_t *ptr;
     size_t   count;

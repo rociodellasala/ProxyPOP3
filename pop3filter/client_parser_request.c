@@ -43,23 +43,12 @@ static enum request_state cmd(const uint8_t c, struct request_parser * parser) {
     return next;
 }
 
-static enum request_state parameter(const uint8_t c, struct request_parser * parser, bool * is_space) {
+static enum request_state parameter(const uint8_t c, struct request_parser * parser) {
     enum request_state ret          = request_param;
     struct pop3_request * request   = parser->request;
 
-    if (*is_space && c != SPACE && c != CR && c != NEWLINE){
-        parser->request->params++;
-    }
 
-    *is_space = false;
-
-    if (c == SPACE) {
-        *is_space = true;
-    }
-
-    if (parser->request->params > parser->request->cmd->max_params) {
-        ret = request_error_too_many_params_for_cmd;
-    } else if (c == CR || c == NEWLINE) {
+     if (c == CR || c == NEWLINE) {
         char * aux = parser->param_buffer;
         int count = 0;
         while (*aux  != 0) {
@@ -105,7 +94,7 @@ extern void request_parser_reset(struct request_parser * parser) {
     parser->i = parser->j = 0;
 }
 
-extern enum request_state request_parser_feed(struct request_parser * p, const uint8_t c, bool * is_space) {
+extern enum request_state request_parser_feed(struct request_parser * p, const uint8_t c) {
     enum request_state next;
 
     switch(p->state) {
@@ -113,7 +102,7 @@ extern enum request_state request_parser_feed(struct request_parser * p, const u
             next = cmd(c, p);
             break;
         case request_param:
-            next = parameter(c, p, is_space);
+            next = parameter(c, p);
             break;
         case request_newline:
             next = newline(c, p);
@@ -122,7 +111,6 @@ extern enum request_state request_parser_feed(struct request_parser * p, const u
         case request_error_inexistent_cmd:
         case request_error_cmd_too_long:
         case request_error_param_too_long:
-        case request_error_too_many_params_for_cmd:
             next = p->state;
             break;
         default:
@@ -155,11 +143,10 @@ void clean_buffer(buffer * buffer, uint8_t c, enum request_state * st) {
 enum request_state request_consume(buffer * buffer, struct request_parser * parser, bool * errored) {
     enum request_state st = parser->state;
     uint8_t c = 0;
-    bool is_space;
 
     while (buffer_can_read(buffer)) {
         c = buffer_read(buffer);
-        st = request_parser_feed(parser, c, &is_space);
+        st = request_parser_feed(parser, c);
         if(request_is_done(st, errored)) {
             break;
         }

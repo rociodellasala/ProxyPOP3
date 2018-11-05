@@ -19,9 +19,6 @@ void send_error_request(enum request_state state, file_descriptor fd) {
         case request_error_param_too_long:
             dest = "- ERR Parameter too long: Max 40 characters per argument.\r\n";
             break;
-        case request_error_too_many_params_for_cmd:
-            dest = "- ERR Too many parameters for command.\r\n";
-            break;
         default:
             break;
     }

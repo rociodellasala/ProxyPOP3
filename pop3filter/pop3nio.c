@@ -245,7 +245,7 @@ int origin_server_resolution_done(struct selector_key * key) {
     struct pop3 * pop3 =  ATTACHMENT(key);
 
     if (pop3->origin_resolution == 0) {
-        char * msg = "- ERR Invalid domain.\r\n";
+        char * msg = "- ERR Invalid address.\r\n";
         send(ATTACHMENT(key)->client_fd, msg, strlen(msg), 0);
         return ERROR;
     } else {
