@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+
 #include "include/send_request.h"
 #include "include/receive_response.h"
 #include "include/utils.h"
@@ -30,8 +31,8 @@ static struct parse_action * action_list[] = {
 };
 
 void handle_receive_msg(enum response_status * r_status) {
-    ssize_t     recv_bytes;
-    struct response    response;
+    ssize_t             recv_bytes;
+    struct response     response;
 
     recv_bytes = receive_response(r_status, &response);
 
@@ -52,7 +53,7 @@ cmd_status assemble_req(int i, const char * buffer_option, const b_cmd command) 
     char    param[MAX_PARAM]    = {0};
     int     j                   = 0;
 
-    if(buffer_option[i] != SPACE){
+    if (buffer_option[i] != SPACE) {
         return BAD_SINTAXIS;
     } else {
         i++;
@@ -202,14 +203,14 @@ void parse_cmd_status(cmd_status cmd_status, enum response_status * r_status) {
 }
 
 void communicate_with_proxy() {
-    char buffer_option[MAX_BUFFER];
-    cmd c;
-    cmd_status cmd_status;
-    struct parse_action * act;
-    admin_status a_status               = ST_AUTH;
-    bool running                        = true;
-    bool quit_option_on                 = false;
-    enum response_status r_status       = OK;
+    char                    buffer_option[MAX_BUFFER];
+    cmd                     c;
+    cmd_status              cmd_status;
+    struct parse_action *   act;
+    admin_status            a_status = ST_AUTH;
+    bool                    running = true;
+    bool                    quit_option_on = false;
+    enum response_status    r_status = OK;
 
     show_menu_authentication();
 

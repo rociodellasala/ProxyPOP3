@@ -15,5 +15,4 @@ enum response_status {
    NOT_SEND         = 3,     
 } response_status;
 
-
 #endif //PROXYPOP3_RESPONSE_H

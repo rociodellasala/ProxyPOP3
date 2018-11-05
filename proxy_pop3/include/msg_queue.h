@@ -9,9 +9,9 @@ struct queue_node {
 };
 
 struct msg_queue {
-    struct queue_node *     first,
-            *     last,
-            *     current;
+    struct queue_node *     first;
+    struct queue_node *     current;
+    struct queue_node *     last;
     int 				    size;
 };
 

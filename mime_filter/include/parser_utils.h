@@ -22,23 +22,17 @@ enum string_cmp_event_type {
  *
  * Si se recibe el evento `STRING_CMP_NEQ' el texto entrado no matchea.
  */
-struct parser_definition
-parser_utils_strcmpi(const char *s);
+struct parser_definition parser_utils_strcmpi(const char *);
 
 /*
  * Crea un parser que verifica que los caracteres recibidos formen alguno
  * de los Strings en la lista de filtros
  */
-struct parser_definition
-parser_utils_list_strcmpi(const char *filtered_list[]);
 
 /**
  * libera recursos asociado a una llamada de `parser_utils_strcmpi'
  */
-void
-parser_utils_strcmpi_destroy(const struct parser_definition *p);
+void parser_utils_strcmpi_destroy(const struct parser_definition *);
 
-const char *
-parser_utils_strcmpi_event(enum string_cmp_event_type type);
 
 #endif

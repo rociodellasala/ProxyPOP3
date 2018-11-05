@@ -37,94 +37,81 @@ enum state {
 ///////////////////////////////////////////////////////////////////////////////
 // Acciones
 
-static void
-name(struct parser_event *ret, const uint8_t c) {
+static void name(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_NAME;
     ret->n       = 1;
     ret->data[0] = c;
 }
 
-static void
-name_end(struct parser_event *ret, const uint8_t c) {
+static void name_end(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_NAME_END;
     ret->n       = 1;
     ret->data[0] = ':';
 }
 
-static void
-value(struct parser_event *ret, const uint8_t c) {
+static void value(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_VALUE;
     ret->n       = 1;
     ret->data[0] = c;
 }
 
-static void
-value_cr(struct parser_event *ret, const uint8_t c) {
+static void value_cr(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_VALUE;
     ret->n       = 1;
     ret->data[0] = '\r';
 }
 
-static void
-value_fold_crlf(struct parser_event *ret, const uint8_t c) {
+static void value_fold_crlf(struct parser_event *ret, const uint8_t c) {
     ret->type    = MIME_MSG_VALUE_FOLD;
     ret->n       = 2;
     ret->data[0] = '\r';
     ret->data[1] = '\n';
 }
 
-static void
-value_fold(struct parser_event *ret, const uint8_t c) {
+static void value_fold(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_VALUE_FOLD;
     ret->n       = 1;
     ret->data[0] = c ;
 }
 
-static void
-value_end(struct parser_event *ret, const uint8_t c) {
+static void value_end(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_VALUE_END;
     ret->n       = 2;
     ret->data[0] = '\r';
     ret->data[1] = '\n';
 }
 
-static void
-wait(struct parser_event *ret, const uint8_t c) {
+static void wait(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_WAIT;
     ret->n       = 0;
 }
 
-static void
-body_start(struct parser_event *ret, const uint8_t c) {
+static void body_start(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_BODY_START;
     ret->n       = 2;
     ret->data[0] = '\r';
     ret->data[1] = '\n';
 }
 
-static void
-body(struct parser_event *ret, const uint8_t c) {
+static void body(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_BODY;
     ret->n       = 1;
     ret->data[0] = c;
 }
 
-static void
-unexpected(struct parser_event *ret, const uint8_t c) {
+static void unexpected(struct parser_event * ret, const uint8_t c) {
     ret->type    = MIME_MSG_UNEXPECTED;
     ret->n       = 1;
     ret->data[0] = c;
 }
 
-static void
-body_newline(struct parser_event* ret, const uint8_t c){
+static void body_newline(struct parser_event * ret, const uint8_t c){
     ret->type   = MIME_MSG_BODY_NEWLINE;
     ret->n      = 1;
     ret->data[0]= c;
 }
 
-static void
-body_crlf(struct parser_event* ret, const uint8_t c){
+static void body_crlf(struct parser_event * ret, const uint8_t c){
     ret->type   = MIME_MSG_BODY_CR;
     ret->n      = 1;
     ret->data[0]= c;
@@ -133,76 +120,76 @@ body_crlf(struct parser_event* ret, const uint8_t c){
 ///////////////////////////////////////////////////////////////////////////////
 // Transiciones
 
-static const struct parser_state_transition ST_NAME0[] =  {
-    {.when = ':',        .dest = ERROR,         .act1 = unexpected,},
-    {.when = ' ',        .dest = ERROR,         .act1 = unexpected,},
-    {.when = TOKEN_CTL,  .dest = ERROR,         .act1 = unexpected,},
-    {.when = TOKEN_CHAR, .dest = NAME,          .act1 = name,      },
-    {.when = ANY,        .dest = ERROR,         .act1 = unexpected,},
+static const struct parser_state_transition ST_NAME0[] = {
+    {.when = ':',           .dest = ERROR,          .act1 = unexpected,     },
+    {.when = ' ',           .dest = ERROR,          .act1 = unexpected,     },
+    {.when = TOKEN_CTL,     .dest = ERROR,          .act1 = unexpected,     },
+    {.when = TOKEN_CHAR,    .dest = NAME,           .act1 = name,           },
+    {.when = ANY,           .dest = ERROR,          .act1 = unexpected,     },
 };
 
-static const struct parser_state_transition ST_NAME[] =  {
-    {.when = ':',        .dest = VALUE,         .act1 = name_end,  },
-    {.when = ' ',        .dest = ERROR,         .act1 = unexpected,},
-    {.when = TOKEN_CTL,  .dest = ERROR,         .act1 = unexpected,},
-    {.when = TOKEN_CHAR, .dest = NAME,          .act1 = name,      },
-    {.when = ANY,        .dest = ERROR,         .act1 = unexpected,},
+static const struct parser_state_transition ST_NAME[] = {
+    {.when = ':',           .dest = VALUE,          .act1 = name_end,       },
+    {.when = ' ',           .dest = ERROR,          .act1 = unexpected,     },
+    {.when = TOKEN_CTL,     .dest = ERROR,          .act1 = unexpected,     },
+    {.when = TOKEN_CHAR,    .dest = NAME,           .act1 = name,           },
+    {.when = ANY,           .dest = ERROR,          .act1 = unexpected,     },
 };
 
 static const struct parser_state_transition ST_VALUE[] =  {
-        {.when = TOKEN_LWSP,    .dest = FOLD,    .act1 = value_fold,},
-    {.when = '\r',       .dest = VALUE_CR,       .act1 = wait,      },
-    {.when = ANY,        .dest = VALUE,          .act1 = value,     },
+    {.when = TOKEN_LWSP,    .dest = FOLD,           .act1 = value_fold,     },
+    {.when = '\r',          .dest = VALUE_CR,       .act1 = wait,           },
+    {.when = ANY,           .dest = VALUE,          .act1 = value,          },
 };
 
-static const struct parser_state_transition ST_VALUE_CR[] =  {
-    {.when = '\n',       .dest = VALUE_CRLF,     .act1 = wait,      },
-    {.when = ANY,        .dest = VALUE,          .act1 = value_cr,
-                                                 .act2 = value,     },
+static const struct parser_state_transition ST_VALUE_CR[] = {
+    {.when = '\n',          .dest = VALUE_CRLF,     .act1 = wait,           },
+    {.when = ANY,           .dest = VALUE,          .act1 = value_cr,
+                                                    .act2 = value,          },
 };
 
-static const struct parser_state_transition ST_VALUE_CRLF[] =  {
-    {.when = ':',        .dest = ERROR,          .act1 = unexpected,},
-    {.when = '\r',       .dest = VALUE_CRLF_CR,  .act1 = wait,},
-    {.when = TOKEN_LWSP, .dest = FOLD,           .act1 = value_fold_crlf,
-                                                 .act2 = value_fold,},
-    {.when = TOKEN_CTL,  .dest = ERROR,          .act1 = value_end,
-                                                 .act2 = unexpected,},
-    {.when = TOKEN_CHAR, .dest = NAME,           .act1 = value_end,
-                                                 .act2 = name,      },
-    {.when = ANY,        .dest = ERROR,          .act1 = unexpected,},
+static const struct parser_state_transition ST_VALUE_CRLF[] = {
+    {.when = ':',           .dest = ERROR,          .act1 = unexpected,     },
+    {.when = '\r',          .dest = VALUE_CRLF_CR,  .act1 = wait,           },
+    {.when = TOKEN_LWSP,    .dest = FOLD,           .act1 = value_fold_crlf,
+                                                    .act2 = value_fold,     },
+    {.when = TOKEN_CTL,     .dest = ERROR,          .act1 = value_end,
+                                                    .act2 = unexpected,     },
+    {.when = TOKEN_CHAR,    .dest = NAME,           .act1 = value_end,
+                                                    .act2 = name,           },
+    {.when = ANY,           .dest = ERROR,          .act1 = unexpected,     },
 };
 
-static const struct parser_state_transition ST_FOLD[] =  {
-    {.when =TOKEN_LWSP,  .dest = FOLD,           .act1 = value_fold,},
-    {.when = ANY,        .dest = VALUE,          .act1 = value,     },
+static const struct parser_state_transition ST_FOLD[] = {
+    {.when =TOKEN_LWSP,     .dest = FOLD,           .act1 = value_fold,     },
+    {.when = ANY,           .dest = VALUE,          .act1 = value,          },
 };
 
-static const struct parser_state_transition ST_VALUE_CRLF_CR[] =  {
-    {.when = '\n',        .dest = BODY,          .act1 = value_end,
-                                                 .act2 = body_start,},
-    {.when = ANY,         .dest = ERROR,         .act1 = value_end,
-                                                 .act2 = unexpected,},
+static const struct parser_state_transition ST_VALUE_CRLF_CR[] = {
+    {.when = '\n',          .dest = BODY,           .act1 = value_end,
+                                                    .act2 = body_start,     },
+    {.when = ANY,           .dest = ERROR,          .act1 = value_end,
+                                                    .act2 = unexpected,     },
 };
 
-static const struct parser_state_transition ST_BODY[] =  {
-        {.when = '\r',    .dest = BODY_CR,           .act1 = body_crlf,},
-        {.when = ANY,     .dest = BODY,           .act1 = body,},
+static const struct parser_state_transition ST_BODY[] = {
+    {.when = '\r',         .dest = BODY_CR,        .act1 = body_crlf,       },
+    {.when = ANY,          .dest = BODY,           .act1 = body,            },
 };
 
 static const struct parser_state_transition ST_BODY_CR[] = {
-        {.when = '\n',    .dest = BODY,             .act1 = body_newline},
-        {.when = ANY,     .dest = ERROR,             .act1 = unexpected,},
+    {.when = '\n',          .dest = BODY,           .act1 = body_newline    },
+    {.when = ANY,           .dest = ERROR,          .act1 = unexpected,     },
 };
 
-static const struct parser_state_transition ST_ERROR[] =  {
-    {.when = ANY,        .dest = ERROR,           .act1 = unexpected,},
+static const struct parser_state_transition ST_ERROR[] = {
+    {.when = ANY,           .dest = ERROR,          .act1 = unexpected,     },
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // Declaración formal
 
-static const struct parser_state_transition *states [] = {
+static const struct parser_state_transition * states [] = {
     ST_NAME0,
     ST_NAME,
     ST_VALUE,
@@ -237,52 +224,6 @@ static struct parser_definition definition = {
     .start_state  = NAME0,
 };
 
-const struct parser_definition * 
-mime_message_parser(void) {
+const struct parser_definition * mime_message_parser(void) {
     return &definition;
 }
-
-const char *
-mime_msg_event(enum mime_msg_event_type type) {
-    const char *ret = NULL;
-
-    switch(type) {
-        case MIME_MSG_NAME:
-            ret = "name(c)";
-            break;
-        case MIME_MSG_NAME_END:
-            ret = "name_end(':')";
-            break;
-        case MIME_MSG_VALUE:
-            ret = "value(c)";
-            break;
-        case MIME_MSG_VALUE_FOLD:
-            ret = "value_fold(c)";
-            break;
-        case MIME_MSG_VALUE_END:
-            ret = "value_end(CRLF)";
-            break;
-        case MIME_MSG_BODY_START:
-            ret = "start_body(c)";
-            break;
-        case MIME_MSG_BODY:
-            ret = "body(c)";
-            break;
-        case MIME_MSG_BODY_CR:
-            ret = "body_cr(c)";
-            break;
-        case MIME_MSG_BODY_NEWLINE:
-            ret = "body_newline(c)";
-            break;
-        case MIME_MSG_WAIT:
-            ret = "wait()";
-            break;
-        case MIME_MSG_UNEXPECTED:
-            ret = "unexpected(c)";
-            break;
-        default:
-            break;
-    }
-    return ret;
-}
-

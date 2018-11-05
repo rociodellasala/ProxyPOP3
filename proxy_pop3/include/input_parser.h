@@ -9,8 +9,8 @@
 #define BACKLOG 10
 
 struct extern_transformation {
-    bool switch_program;
-    unsigned char * program_name;
+    bool                    switch_program;
+    unsigned char *         program_name;
 };
 
 typedef struct extern_transformation * transformation;
@@ -18,17 +18,17 @@ typedef struct extern_transformation * transformation;
 extern transformation e_transformation;
 
 struct options {
-    uint16_t            port;                 // -p
-    char *              error_file;           // -e
-    char *              listen_address;       // -l
-    char *              management_address;   // -L
-    uint16_t            management_port;      // -o
-    char *              replacement_msg;      // -m
-    struct filter_list* filtered_media_types; // -M
-    char *              origin_server;        // This is the argument origin_server, it's not an option
-    uint16_t            origin_port;          // -P
-    transformation      filter_command;       // -t
-    char *              version;
+    uint16_t                port;                 // -p
+    char *                  error_file;           // -e
+    char *                  listen_address;       // -l
+    char *                  management_address;   // -L
+    uint16_t                management_port;      // -o
+    char *                  replacement_msg;      // -m
+    struct filter_list *    filtered_media_types; // -M
+    char *                  origin_server;        // This is the argument origin_server, it's not an option
+    uint16_t                origin_port;          // -P
+    transformation          filter_command;       // -t
+    char *                  version;
 };
 
 typedef struct options * options;

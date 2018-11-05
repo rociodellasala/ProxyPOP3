@@ -70,46 +70,48 @@ struct response_st {
  * liberarlo finalmente, y un pool para reusar alocaciones previas.
  */
 struct pop3 {
-    struct sockaddr_storage       client_addr;
-    file_descriptor               client_fd;
+    struct sockaddr_storage         client_addr;
+    file_descriptor                 client_fd;
 
-    struct addrinfo *             origin_resolution;
+    struct addrinfo *               origin_resolution;
 
-    struct sockaddr_storage       origin_addr;
-    socklen_t                     origin_addr_len;
-    int                           origin_domain;
-    file_descriptor               origin_fd;
+    struct sockaddr_storage         origin_addr;
+    socklen_t                       origin_addr_len;
+    int                             origin_domain;
+    file_descriptor                 origin_fd;
 
-    struct pop3_session           session;
+    struct pop3_session             session;
 
-    struct state_machine          stm;
+    struct state_machine            stm;
 
     union {
-        struct request_st         request;
+        struct request_st           request;
     } client;
 
     union {
-        struct welcome_st         welcome;
-        struct response_st        response;
+        struct welcome_st           welcome;
+        struct response_st          response;
     } orig;
 
 
-    uint8_t raw_buff_a[BUFFER_SIZE], raw_buff_b[BUFFER_SIZE];
-    buffer read_buffer, write_buffer;
+    uint8_t                         raw_buff_a[BUFFER_SIZE];
+    uint8_t                         raw_buff_b[BUFFER_SIZE];
+    buffer                          read_buffer;
+    buffer                          write_buffer;
 
-    uint8_t raw_super_buffer[BUFFER_SIZE];
-    buffer super_buffer;
+    uint8_t                         raw_super_buffer[BUFFER_SIZE];
+    buffer                          super_buffer;
 
-    uint8_t raw_extern_read_buffer[BUFFER_SIZE];
-    buffer extern_read_buffer;
+    uint8_t                         raw_extern_read_buffer[BUFFER_SIZE];
+    buffer                          extern_read_buffer;
 
-    int                           extern_read_fd;
-    int                           extern_write_fd;
+    int                             extern_read_fd;
+    int                             extern_write_fd;
     struct external_transformation  et;
 
     unsigned                        references;
 
-    struct pop3 * next;
+    struct pop3 *                   next;
 };
 
 /*

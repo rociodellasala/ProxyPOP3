@@ -9,7 +9,6 @@
 /** eventos en un mime type*/
 
 enum mime_type_event_type {
-    
     MIME_TYPE_TYPE,
     MIME_TYPE_TYPE_END,
     MIME_TYPE_SUBTYPE,
@@ -23,8 +22,5 @@ enum mime_type_event_type {
 };
 
 const struct parser_definition * mime_type_parser(void);
-
-const char *mime_type_event(enum mime_type_event_type type);
-
 
 #endif

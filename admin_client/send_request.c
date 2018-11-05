@@ -2,6 +2,7 @@
 #include <malloc.h>
 #include <netinet/sctp.h>
 #include <string.h>
+
 #include "include/client_request.h"
 #include "include/send_request.h"
 #include "include/serializer.h"
@@ -22,7 +23,7 @@ ssize_t send_request(struct request * request) {
 }
 
 void send_request_one_param(const char * parameter, b_cmd cmd) {
-    struct request * request   = malloc(sizeof(*request));
+    struct request * request = malloc(sizeof(*request));
 
     request->version    = VERSION;
     request->cmd        = cmd;
@@ -37,7 +38,7 @@ void send_request_one_param(const char * parameter, b_cmd cmd) {
 }
 
 void send_request_without_param(b_cmd cmd) {
-    struct request * request   = malloc(sizeof(*request));
+    struct request * request = malloc(sizeof(*request));
 
     request->version    = VERSION;
     request->cmd        = cmd;

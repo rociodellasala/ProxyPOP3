@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+
 #include "include/response.h"
 
 void print_msg(const enum response_status status, const struct response response) {
     if (response.length > 0 && response.data != NULL) {
-
         if (status == OK) {
             printf("Answer from proxy_pop3: +OK: %s\n", response.data);
         } else {

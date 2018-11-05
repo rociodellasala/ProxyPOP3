@@ -1,4 +1,5 @@
 #include <malloc.h>
+
 #include "include/response.h"
 
 unsigned char * deserialize_int(unsigned char * buffer, unsigned int * value) {

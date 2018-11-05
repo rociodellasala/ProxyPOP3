@@ -96,7 +96,6 @@ enum mime_char_class {
 /**
  * retorna la caracterización para cada uno de los bytes (256 elementos)
  */
-const unsigned *
-init_char_class(void);
+const unsigned * init_char_class(void);
 
 #endif

@@ -15,14 +15,14 @@ enum pop3_session_state {
 
 /* Representa una sesion pop3 */
 struct pop3_session {
-    char * user_name;
+    char *                      user_name;
 
-    enum pop3_session_state state;
-    unsigned concurrent_invalid_commands;
+    enum pop3_session_state     state;
+    unsigned                    concurrent_invalid_commands;
 
-    bool pipelining;
+    bool                        pipelining;
 
-    struct msg_queue * request_queue;
+    struct msg_queue *          request_queue;
 };
 
 void pop3_session_init(struct pop3_session *, bool);

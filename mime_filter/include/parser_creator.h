@@ -1,5 +1,6 @@
 #ifndef PARSER_CREATOR_H_
 #define PARSER_CREATOR_H_
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,19 +9,17 @@
 #include <stdint.h>
 #include <stddef.h>
 
-
-
 /** declaración completa de una máquina de estados */
 struct parser_definition {
     /** cantidad de estados */
-    const unsigned                         states_count;
+    const unsigned                          states_count;
     /** por cada estado, sus transiciones */
-    const struct parser_state_transition **states;
+    const struct parser_state_transition ** states;
     /** cantidad de estados por transición */
-    const size_t                          *states_n;
+    const size_t *                          states_n;
 
     /** estado inicial */
-    const unsigned                         start_state;
+    const unsigned                          start_state;
 };
 
 
@@ -30,40 +29,40 @@ struct parser_definition {
  */
 struct parser_event {
     /** tipo de evento */
-    unsigned type;
+    unsigned                type;
     /** caracteres asociados al evento */
-    uint8_t  data[3];
+    uint8_t                 data[3];
     /** cantidad de datos en el buffer `data' */
-    uint8_t  n;
+    uint8_t                 n;
 
     /** lista de eventos: si es diferente de null ocurrieron varios eventos */
-    struct parser_event *next;
+    struct parser_event *   next;
 };
 
 /** describe una transición entre estados  */
 struct parser_state_transition {
     /* condición: un caracter o una clase de caracter. Por ej: '\r' */
-    int       when;
+    int         when;
     /** descriptor del estado destino cuando se cumple la condición */
-    unsigned  dest;
+    unsigned    dest;
     /** acción 1 que se ejecuta cuando la condición es verdadera. requerida. */
-    void    (*act1)(struct parser_event *ret, const uint8_t c);
+    void        (*act1)(struct parser_event *, const uint8_t);
     /** otra acción opcional */
-    void    (*act2)(struct parser_event *ret, const uint8_t c);
+    void        (*act2)(struct parser_event *, const uint8_t);
 };
 
 struct parser {
 
-    const unsigned  *classes; 
+    const unsigned  *                   classes;
 
     /** definición de estados */
-    const struct parser_definition *def;
+    const struct parser_definition *    def;
 
-    unsigned state; //estado actual
+    unsigned                            state; //estado actual
 
-    struct parser_event e1;
+    struct parser_event                 e1;
 
-    struct parser_event e2;
+    struct parser_event                 e2;
 };
 
 /** predicado para utilizar en `when' que retorna siempre true */
@@ -74,13 +73,13 @@ struct parser {
  *
  * `classes`: caracterización de cada caracter (256 elementos)
  */
-struct parser *parser_init    (const unsigned *classes, const struct parser_definition *def);
+struct parser * parser_init(const unsigned *, const struct parser_definition *);
 
 /** destruye el parser */
-void parser_destroy  (struct parser *p);
+void parser_destroy(struct parser *);
 
 /** permite resetear el parser al estado inicial */
-void parser_reset    (struct parser *p);
+void parser_reset(struct parser *);
 
 
 /**
@@ -88,7 +87,7 @@ void parser_reset    (struct parser *p);
  * de parsing. Los eventos son reusado entre llamadas por lo que si se desea
  * capturar los datos se debe clonar.
  */
-const struct parser_event *parser_feed     (struct parser *p, const uint8_t c);
+const struct parser_event * parser_feed(struct parser *, const uint8_t);
 
 /**
  * En caso de la aplicacion no necesite clases caracteres, se

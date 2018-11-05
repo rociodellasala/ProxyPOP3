@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <strings.h>
 #include <memory.h>
+
 #include "include/admin.h"
 #include "include/input_parser.h"
 
@@ -45,8 +46,7 @@ void initialize_sctp_socket() {
         perror("Unable to create socket");
         exit(EXIT_FAILURE);
     }
-
-    /* Establece la conexion al proxy_pop3 */
+    
     if (connect(socket_fd, managementaddrinfo->ai_addr, managementaddrinfo->ai_addrlen) < 0) {
         perror("Connection to POP3 proxy_pop3 failed");
         exit(EXIT_FAILURE);
@@ -70,8 +70,7 @@ int main(int argc, char ** argv) {
            clt_parameters->server_address, clt_parameters->server_port);
 
     initialize_sctp_socket();
-
-    /* Recibe el mensaje de bienvenida del proxy_pop3 */
+    
     sctp_recvmsg(socket_fd, (void *) recv_buffer, MAX_BUFFER, NULL, 0, 0, 0);
     printf("\nMessage from proxy_pop3: %s", recv_buffer);
 

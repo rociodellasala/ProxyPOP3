@@ -8,39 +8,39 @@
 #include "utils.h"
 
 enum b_cmd {
-    A_CMD                   = 0X01,
-    SET_T_CMD               = 0X02,
-    GET_T_CMD               = 0X03,
-    SWITCH_T_CMD            = 0X04,
-    GET_ME_CMD              = 0X05,
-    GET_MI_CMD              = 0X06,
-    ALLOW_MI_CMD            = 0X07,
-    FORBID_MI_CMD           = 0X08,
-    Q_CMD                   = 0X09,
+    A_CMD                           = 0X01,
+    SET_T_CMD                       = 0X02,
+    GET_T_CMD                       = 0X03,
+    SWITCH_T_CMD                    = 0X04,
+    GET_ME_CMD                      = 0X05,
+    GET_MI_CMD                      = 0X06,
+    ALLOW_MI_CMD                    = 0X07,
+    FORBID_MI_CMD                   = 0X08,
+    Q_CMD                           = 0X09,
 };
 
 enum admin_status {
-    ST_EHLO                 = 0,
-    ST_CONNECTED            = 1,
+    ST_EHLO                         = 0,
+    ST_CONNECTED                    = 1,
 };
 
 enum parse_req_status {
-    REQ_PARSE_OK                  = 0,
-    INCORRECT_PASS                = 1,
-    COULD_NOT_READ_REQUEST        = 2,
-    INCORRECT_METRIC              = 3,
-    VERSION_UNSOPPORTED           = 4,
-    MIME_ALREADY_FORBID           = 5,
-    FORBID_ERROR                  = 6,
-    MIME_ALREADY_ALLOWED          = 7,
-    CANNOT_ALLOW_BECAUSE_WILDCARD = 8,
-    ALLOW_ERROR                   = 9,
+    REQ_PARSE_OK                    = 0,
+    INCORRECT_PASS                  = 1,
+    COULD_NOT_READ_REQUEST          = 2,
+    INCORRECT_METRIC                = 3,
+    VERSION_UNSOPPORTED             = 4,
+    MIME_ALREADY_FORBID             = 5,
+    FORBID_ERROR                    = 6,
+    MIME_ALREADY_ALLOWED            = 7,
+    CANNOT_ALLOW_BECAUSE_WILDCARD   = 8,
+    ALLOW_ERROR                     = 9,
 };
 
 enum parse_resp_status {
-    RESP_PARSE_OK           = 0,
-    COULD_NOT_SEND_WELCOME  = 1,
-    COULD_NOT_SEND_RESPONSE = 2,
+    RESP_PARSE_OK                   = 0,
+    COULD_NOT_SEND_WELCOME          = 1,
+    COULD_NOT_SEND_RESPONSE         = 2,
 };
 
 struct admin {

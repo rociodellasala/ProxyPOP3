@@ -32,29 +32,29 @@ enum response_state {
 };
 
 struct response_parser {
-    struct pop3_request  *request;
-    enum response_state   state;
+    struct pop3_request  *  request;
+    enum response_state     state;
 
-    uint8_t               i, j;
+    uint8_t                 i, j;
 
-    char                  status_buffer[STATUS_SIZE];
+    char                    status_buffer[STATUS_SIZE];
 
-    bool                  first_line_done;
-    struct parser         *pop3_multi_parser;
+    bool                    first_line_done;
+    struct parser *         pop3_multi_parser;
 
-    char                  *capa_response;
-    size_t                capa_size;
+    char *                  capa_response;
+    size_t                  capa_size;
 };
 
 /** inicializa el parser */
-void response_parser_init (struct response_parser *p);
+void response_parser_init(struct response_parser *);
 
 /** entrega un byte al parser. retorna true si se llego al final  */
-enum response_state response_parser_feed (struct response_parser *p, uint8_t c);
+enum response_state response_parser_feed(struct response_parser *, uint8_t );
 
-enum response_state response_consume(buffer *b, buffer *wb, struct response_parser *p, bool *errored);
+enum response_state response_consume(buffer *, buffer *, struct response_parser *, bool *);
 
-bool response_is_done(enum response_state st, bool *errored);
+bool response_is_done(enum response_state, bool *);
 
 
 #endif //PROXYPOP3_RESPONSE_PARSER_H

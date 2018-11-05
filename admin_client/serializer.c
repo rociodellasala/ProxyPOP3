@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "include/client_request.h"
 
 unsigned char * serialize_int(unsigned char * buffer, unsigned int value) {

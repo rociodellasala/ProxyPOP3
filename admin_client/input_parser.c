@@ -2,6 +2,7 @@
 #include <getopt.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include "include/input_parser.h"
 
 void print_usage() {
