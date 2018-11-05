@@ -1,15 +1,12 @@
 gcc -o test delimiter.c parser_creator.c stack.c mime_list.c mime_type.c mime_chars.c parser_utils.c mime_msg.c multi_pop3_parser.c mime_filter.c
 
-Flags para compilar que estan buenos:
-
--Wall -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-align -Wstrict-overflow=5 -Waggregate-return -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Werror -pedantic-errors -Wmissing-prototypes -pedantic -std=c99 -D_DEFAULT_SOURCEs
 
 
 501) OK
 
 	Objetivo: No existan cambios.
 
-	FILTER_MEDIAS=application/json./stripmime < ../test_cases/ii_images.mbox > out
+	FILTER_MEDIAS=application/json ./stripmime < ./test_cases/ii_images.mbox > out
 
 	diff -u ii_images.mbox out
 
@@ -18,7 +15,7 @@ Flags para compilar que estan buenos:
 
 	Objetivo: Censure la parte png
 
-	FILTER_MEDIAS=image/png ./stripmime < ../test_cases/ii_images.mbox > out
+	FILTER_MEDIAS=image/png ./stripmime < ./test_cases/ii_images.mbox > out
 
 	diff -u ii_images.mbox out
 
@@ -26,7 +23,7 @@ Flags para compilar que estan buenos:
 
 	Objetivo: Censure las partes jpeg y png
 
-	FILTER_MEDIAS=image/png,image/jpeg ./stripmime <../test_cases/ii_images.mbox> out
+	FILTER_MEDIAS=image/png,image/jpeg ./stripmime <./test_cases/ii_images.mbox> out
 
 	diff -u ii_images.mbox out
 
@@ -34,7 +31,7 @@ Flags para compilar que estan buenos:
 
 	Objetivo: Censure las partes jpeg y png
 
-	FILTER_MEDIAS=image/* ./test <../test_cases/ii_images.mbox> out
+	FILTER_MEDIAS=image/* ./stripmime <../test_cases/ii_images.mbox> out
 
 	diff -u ii_images.mbox out
 
@@ -42,11 +39,11 @@ Flags para compilar que estan buenos:
 
 	Objetivo: Censure partes jpeg y png
 
-	FILTER_MEDIAS=image/* ./test <../test_cases/iii_images_fwd.mbox> out
+	FILTER_MEDIAS=image/* ./stripmime <../test_cases/iii_images_fwd.mbox> out
 
 	diff -u ii_images.mbox out
 
-506)
+506)	OK
 
 	No debe haber diferencias en la salida. También es importante ver la relaciones de tiempo de ejecución entre cat (sin filtro) y
 	stripmime (sin filtro).
@@ -60,11 +57,26 @@ Flags para compilar que estan buenos:
 
 
 	FILTER_MEDIAS=a/b time cat ../test_cases/i_big.mbox | ./test | pv > out
+
+
+	---EN LINUX--
+
+	export FILER_MEDIAS=a/b
+	time cat i_big.mbox | ./stripmime | pv > out
+	real    1m33.663s
+	user    1m28.835s
+	sys     0m4.509s
 	
 
-507)
+507)	OK
 
 	Se busca la parte de más megas del mensaje. Que únicamente la parte application/x-cd-image quede fuera del mensaje.
 
 
 	FILTER_MEDIAS=application/x-cd-image time cat ../test_cases/i_big.mbox | ./test | pv > out
+
+	export FILER_MEDIAS=application/x-cd-image
+	time cat i_big.mbox | ./stripmime | pv > out
+	real    1m21.334s
+	user    1m21.096s
+	sys     0m1.604s
