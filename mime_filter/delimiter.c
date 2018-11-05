@@ -20,8 +20,26 @@ struct delimiter_st * delimiter_init() {
     return dlm;
 }
 
+void extend(const uint8_t c, struct delimiter_st * delimiter) {
+
+    delimiter->delimiter[delimiter->delimiter_size] = c;
+    delimiter->delimiter_size++;
+
+}
+
+void delimiter_reset(struct delimiter_st *delimiter) {
+
+    parser_reset(delimiter->delimiter_end_parser);
+    parser_reset(delimiter->delimiter_parser);
+    
+}
+
 void close_delimiter(struct delimiter_st * delimiter) {
+
     if (delimiter != NULL) {
+
+        int dl_size = delimiter->delimiter_size;
+
         delimiter->delimiter[delimiter->delimiter_size] = 0;
 
         if (delimiter->delimiter_parser != NULL) {
@@ -32,16 +50,17 @@ void close_delimiter(struct delimiter_st * delimiter) {
 
         struct parser_definition *def   = malloc(sizeof(*def));
         struct parser_definition aux    = parser_utils_strcmpi(delimiter->delimiter);
+
         memcpy(def, &aux, sizeof(aux));
 
         def->states                     = aux.states;
         def->states_n                   = aux.states_n;
         delimiter->delimiter_parser     = parser_init(init_char_class(), def);
-        delimiter->delimiter_parser_def = def;
+        delimiter->delimiter_parser_def = def;   
 
-        delimiter->delimiter[delimiter->delimiter_size]     = '-';
-        delimiter->delimiter[delimiter->delimiter_size + 1] = '-';
-        delimiter->delimiter[delimiter->delimiter_size + 2] = 0;
+        delimiter->delimiter[dl_size]     = '-';
+        delimiter->delimiter[dl_size+ 1] = '-';
+        delimiter->delimiter[dl_size + 2] = 0;
 
         if (delimiter->delimiter_end_parser != NULL) {
             parser_destroy(delimiter->delimiter_end_parser);
@@ -58,17 +77,6 @@ void close_delimiter(struct delimiter_st * delimiter) {
         delimiter->delimiter_end_parser     = parser_init(init_char_class(), def_end);
         delimiter->delimiter_end_parser_def = def_end;
     }
-}
-
-
-void extend(const uint8_t c, struct delimiter_st * delimiter) {
-    delimiter->delimiter[delimiter->delimiter_size] = c;
-    delimiter->delimiter_size++;
-}
-
-void delimiter_reset(struct delimiter_st *delimiter) {
-    parser_reset(delimiter->delimiter_end_parser);
-    parser_reset(delimiter->delimiter_parser);
 }
 
 void delimiter_destroy(struct delimiter_st * delimiter) {

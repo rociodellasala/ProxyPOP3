@@ -8,6 +8,7 @@
 
 #define WILDCARD "*"
 
+/* Realiza la destrucción de un nodo y de los parsers correspondientes */
 static void destroy_node(struct subtype_node * node) {
 	if (node->name != NULL && node->wildcard) {
 		free((void *) node->name);
@@ -24,17 +25,17 @@ static void destroy_node(struct subtype_node * node) {
 }
 
 
-struct List * create_list(void){
-	struct List * list = malloc(sizeof(*list)); /* TODO: ALE PONER LIST EN MINUSCULA --> ESTILO */
+struct node_list * create_list(void){
+	struct node_list * list = malloc(sizeof(*list)); 
 
 	if (list != NULL) {
-        memset(list, 0, sizeof(*list)); // copia el caracter 0 a los primeros sizeof(*list) caracteres de list
+        memset(list, 0, sizeof(*list)); 
 	}
 
 	return list;
 }
 
-int add_new(char * type, char * subtype, struct List * list){
+int add_new(char * type, char * subtype, struct node_list * list){
 	if (list == NULL) {
 		return -1; //error
 	}
@@ -91,7 +92,7 @@ int add_new(char * type, char * subtype, struct List * list){
 }
 
 
-struct type_node * search_for_type(struct List * list, char * type, bool * typeExists){
+struct type_node * search_for_type(struct node_list * list, char * type, bool * typeExists){
 	struct type_node * current = list->first;
 
 	if (strcmp(current->name,type) == 0) {
@@ -186,7 +187,7 @@ struct subtype_node * create_new_subtype(char * name) {
 // el tema de las * en todos lados
 
 //funcion de imprimir lista
-/*void print_list(struct List* list){
+/*void print_list(struct node_list* list){
 	printf("Here's your list\n");
 
 	struct type_node* current = list->first;
@@ -206,7 +207,7 @@ struct subtype_node * create_new_subtype(char * name) {
 
 } */
 
-void destroy_list(struct List * list){
+void destroy_list(struct node_list * list){
     struct type_node *      node = list->first;
     struct subtype_node *   subtypes;
     struct type_node *      currType;
@@ -247,7 +248,7 @@ void destroy_list(struct List * list){
     free(list);
 }
 
-void clean_list(struct List * list){
+void clean_list(struct node_list * list){
     struct type_node *      node = list->first;
     struct subtype_node *   subtypes;
 

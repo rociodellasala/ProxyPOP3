@@ -1,5 +1,5 @@
-#ifndef CHARS_H_
-#define CHARS_H_
+#ifndef PROXYPOP3_MIMECHARS_H
+#define PROXYPOP3_MIMECHARS_H
 
 /**
  * mime_chars.c -- caracterización de caracteres RFC822/y lo relacionados a MIME

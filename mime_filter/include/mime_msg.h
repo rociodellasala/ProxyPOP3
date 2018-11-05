@@ -1,5 +1,5 @@
-#ifndef MIME_MSG_H_be03ad0cccde0231647a6c699e44f0d753baf4dd
-#define MIME_MSG_H_be03ad0cccde0231647a6c699e44f0d753baf4dd
+#ifndef PROXYPOP3_MIMEMSG_H
+#define PROXYPOP3_MIMEMSG_H
 
 /**
  * mime_msg.c - tokenizador de mensajes "tipo" message/rfc822.

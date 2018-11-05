@@ -1,5 +1,5 @@
-#ifndef PARSER_UTILS_H_
-#define PARSER_UTILS_H_
+#ifndef PROXYPOP3_PARSERUTILS_H
+#define PROXYPOP3_PARSERUTILS_H
 
 /*
  * parser_utils.c -- factory de ciertos parsers típicos

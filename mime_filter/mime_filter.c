@@ -29,6 +29,7 @@ bool first_attempt      = true;
 static bool T           = true;
 static bool F           = false;
 
+/* Detecta el final de un delimitador(valor asignado a un boundary)*/
 static void detect_delimiter_ending(struct ctx * ctx, const uint8_t c) {
     const struct parser_event * e = parser_feed(
             ((struct delimiter_st *) stack_peek(ctx->boundary_delimiter))->delimiter_end_parser, c);
@@ -51,7 +52,7 @@ static void detect_delimiter_ending(struct ctx * ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
-
+/* Detecta un delimiter */
 static void boundary_delimiter_detection(struct ctx * ctx, const uint8_t c) {
     const struct parser_event * e = parser_feed(
             ((struct delimiter_st *) stack_peek(ctx->boundary_delimiter))->delimiter_parser, c);
@@ -74,6 +75,7 @@ static void boundary_delimiter_detection(struct ctx * ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
+/* Detecta un boundary */
 static void boundary_analizer(struct ctx * ctx, const uint8_t c) {
     const struct parser_event * e = parser_feed(ctx->boundary, c);
 
@@ -95,11 +97,11 @@ static void boundary_analizer(struct ctx * ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
+/* Detecta subtipo del content type */
 static void content_type_subtype(struct ctx * ctx, const uint8_t c) {
     const struct parser_event * e = feed_subtypes(ctx->subtype, c);
 
     if (e == NULL) {
-        // BORRAR ESTO CAMBIARLO DESTRUIR CTX
         return;
     }
 
@@ -128,7 +130,7 @@ static void content_type_subtype(struct ctx * ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
-
+/* Detecta el tipo del content type */
 static void content_type_type(struct ctx * ctx, const uint8_t c) {
     const struct parser_event * e = feed_types(ctx->mime_list, c);
 
@@ -150,7 +152,7 @@ static void content_type_type(struct ctx * ctx, const uint8_t c) {
     } while (e != NULL);
 }
 
-
+/* Interpreta el valor del content type */
 static void content_type_value(struct ctx * ctx, const uint8_t c) {
     const struct parser_event * e = parser_feed(ctx->mime_type, c);
 
@@ -181,8 +183,7 @@ static void content_type_value(struct ctx * ctx, const uint8_t c) {
                     struct delimiter_st *dlm = delimiter_init();
 
                     if (dlm == NULL) {
-                        abort(); //mandar esto adentro del if de abajo. y compara como hice con multipar/alternatvie tmbn con mixed
-                                // y que new_boundary_push empiece en false!
+                        abort();
                     }
 
                     if (new_boundary_push == true) {
@@ -540,7 +541,7 @@ int main(int argc, char ** argv) {
 
 	char * flm = getenv("FILTER_MEDIAS");
 
-	struct List * list = create_list();
+	struct node_list * list = create_list();
 
     if (list == NULL) {
         return -1;
@@ -730,7 +731,7 @@ void context_setter(struct ctx * ctx) {
     }
 }
 
-const struct parser_event * feed_types(struct List * mime_list, const uint8_t c) {
+const struct parser_event * feed_types(struct node_list * mime_list, const uint8_t c) {
 
     struct type_node * node = mime_list->first;
     const struct parser_event * curr;

@@ -1,5 +1,5 @@
-#ifndef PARSER_CREATOR_H_
-#define PARSER_CREATOR_H_
+#ifndef PROXYPOP3_PARSER_CREATOR_H
+#define PROXYPOP3_PARSER_CREATOR_H
 
 #include <stdint.h>
 #include <stdlib.h>

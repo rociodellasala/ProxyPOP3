@@ -1,5 +1,5 @@
-#ifndef MIME_FILTER_H_
-#define MIME_FILTER_H_
+#ifndef PROXYPOP3_MIMEFILTER_H
+#define PROXYPOP3_MIMEFILTER_H
 
 #include <stdint.h>
 
@@ -7,6 +7,7 @@
 
 #define MAX 2048
 
+/* Estructura para mantener el estado durante el parseo */
 struct ctx {
 
     /* delimitador respuesta multi-línea POP3 */
@@ -28,7 +29,7 @@ struct ctx {
     struct parser *         mime_type;
 
     /* lista de tipos a filtrar*/
-    struct List *           mime_list;
+    struct node_list *           mime_list;
 
     /* lista de subtipos de cierto tipo */
     struct subtype_node *   subtype;
@@ -77,11 +78,13 @@ struct ctx {
     unsigned                i;
 };
 
-
+/* Busca los subtipos para cierto nodo */
 void context_setter(struct ctx *) ;
 
+/* Retorna un evento para el listado de subtipos y el caracter recibido */
 const struct parser_event * feed_subtypes(struct subtype_node *, uint8_t);
 
-const struct parser_event * feed_types(struct List *, uint8_t);
+/* Retorna un evento para el listado de tipos y el caracter recibido */
+const struct parser_event * feed_types(struct node_list *, uint8_t);
 
 #endif
