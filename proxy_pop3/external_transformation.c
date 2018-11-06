@@ -10,7 +10,6 @@
 #include "include/pop3nio.h"
 
 void ext_read(struct selector_key * key) {
-    puts("aca");
     uint8_t * ptr;
     size_t    count;
     ssize_t   n;
