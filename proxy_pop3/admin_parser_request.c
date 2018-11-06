@@ -19,7 +19,11 @@ void parse_action(struct admin * admin) {
             }
             break;
         case SET_T_CMD:
-            /* TODO: Algun chequeo necesario ? Quiza que no sea string vacio */
+            if(strstr((char *)r->data,"stripmime") != NULL){
+                admin->resp_data = "You chose stripmime. Remember to forbid at least one media type, otherwise transformation will fail.";
+                admin->resp_length = strlen((const char *) admin->resp_data);
+                admin->a_status = 1;
+            }
             parameters->filter_command->program_name = r->data;
             break;
         case GET_T_CMD:
