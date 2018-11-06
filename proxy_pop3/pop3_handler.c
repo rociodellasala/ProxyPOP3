@@ -19,6 +19,7 @@ void pop3_done(struct selector_key * key) {
     };
 
     metric_remove_current_connection();
+    free(ATTACHMENT(key)->orig.response.response_parser.pop3_multi_parser);
 
     for (i = 0; i < N(fds); i++) {
         if (fds[i] != -1) {

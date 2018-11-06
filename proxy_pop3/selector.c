@@ -436,9 +436,11 @@ static void handle_iteration(fd_selector s) {
 
     for (i = 0; i <= n; i++) {
         struct item *item = s->fds + i;
+
         if (ITEM_USED(item)) {
             key.fd   = item->fd;
             key.data = item->data;
+
             if (FD_ISSET(item->fd, &s->slave_r)) {
                 if (OP_READ & item->interest) {
                     if (0 == item->handler->handle_read) {
@@ -448,6 +450,7 @@ static void handle_iteration(fd_selector s) {
                     }
                 }
             }
+
             if (FD_ISSET(i, &s->slave_w)) {
                 if (OP_WRITE & item->interest) {
                     if (item->handler->handle_write == 0) {
@@ -470,7 +473,7 @@ static void handle_block_notifications(fd_selector s) {
 
     struct blocking_job * j, * next;
 
-    for (j = s->resolution_jobs; j != NULL ; j  = next) {
+    for (j = s->resolution_jobs;j != NULL ;j  = next) {
         struct item *item = s->fds + j->fd;
         if (ITEM_USED(item)) {
             key.fd   = item->fd;
@@ -492,6 +495,7 @@ selector_status selector_notify_block(fd_selector s, const int fd) {
 
     // TODO(juan): usar un pool
     struct blocking_job *job = malloc(sizeof(*job));
+
     if (job == NULL) {
         ret = SELECTOR_ENOMEM;
         goto finally;
@@ -502,8 +506,8 @@ selector_status selector_notify_block(fd_selector s, const int fd) {
 
     // encolamos en el selector los resultados
     pthread_mutex_lock(&s->resolution_mutex);
-    job->next = s->resolution_jobs;
-    s->resolution_jobs = job;
+    job->next           = s->resolution_jobs;
+    s->resolution_jobs  = job;
     pthread_mutex_unlock(&s->resolution_mutex);
 
     // notificamos al hilo principal
@@ -514,8 +518,8 @@ selector_status selector_notify_block(fd_selector s, const int fd) {
 }
 
 selector_status selector_select(fd_selector s) {
-    selector_status ret = SELECTOR_SUCCESS;
     int i;
+    selector_status ret = SELECTOR_SUCCESS;
 
     memcpy(&s->slave_r, &s->master_r, sizeof(s->slave_r));
     memcpy(&s->slave_w, &s->master_w, sizeof(s->slave_w));
@@ -524,6 +528,7 @@ selector_status selector_select(fd_selector s) {
     s->selector_thread = pthread_self();
 
     int fds = pselect(s->max_fd + 1, &s->slave_r, &s->slave_w, 0, &s->slave_t, &emptyset);
+
     if (fds == -1) {
         switch (errno) {
             case EAGAIN:
@@ -559,8 +564,8 @@ selector_status selector_select(fd_selector s) {
 }
 
 int selector_fd_set_nio(const int fd) {
-    int ret = 0;
-    int flags = fcntl(fd, F_GETFD, 0);
+    int ret     = 0;
+    int flags   = fcntl(fd, F_GETFD, 0);
 
     if (flags == -1) {
         ret = -1;
@@ -569,5 +574,6 @@ int selector_fd_set_nio(const int fd) {
             ret = -1;
         }
     }
+
     return ret;
 }

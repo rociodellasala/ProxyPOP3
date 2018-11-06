@@ -12,22 +12,17 @@
 #include "parser.h"
 
 #define STATUS_SIZE  4
+#define BLOCK_SIZE  20
 
 enum response_state {
-    response_status_indicator,
+    response_status,
     response_description,
     response_newline,
-    response_mail,
+    response_get_mail,
     response_list,
     response_capa,
-
-    // estado usado para respuestas multilinea que no requieren un manejo especial
     response_multiline,
-
-    // apartir de aca están done
     response_done,
-
-    // y apartir de aca son considerado con error
     response_error,
 };
 
@@ -46,15 +41,11 @@ struct response_parser {
     size_t                  capa_size;
 };
 
-/** inicializa el parser */
-void response_parser_init(struct response_parser *);
 
-/** entrega un byte al parser. retorna true si se llego al final  */
-enum response_state response_parser_feed(struct response_parser *, uint8_t );
+void response_parser_init(struct response_parser *);
 
 enum response_state response_consume(buffer *, buffer *, struct response_parser *, bool *);
 
 bool response_is_done(enum response_state, bool *);
-
 
 #endif //PROXYPOP3_RESPONSE_PARSER_H

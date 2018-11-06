@@ -8,7 +8,6 @@
 #include "buffer.h"
 #include "client_request.h"
 
-#define MAX_CONCURRENT_INVALID_COMMANDS 5
 #define MAX_QUANTITY_PARAMS             2
 
 typedef enum request_state {

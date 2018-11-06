@@ -9,7 +9,7 @@
 #include "pop3_session.h"
 #include "stm.h"
 #include "pop3_handler.h"
-#include "e_transformation.h"
+#include "external_transformation.h"
 
 /* Obtiene el struct (pop3 *) desde la llave de selección  */
 #define ATTACHMENT(key) ((struct pop3 *)(key)->data)

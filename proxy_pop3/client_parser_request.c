@@ -35,7 +35,7 @@ static enum request_state cmd(const uint8_t c, struct request_parser * parser) {
         }
     } else if (parser->i >= MAX_CMD_SIZE) {
         request->cmd = (struct pop3_request_cmd *) get_cmd(parser->cmd_buffer);
-        next = request_error_cmd_too_long;
+        next         = request_error_cmd_too_long;
     } else {
         parser->cmd_buffer[parser->i++] = c;
     }
@@ -77,7 +77,8 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
         parser->param_buffer[parser->params][parser->j++] = '\0';
         parser->params++;
         parser->j = 0;
-        if(parser->params == max_param){
+
+        if (parser->params == max_param) {
             ret =  request_error_too_many_params;
             return ret;
         }
@@ -141,18 +142,18 @@ extern void request_parser_reset(struct request_parser * parser) {
     parser->params  = 0;
 }
 
-extern enum request_state request_parser_feed(struct request_parser * p, const uint8_t c, int * max_param, bool * is_space) {
+extern enum request_state request_parser_feed(struct request_parser * parser, const uint8_t c, int * max_param, bool * is_space) {
     enum request_state next;
 
-    switch(p->state) {
+    switch(parser->state) {
         case request_cmd:
-            next = cmd(c, p);
+            next = cmd(c, parser);
             if(next == request_cmd){
-                *max_param = get_max_parameter(p->cmd_buffer);
+                *max_param = get_max_parameter(parser->cmd_buffer);
             }
             break;
         case request_parameter:
-            next = parameter(c, p, *max_param, is_space);
+            next = parameter(c, parser, *max_param, is_space);
             break;
         case request_newline:
             next = newline(c);
@@ -162,14 +163,14 @@ extern enum request_state request_parser_feed(struct request_parser * p, const u
         case request_error_cmd_too_long:
         case request_error_param_too_long:
         case request_error_too_many_params:
-            next = p->state;
+            next = parser->state;
             break;
         default:
             next = request_error_inexistent_cmd;
             break;
     }
 
-    return p->state = next;
+    return parser->state = next;
 }
 
 bool request_is_done(const enum request_state st, bool * errored) {
