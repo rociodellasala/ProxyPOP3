@@ -38,8 +38,8 @@ set(SOURCE_FILES_POP3FILTER proxy_pop3/filter_list.c proxy_pop3/include/filter_l
 
 
 # Add executable target with source files listed in SOURCE_FILES_PROXY variable
-add_executable(stripmime ${SOURCE_FILES_MIME})
+add_executable(stripmime ${SOURCE_FILES_MIME} mime_filter/mime_filter.c)
 
-add_executable(pop3ctl ${SOURCE_FILES_CLIENT} admin_client/main.c admin_client/include/client_request.h admin_client/include/response.h admin_client/send_request.c admin_client/include/send_request.h admin_client/serializer.c admin_client/receive_response.c admin_client/deserializer.c admin_client/include/receive_response.h admin_client/utils.c admin_client/include/utils.h)
+add_executable(pop3ctl ${SOURCE_FILES_CLIENT} admin_client/main.c)
 
-add_executable(pop3filter ${SOURCE_FILES_POP3FILTER} proxy_pop3/include/admin_actions.h proxy_pop3/admin_parser_request.c proxy_pop3/include/admin_parser.h proxy_pop3/admin_parse_response.c proxy_pop3/include/metrics.h proxy_pop3/metrics.c proxy_pop3/include/stm.h proxy_pop3/client_parser_request.c proxy_pop3/include/client_parser_request.h proxy_pop3/include/client_parser_response.h proxy_pop3/include/client_request.h proxy_pop3/include/client_response.h proxy_pop3/client_request.c proxy_pop3/pop3_session.c proxy_pop3/include/pop3_session.h proxy_pop3/client_response.c proxy_pop3/include/client_response.h proxy_pop3/client_parser_response.c proxy_pop3/pipelining.c proxy_pop3/include/pipelining.h proxy_pop3/client_request_utils.c proxy_pop3/include/client_request_utils.h proxy_pop3/pop3_handler.c proxy_pop3/include/pop3_handler.h proxy_pop3/external_transformation.c proxy_pop3/include/external_transformation.h proxy_pop3/client_response_utils.c proxy_pop3/include/client_response_utils.h proxy_pop3/logs.c proxy_pop3/include/logs.h)
+add_executable(pop3filter ${SOURCE_FILES_POP3FILTER} proxy_pop3/main.c)
