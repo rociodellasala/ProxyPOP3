@@ -5,6 +5,7 @@
 #include "include/stm.h"
 #include "include/metrics.h"
 #include "include/pop3_session.h"
+#include "include/logs.h"
 
 /**
  * Handlers top level de la conexión pasiva.
@@ -30,6 +31,7 @@ void pop3_done(struct selector_key * key) {
         }
     }
 
+    log_connection(true, (const struct sockaddr *) &ATTACHMENT(key)->client_addr, "CLIENT disconnected");
     pop3_session_close(&ATTACHMENT(key)->session);
 }
 

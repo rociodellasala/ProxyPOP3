@@ -27,6 +27,7 @@
 #include "include/client_request_utils.h"
 #include "include/pop3_multi.h"
 #include "include/client_response_utils.h"
+#include "include/logs.h"
 
 
 /**
@@ -124,12 +125,15 @@ void pop3_accept_connection(struct selector_key * key) {
     socklen_t                   client_addr_len = sizeof(client_addr);
     struct pop3 *               state           = NULL;
 
-    const file_descriptor client = accept(key->fd, (struct sockaddr*) &client_addr, &client_addr_len);
+    const file_descriptor client = accept(key->fd, (struct sockaddr *) &client_addr, &client_addr_len);
 
     metric_add_new_connection();
 
     if (client == -1) {
+        log_connection(false, (const struct sockaddr *) &client_addr, "CLIENT connection failed");
         goto fail;
+    } else {
+        log_connection(true, (const struct sockaddr *) &client_addr, "CLIENT connection success");
     }
 
     if (selector_fd_set_nio(client) == -1) {
@@ -148,12 +152,14 @@ void pop3_accept_connection(struct selector_key * key) {
         goto fail;
     }
 
+
     return ;
 
     fail:
 
     if(client != -1) {
         close(client);
+        log_connection(true, (const struct sockaddr *) &ATTACHMENT(key)->client_addr, "CLIENT disconnected");
     }
 
     pop3_destroy(state);
@@ -178,6 +184,7 @@ int origin_server_resolution(struct selector_key * key){
     enum pop3_state       stm_next_status = ORIGIN_SERVER_RESOLUTION;
 
     if (k == NULL) {
+        log_origin_server_resolution(false, "ORIGIN SERVER RESOLUTION error");
         stm_next_status = ERROR;
     } else {
         memcpy(k, key, sizeof(*k));
@@ -232,6 +239,7 @@ int origin_server_resolution_done(struct selector_key * key) {
     struct pop3 * pop3 =  ATTACHMENT(key);
 
     if (pop3->origin_resolution == 0) {
+        log_origin_server_resolution(false, "ORIGIN SERVER RESOLUTION error. Invalid Address.");
         char * msg = "-ERR Invalid address.\r\n";
         send(ATTACHMENT(key)->client_fd, msg, strlen(msg), 0);
         return ERROR;
@@ -243,6 +251,7 @@ int origin_server_resolution_done(struct selector_key * key) {
                pop3->origin_resolution->ai_addrlen);
         freeaddrinfo(pop3->origin_resolution);
         pop3->origin_resolution = 0;
+        log_origin_server_resolution(true, "ORIGIN SERVER RESOLUTION success.");
     }
 
     if (SELECTOR_SUCCESS != selector_set_interest_key(key, OP_WRITE)) {
@@ -290,11 +299,15 @@ static enum pop3_state origin_server_connect(struct selector_key * key) {
         abort();
     }
 
+    log_origin_server_resolution(true, "ORIGIN SERVER CONNECTION success.");
+
     return stm_next_status;
 
     error:
 
     stm_next_status = ERROR;
+
+    log_origin_server_resolution(false, "ORIGIN SERVER CONNECTION error.");
 
     if (sock != -1) {
         close(sock);
@@ -646,27 +659,28 @@ static int response_read(struct selector_key * key) {
         if(st == response_error) {
             char *error_msg = "-ERR Response error. Disconecting ...\r\n";
             send(ATTACHMENT(key)->client_fd, error_msg, strlen(error_msg), 0);
+            log_response(false, (char *) response_st->request->cmd->name, (char *) response_st->request->response->name, "RESPONSE error");
             fprintf(stderr, "Origin server send and inexistent command\n");
             selector_set_interest_key(key, OP_NOOP);
             stm_next_status = ERROR;
-        }
-        else {if (response_st->response_parser.first_line_consumed) {
-            response_st->response_parser.first_line_consumed = false;
+        } else {
+            if (response_st->response_parser.first_line_consumed) {
+                response_st->response_parser.first_line_consumed = false;
 
-            if (st == response_get_mail && response_st->request->response->status == response_status_ok
-                && (response_st->request->cmd->id == retr || response_st->request->cmd->id == top)) {
-                if (parameters->filter_command->switch_program && parameters->filter_command != NULL) {
-                    selector_status ss = SELECTOR_SUCCESS;
-                    ss |= selector_set_interest_key(key, OP_NOOP);
-                    ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_NOOP);
+                if (st == response_get_mail && response_st->request->response->status == response_status_ok
+                    && (response_st->request->cmd->id == retr || response_st->request->cmd->id == top)) {
+                    if (parameters->filter_command->switch_program && parameters->filter_command != NULL) {
+                        selector_status ss = SELECTOR_SUCCESS;
+                        ss |= selector_set_interest_key(key, OP_NOOP);
+                        ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_NOOP);
 
-                    while (buffer_can_read(response_st->write_buffer)) {
-                        buffer_read(response_st->write_buffer);
+                        while (buffer_can_read(response_st->write_buffer)) {
+                            buffer_read(response_st->write_buffer);
+                        }
+
+                        return ss == SELECTOR_SUCCESS ? EXTERNAL_TRANSFORMATION : ERROR;
                     }
-
-                    return ss == SELECTOR_SUCCESS ? EXTERNAL_TRANSFORMATION : ERROR;
                 }
-            }
 
             st = response_consume(buffer, response_st->write_buffer, &response_st->response_parser, &error);
         }
@@ -678,6 +692,7 @@ static int response_read(struct selector_key * key) {
         stm_next_status = ss == SELECTOR_SUCCESS ? RESPONSE : ERROR;
 
         if (stm_next_status == RESPONSE && response_is_done(st, 0)) {
+            log_response(true, (char *) response_st->request->cmd->name, (char *) response_st->request->response->name, "RESPONSE received");
             if (response_st->request->cmd->id == capa) {
                 struct pop3 * pop3 = ATTACHMENT(key);
                 pop3->session.pipelining = is_pipelining_available(response_st->response_parser.capa_response);
@@ -686,7 +701,8 @@ static int response_read(struct selector_key * key) {
         }}
 
     } else if (n == -1){
-        stm_next_status= ERROR;
+        log_response(false, (char *) response_st->request->cmd->name, (char *) response_st->request->response->name, "RESPONSE error");
+        stm_next_status = ERROR;
     }
 
     return error ? ERROR : stm_next_status;
@@ -787,13 +803,14 @@ static void external_transformation_init(struct selector_key *key) {
 
     if (et->status == et_status_err) {
         printf(ptr, err_msg);
+        log_external_transformation(false, "EXTERNAL TRANSFORMATION error");
         buffer_write_adv(buffer, strlen(err_msg));
         selector_set_interest(key->s, *et->client_fd, OP_WRITE);
     }
 
     buffer = et->read_buffer;
 
-    ;//log_request(ATTACHMENT(key)->orig.response.request);
+    log_external_transformation(true, "EXTERNAL TRANSFORMATION starting");
     if (parse_mail(buffer, et->parser_read, &et->send_bytes_read)){
         et->finish_rd = true;
     }

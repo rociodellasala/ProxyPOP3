@@ -6,6 +6,7 @@
 #include "include/utils.h"
 #include "include/client_request.h"
 #include "include/pop3nio.h"
+#include "include/logs.h"
 
 void send_error_request(enum request_state state, file_descriptor fd) {
     char * dest = NULL;
@@ -40,7 +41,14 @@ enum pop3_state process_request(struct selector_key * key, struct request_st * r
     }
 
     struct pop3_request * req = new_request(request->request.cmd, request->request.args);
-    printf("cmd:%s. - param:%s\n", request->request.cmd->name, request->request.args);
+
+    if (req == NULL) {
+        log_request(false, (char *) req->cmd->name, req->args, "REQUEST not send");
+        return ERROR;
+    } else {
+        log_request(true, (char *) req->cmd->name, req->args, "REQUEST send");
+    }
+
     enqueue(ATTACHMENT(key)->session.request_queue, req);
     request_parser_reset(&request->request_parser);
 

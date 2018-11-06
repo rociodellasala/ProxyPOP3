@@ -44,7 +44,8 @@ enum parse_resp_status {
 };
 
 struct admin {
-    struct sockaddr_storage admin_addr;
+    const struct sockaddr   admin_addr;
+    const struct sockaddr * admin_sock_addr_addr;
     file_descriptor         fd;
 
     enum admin_status       a_status;

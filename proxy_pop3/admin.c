@@ -7,6 +7,7 @@
 #include "include/admin_actions.h"
 #include "include/admin_parser.h"
 #include "include/metrics.h"
+#include "include/logs.h"
 
 #define ATTACHMENT(key) ((struct admin *)(key)->data)
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -19,7 +20,7 @@ static const struct fd_handler admin_handler = {
         .handle_close  = admin_close,
 };
 
-struct admin * admin_new(const int admin_fd) {
+struct admin * admin_new(const int admin_fd, struct sockaddr_storage * client_addr) {
     struct admin * new_admin;
 
     new_admin = malloc(sizeof(*new_admin));
@@ -28,12 +29,13 @@ struct admin * admin_new(const int admin_fd) {
         return new_admin;
     }
 
-    new_admin->fd             = admin_fd;
-    new_admin->a_status       = ST_EHLO;
-    new_admin->req_status     = REQ_PARSE_OK;
-    new_admin->resp_status    = RESP_PARSE_OK;
-    new_admin->resp_length    = 0;
-    new_admin->quit           = 0;
+    new_admin->fd                   = admin_fd;
+    new_admin->a_status             = ST_EHLO;
+    new_admin->req_status           = REQ_PARSE_OK;
+    new_admin->resp_status          = RESP_PARSE_OK;
+    new_admin->resp_length          = 0;
+    new_admin->quit                 = 0;
+    new_admin->admin_sock_addr_addr = (const struct sockaddr *) client_addr;
 
     return new_admin;
 }
@@ -48,20 +50,23 @@ void admin_accept_connection(struct selector_key * key) {
     metric_add_admin_connected();
 
     if (client == -1) {
+        log_connection(false, (const struct sockaddr *) &client_addr, "ADMIN connection failed");
         goto fail;
+    } else {
+        log_connection(true, (const struct sockaddr *) &client_addr, "ADMIN connection success");
     }
 
     if (selector_fd_set_nio(client) == -1) {
         goto fail;
     }
 
-    new_admin = admin_new(client);
+    new_admin = admin_new(client, &client_addr);
 
     if (new_admin == NULL) {
         goto fail;
     }
 
-    memcpy(&new_admin->admin_addr, &client_addr, client_addr_len);
+    memcpy((void *) &new_admin->admin_addr, &client_addr, client_addr_len);
 
     /* Empezamos por mandar el mensaje de bienvenida al cliente administrador */
     if (SELECTOR_SUCCESS != selector_register(key->s, client, &admin_handler, OP_WRITE, new_admin)) {
@@ -127,5 +132,6 @@ void admin_write(struct selector_key * key) {
 
 void admin_close(struct selector_key * key) {
     struct admin * admin = ATTACHMENT(key);
+    log_connection(true, admin->admin_sock_addr_addr, "ADMIN disconnected");
     free(admin);
 }
