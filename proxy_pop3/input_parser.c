@@ -58,70 +58,12 @@ int valid_digit(char * ip_str) {
     return 0;
 }
 
-/* Returns 0 if IP string is valid, else returns -1 */
-int is_valid_ip(char * ip_str) {
-    int num;
-    char * ptr;
-    int dots = 0;
-
-
-    if (ip_str == NULL) {
-        return -1;
-    }
-
-    ptr = strtok(ip_str, DELIM);
-
-    if (ptr == NULL) {
-        return -1;
-    }
-
-    while (ptr) {
-        /* After parsing string, it must contain only digits */
-        if (!valid_digit(ptr)) {
-            return -1;
-        }
-
-        num = atoi(ptr);
-
-        /* Check for valid IP */
-        if (num >= 0 && num <= 255) {
-            /* Parse remaining string */
-            ptr = strtok(NULL, DELIM);
-            if (ptr != NULL) {
-                ++dots;
-            }
-        } else {
-            return -1;
-        }
-    }
-
-    /* Valid IP string must contain 3 dots */
-    if (dots != 3) {
-        return -1;
-    }
-
-    return 0;
-}
-
-// TODO: Validate origin server argument
 int validate_origin_server_argument(char * origin_server) {
     return 0;
 }
 
-/* TODO Ale: Si cambias algo en esta funcion o en validate_port --> en clients esta copypasteada la misma, cambiar ahi tmb */
-int validate_address(char * parameter) {
-    if (strcmp(parameter, "localhost") == 0) {
-        return 0;
-    } else if (is_valid_ip(parameter) == 0) {
-        return 0;
-    }
-
-    return -1;
-}
-
 
 int validate_error_file(const char * parameter) {
-    /* TODO no se si se podra hacer asi */
     if(parameter){
 
     }
@@ -134,9 +76,9 @@ int validate_error_file(const char * parameter) {
 
 int validate_message(const char * parameter) {
     if(parameter){
-        //PONGO ESTO PARA QUE AL COMPILAR NO ME TIRE ERROR DE Q NO ESTOY USANDO PARAMETER
+        //
     }
-    return 0; //TODO
+    return 0; 
 }
 
 int validate_media_type(const char * parameter) {
@@ -151,7 +93,7 @@ int validate_media_type(const char * parameter) {
     }
 }
 
-/* TODO Ale: Si cambias algo en esta funcion o en validate_address --> en clients esta copypasteada la misma, cambiar ahi tmb */
+
 int validate_port(char * parameter) {
     int i;
     if (strlen(parameter) == 4) {
@@ -167,17 +109,7 @@ int validate_port(char * parameter) {
 
 
 int validate_parameters(char * next_option, char * parameter) {
-    /*if (strcmp(next_option, "-l") == 0) {
-        if (validate_address(parameter) != 0) {
-            printf("Invalid listen address\n");
-            return -1;
-        }
-    } else if (strcmp(next_option, "-L") == 0) {
-        if (validate_address(parameter) != 0) {
-            printf("Invalid management address\n");
-            return -1;
-        }
-    } else */ if (strcmp(next_option, "-e") == 0) {
+    if (strcmp(next_option, "-e") == 0) {
         if (validate_error_file(parameter) != 0){
             printf("Invalid error file\n");
             return -1;
