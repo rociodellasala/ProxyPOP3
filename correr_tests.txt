@@ -31,7 +31,7 @@ gcc -o test delimiter.c parser_creator.c stack.c mime_list.c mime_type.c mime_ch
 
 	Objetivo: Censure las partes jpeg y png
 
-	FILTER_MEDIAS=image/* ./stripmime <../test_cases/ii_images.mbox> out
+	FILTER_MEDIAS=image/* ./stripmime <./test_cases/ii_images.mbox> out
 
 	diff -u ii_images.mbox out
 
@@ -39,7 +39,7 @@ gcc -o test delimiter.c parser_creator.c stack.c mime_list.c mime_type.c mime_ch
 
 	Objetivo: Censure partes jpeg y png
 
-	FILTER_MEDIAS=image/* ./stripmime <../test_cases/iii_images_fwd.mbox> out
+	FILTER_MEDIAS=image/* ./stripmime <./test_cases/iii_images_fwd.mbox> out
 
 	diff -u ii_images.mbox out
 
