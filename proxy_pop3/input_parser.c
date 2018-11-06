@@ -316,8 +316,8 @@ void initialize_values() {
     parameters->filtered_media_types            = filter_list_init(); 
     parameters->origin_port                     = 110;
     parameters->filter_command                  = malloc(sizeof(*e_transformation));
-    parameters->filter_command->switch_program  = true; //tiene que estar seteado en false
-    parameters->filter_command->program_name    = (unsigned char *) "sed s/o/0/g"; //tiene que estar seteado en cat
+    parameters->filter_command->switch_program  = false; //tiene que estar seteado en false
+    parameters->filter_command->program_name    = (unsigned char *) "cat"; //tiene que estar seteado en cat
     parameters->version                         = "1.0";
 }
 
@@ -346,8 +346,8 @@ options set_options_values(const int argc, char ** argv) {
                 char* pt;
                 pt = strtok (optarg,",");
                     while (pt != NULL) {
-                        char* type = malloc(strlen(pt)*sizeof(char));
-                        char* subtype = malloc(strlen(pt)*sizeof(char));
+                        char * type     = malloc(strlen(pt) * sizeof(char));
+                        char * subtype  = malloc(strlen(pt) * sizeof(char));
                         check_mime_format(pt, &type, &subtype);
                         forbid_new(type, subtype, parameters->filtered_media_types);
                         pt = strtok (NULL, ",");

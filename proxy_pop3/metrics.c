@@ -8,14 +8,15 @@ double metrics[METRICS_SIZE];
 
 void initialize_metrics() {
     int i ;
+
     for(i = 0; i < METRICS_SIZE; i++){
         metrics[i] = 0;
     }
 }
 
 char * metric_get_name(const char * number, int * index) {
-    enum e_metrics metric;
-    int in = atoi(number);
+    enum e_metrics  metric;
+    int             in = atoi(number);
 
     if (in >= METRICS_SIZE || in < 0) {
         *index = METRICS_SIZE;
@@ -64,7 +65,8 @@ void metric_add_transfered_bytes(double curr_transfered_bytes) {
 }
 
 void metric_add_new_connection() {
-    metrics[INST_CONCURRENT_CONNECTIONS] += 1;
+    metrics[HISTORICAL_ACCESSES]            += 1;
+    metrics[INST_CONCURRENT_CONNECTIONS]    += 1;
     if(metrics[MAX_CONCURRENT_CONNECTIONS] < metrics[INST_CONCURRENT_CONNECTIONS]) {
         metrics[MAX_CONCURRENT_CONNECTIONS] = metrics[INST_CONCURRENT_CONNECTIONS];
     }
@@ -72,6 +74,5 @@ void metric_add_new_connection() {
 
 void metric_remove_current_connection() {
     metrics[INST_CONCURRENT_CONNECTIONS] -= 1;
-    metrics[HISTORICAL_ACCESSES] += 1;
 }
 

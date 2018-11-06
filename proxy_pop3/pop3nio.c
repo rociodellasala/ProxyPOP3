@@ -708,22 +708,16 @@ static int response_write(struct selector_key * key) {
         stm_next_status= ERROR;
     } else {
         buffer_read_adv(buffer, n);
+        metric_add_transfered_bytes(n);
 
         if (!buffer_can_read(buffer)) {
             if (response_st->response_parser.state != response_done) {
-                if (response_st->request->cmd->id == retr) {
-                    metric_add_transfered_bytes(n);
-                }
-
                 selector_status ss = SELECTOR_SUCCESS;
                 ss |= selector_set_interest_key(key, OP_NOOP);
                 ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
 
                 stm_next_status = ss == SELECTOR_SUCCESS ? RESPONSE : ERROR;
             } else {
-                //if (d->request->cmd->id == retr) { ;
-
-                //}
                 stm_next_status= process_response(key, response_st);
             }
         }
@@ -747,7 +741,6 @@ void response_close(struct selector_key * key) {
 // EXTERNAL TRANSFORMATION
 ////////////////////////////////////////////////////////////////////////////////
 
-/* Inicializa las variables del estado EXTERNAL_TRANSFORMATION */
 static void external_transformation_init(struct selector_key *key) {
     struct external_transformation *et = &ATTACHMENT(key)->et;
 
@@ -844,7 +837,6 @@ static int external_transformation_read(struct selector_key *key) {
                 selector_set_interest(key->s, *et->ext_write_fd, OP_WRITE);
                 selector_set_interest(key->s, *et->origin_fd, OP_NOOP);
             }
-            // et->status = et_status_done;
         } else {
             if (!et->error_rd) {
                 selector_set_interest(key->s, *et->ext_write_fd, OP_WRITE);
@@ -860,7 +852,6 @@ static int external_transformation_read(struct selector_key *key) {
     return ret;
 }
 
-//escribir en el cliente
 static int external_transformation_write(struct selector_key * key) {
     struct external_transformation * et     = &ATTACHMENT(key)->et;
     enum pop3_state                  ret    = EXTERNAL_TRANSFORMATION;
@@ -900,10 +891,12 @@ static int external_transformation_write(struct selector_key * key) {
             et->send_bytes_write -= n;
             et->finish_wr = true;
         }
+
         et->did_write = true;
         buffer_read_adv(buffer, n);
-        //if (et->finish_wr)
-        ;//metricas->retrieved_messages++;
+
+        metric_add_transfered_bytes(n);
+
         if ((et->error_wr || et->finish_wr) && et->send_bytes_write == 0) {
             if (finished_et(et)) {
                 struct msg_queue *q = ATTACHMENT(key)->session.request_queue;
@@ -930,7 +923,7 @@ static int external_transformation_write(struct selector_key * key) {
                 selector_set_interest(key->s, *et->client_fd, OP_NOOP);
             }
         }
-        ;//metricas->transferred_bytes += n;
+
     } else if (n == -1){
         ret = ERROR;
     }
