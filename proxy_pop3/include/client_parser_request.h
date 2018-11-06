@@ -15,6 +15,7 @@ typedef enum request_state {
     request_parameter,
     request_newline,
     request_done,
+    // a partir de aca es un error
     request_error_inexistent_cmd,
     request_error_cmd_too_long,
     request_error_param_too_long,

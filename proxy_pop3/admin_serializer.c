@@ -26,6 +26,7 @@ unsigned char * serialize_string(unsigned char * buffer, unsigned char * str, un
     return buffer;
 }
 
+/* Serealiza cada uno de los campos para convertirlo en un char * antes de enviarlo al administrador */
 unsigned char * serialize_response(unsigned char * buffer, struct response_admin * response) {
     buffer = serialize_char(buffer, response->version);
     buffer = serialize_char(buffer, response->status);

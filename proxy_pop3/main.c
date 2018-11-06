@@ -46,7 +46,7 @@ file_descriptor new_socket(int protocol, struct addrinfo * address) {
     file_descriptor master_socket;
     int optval = 1;
 
-    /* Crea el socket */
+    // crea el socket
     master_socket = socket(address->ai_family, SOCK_STREAM, protocol);
 
     if (master_socket < 0) {
@@ -60,13 +60,13 @@ file_descriptor new_socket(int protocol, struct addrinfo * address) {
         exit(EXIT_FAILURE);
     }
 
-    /* Enlaza el socket a la dirección especificada (puerto localhost)  */
+    // enlaza el socket a la dirección especificada (puerto localhost)
     if (bind(master_socket, address->ai_addr, address->ai_addrlen) < 0) {
         perror("Unable to bind socket");
         exit(EXIT_FAILURE);
     }
 
-    /* Retorna el  file descriptor del socket */
+    // retorna el  file descriptor del socket
     return master_socket;
 }
 
@@ -134,7 +134,7 @@ int initialize_selector(file_descriptor mua_tcp_socket, file_descriptor admin_sc
             .handle_close      = NULL,
     };
 
-    /* Registro ambos fd en el selector para atender conexiones entrantes tanto de clientes como administradores */
+    // registro ambos fd en el selector para atender conexiones entrantes tanto de clientes como administradores
     selector_status ss_pop3 = selector_register(selector, mua_tcp_socket, &pop3_handler, OP_READ, NULL);
     selector_status ss_manag = selector_register(selector, admin_sctp_socket, &admin_handler, OP_READ, NULL);
 

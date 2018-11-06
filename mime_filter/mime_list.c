@@ -182,7 +182,6 @@ struct subtype_node * create_new_subtype(char * name) {
 	return node;
 }
 
-//TODO: FALTA remover subtypes de un type_node, remover un nodo, destruir nodo
 // destrui y resetear parser
 // el tema de las * en todos lados
 

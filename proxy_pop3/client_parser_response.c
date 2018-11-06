@@ -17,10 +17,11 @@ enum response_state status(const uint8_t c, struct response_parser * parser) {
     if (c == ' ' || c == '\r') {
         parser->request->response = get_response(parser->status_buffer);
         parser->status_buffer[parser->i++] = '\0';
-
+        // si no fue un +OK o -ERR entonces es un error
         if (parser->request->response->status == response_status_invalid) {
             ret = response_error;
         } else {
+            // caso feliz
             if (c == ' ') {
                 ret = response_description;
             } else {
@@ -37,8 +38,8 @@ enum response_state status(const uint8_t c, struct response_parser * parser) {
     return ret;
 }
 
-//ignoramos la descripcion
 enum response_state description(const uint8_t c) {
+    //ignoramos la descripcion
     if (c == '\r') {
         return response_newline;
     }
@@ -127,7 +128,7 @@ enum response_state capability(const uint8_t c, struct response_parser * parser)
         parser->capa_response = tmp;
     }
 
-    parser->capa_response[parser->j++] = toupper(c);
+    parser->capa_response[parser->j++] = (char) toupper(c);
 
     switch (e->type) {
         case POP3_MULTI_FIN:
@@ -190,6 +191,7 @@ void response_parser_init(struct response_parser * parser) {
 extern enum response_state response_parser_feed(struct response_parser * parser, const uint8_t c) {
     enum response_state next;
 
+    // estados para saber que parte del response estoy parseando
     switch (parser->state) {
         case response_status:
             next = status(c, parser);
@@ -243,7 +245,7 @@ extern enum response_state response_consume(buffer * read_buffer, buffer * write
     while (buffer_can_read(read_buffer)) {
         c   = buffer_read(read_buffer);
         st  = response_parser_feed(parser, c);
-
+        // parseo char a char la response
         if (st == response_error) {
             return st;
         }

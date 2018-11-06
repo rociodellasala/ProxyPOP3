@@ -37,7 +37,6 @@ void parse_action(struct admin * admin) {
             return_metric(admin, (const char *) r->data);
             break;
         case GET_MI_CMD:
-            //TODO ojo si data es muy largo. 
             admin->resp_data = get_forbidden_types(parameters->filtered_media_types);
             admin->resp_length = strlen((const char *) admin->resp_data);
             break;
@@ -99,7 +98,6 @@ void parse_req_commands(struct admin * admin) {
     }
 }
 
-/* TODO: VER MALLOC QUE SE PIERDE VALGRIND */
 int parse_admin_request(struct admin * admin) {
     int                     read_bytes;
     unsigned char           buffer[MAX_ADMIN_BUFFER];

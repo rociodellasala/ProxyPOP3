@@ -118,7 +118,7 @@ void pop3_pool_destroy(void) {
 
 
 /*
- * Intenta aceptar la nueva conexión entrante
+ *  Intenta aceptar la nueva conexión entrante
  */
 void pop3_accept_connection(struct selector_key * key) {
     struct sockaddr_storage     client_addr;
@@ -165,6 +165,7 @@ void pop3_accept_connection(struct selector_key * key) {
     pop3_destroy(state);
 }
 
+
 /*
  *      ESTADO: ORIGIN SERVER RESOLUTION
  *
@@ -174,6 +175,7 @@ void pop3_accept_connection(struct selector_key * key) {
  */
 static enum pop3_state origin_server_connect(struct selector_key * key);
 static void * origin_server_resolution_blocking(void * data);
+
 /*
  *  Tenemos que resolver el nombre (operación bloqueante), por ende disparamos
  *  la resolución en un thread que luego notificará al selector que ha terminado.
@@ -317,9 +319,10 @@ static enum pop3_state origin_server_connect(struct selector_key * key) {
 }
 
 /*
- *    ESTADO: CONNECTING TO ORIGIN SERVER
+ *      ESTADO: CONNECTING TO ORIGIN SERVER
  *
- *    Nos conectamos al servidor origen
+ *      Nos intentamos conectar al servidor origen.
+ *      Ante un error pasamos al estado final ERROR.
  *
  */
 int connecting(struct selector_key * key) {
@@ -356,14 +359,13 @@ int connecting(struct selector_key * key) {
 }
 
 /*
- *    ESTADO: WELCOME READ
+ *      ESTADO: WELCOME READ
  *
- *    Recibe el mensaje de bienvenida del origin server
+ *      Recibe el mensaje de bienvenida del origin server
  *
  */
 static void welcome_init(struct selector_key * key) {
     struct welcome_st * welcome = &ATTACHMENT(key)->orig.welcome;
-
     welcome->buffer             = &ATTACHMENT(key)->write_buffer;
 }
 
@@ -375,7 +377,6 @@ static int welcome_read(struct selector_key * key) {
     struct welcome_st * welcome         = &ATTACHMENT(key)->orig.welcome;
     enum pop3_state     stm_next_status = WELCOME_WRITE;
 
-    // pop3filter welcome message
     ptr = buffer_write_ptr((buffer *) welcome->buffer, (size_t *) &count);
     n   = recv(key->fd, ptr, (size_t) count, 0);
 
@@ -404,9 +405,12 @@ static int welcome_read(struct selector_key * key) {
 
 
 /*
- *    ESTADO: WELCOME WRITE
+ *      ESTADO: WELCOME WRITE
  *
- *    Recibe el mensaje de bienvenida del origin server
+ *      Escribe el mensaje de bienvenida en el cliente
+ *      Si el mensaje es mayor que el tamaño del buffer
+ *      volvemos al estado WELCOME READ para seguir leyendo
+ *      y poder escribir el mensaje completo
  *
  */
 static int welcome_write(struct selector_key * key) {
@@ -426,12 +430,14 @@ static int welcome_write(struct selector_key * key) {
         buffer_read_adv((buffer *) welcome->buffer, n);
 
         if (welcome->msg_not_finished == true) {
+            // si el saludo es mayor que mi buffer tengo que volver a leer
             selector_status ss = SELECTOR_SUCCESS;
             ss |= selector_set_interest_key(key, OP_NOOP);
             ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
             
             stm_next_status = SELECTOR_SUCCESS == ss ? WELCOME_READ : ERROR;
         } else if (!buffer_can_read((buffer *) welcome->buffer)) {
+            // sino imprimo y paso al siguiente estado
             selector_status ss = SELECTOR_SUCCESS;
             ss |= selector_set_interest_key(key, OP_NOOP);
             ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
@@ -446,12 +452,13 @@ static int welcome_write(struct selector_key * key) {
 
 
 /*
- *    ESTADO: CAPA
+ *      ESTADO: CAPA
  *
- *    Envia un mensaje pidiendo las capacidades del servidor
+ *      Se envia el comando CAPA al servidor para saber
+ *      si este soporta pipelining o no. Se procesa esta
+ *      respuesta como una response normal.
  *
  */
-
 void capa_init(struct selector_key * key) {
     struct response_st *    response        = &ATTACHMENT(key)->orig.response;
     struct pop3_request *   pop3_request    = new_request(get_cmd("capa"), NULL);
@@ -471,29 +478,34 @@ static int capa_read(struct selector_key * key) {
     size_t    count;
     ssize_t   n;
 
-    struct response_st *    response        = &ATTACHMENT(key)->orig.response;
+    struct response_st *    response_st     = &ATTACHMENT(key)->orig.response;
     bool                    error           = false;
     struct pop3 *           d               = ATTACHMENT(key);
-    buffer *                buffer          = response->read_buffer;
+    buffer *                buffer          = response_st->read_buffer;
     enum pop3_state         stm_next_status = CAPA;
 
+    // leo la respuesta del comando capa del servidor
     ptr = buffer_write_ptr(buffer, &count);
     n   = recv(key->fd, ptr, count, 0);
 
     if(n > 0) {
         buffer_write_adv(buffer, n);
-        enum response_state st = response_consume(buffer, response->write_buffer, &response->response_parser, &error);
+        enum response_state st = response_consume(buffer,
+                response_st->write_buffer, &response_st->response_parser, &error);
 
         if(st == response_error) {
+            // no se leyo un +OK o -ERR o el parser devolvio un error en la respuesta
             char * error_msg = "-ERR Response error. Disconecting ...\r\n";
             send(d->client_fd, error_msg, strlen(error_msg), 0);
             fprintf(stderr, "Origin server send and inexistent command\n");
             selector_set_interest_key(key, OP_NOOP);
             stm_next_status = ERROR;
-            //LOGUEAR ACAAAAAAAAAAAA!!
+            log_response(false, (char *) response_st->request->cmd->name,
+                         (char *) response_st->request->response->name, "RESPONSE error");
         } else {
-            response->response_parser.first_line_consumed = false;
-            st = response_consume(buffer, response->write_buffer, &response->response_parser, &error);
+            // sigo consumiendo la respuesta
+            response_st->response_parser.first_line_consumed = false;
+            st = response_consume(buffer, response_st->write_buffer, &response_st->response_parser, &error);
 
             if (st == response_error) {
                 char * error_msg = "-ERR Response error. Disconecting ...\r\n";
@@ -504,10 +516,11 @@ static int capa_read(struct selector_key * key) {
             } else {
                 if (response_is_done(st, 0)) {
                     struct pop3 *pop3 = ATTACHMENT(key);
-                    pop3->session.pipelining = is_pipelining_available(response->response_parser.capa_response);
+                    // proceso la respuesta para ver si tiene pipelining
+                    pop3->session.pipelining = is_pipelining_available(response_st->response_parser.capa_response);
 
-                    while (buffer_can_read(response->write_buffer)) {
-                        buffer_read(response->write_buffer);
+                    while (buffer_can_read(response_st->write_buffer)) {
+                        buffer_read(response_st->write_buffer);
                     }
 
                     selector_status ss = SELECTOR_SUCCESS;
@@ -533,9 +546,10 @@ void capa_close(struct selector_key * key) {
 
 
 /*
- *    ESTADO: REQUEST READ
+ *      ESTADO: REQUEST
  *
- *
+ *      Se leen las request que llegan desde el cliente y
+ *      se las escribe al servidor origen asociado a dicho cliente.
  *
  */
 static void request_init(struct selector_key * key) {
@@ -558,14 +572,16 @@ static int request_read(struct selector_key * key) {
     bool                error           = false;
     enum pop3_state     stm_next_status = REQUEST;
 
+    // leo las request
     ptr = buffer_write_ptr(read_buffer, &count);
     n   = recv(key->fd, ptr, count, 0);
 
     if (n > 0 || buffer_can_read(read_buffer)) {
         buffer_write_adv(read_buffer, n);
-        
+        // consumo la request
         enum request_state st = request_consume(read_buffer, &request->request_parser, &error);
-        
+
+        // si ya lei la request completa entonces la proceso
         if (request_is_done(st, 0)) {
             stm_next_status = process_request(key, request);
         }
@@ -588,13 +604,16 @@ static int request_write(struct selector_key * key) {
     struct pop3_request *   pop3_request    = NULL;
     enum pop3_state         stm_next_status = REQUEST;
 
-    while ((pop3_request = request_to_buffer(buffer, ATTACHMENT(key)->session.pipelining, pop3_request, queue)) != NULL) {
+    // si tenemos pipelining meto todas las request de la cola en el buffer
+    while ((pop3_request = request_to_buffer(buffer,
+            ATTACHMENT(key)->session.pipelining, pop3_request, queue)) != NULL) {
         ptr = buffer_read_ptr(buffer, &count);
         n   = send(key->fd, ptr, count, MSG_NOSIGNAL);
         
         buffer_read_adv(buffer, n);
     }
 
+    // envio las request
     ptr = buffer_read_ptr(buffer, &count);
     n   = send(key->fd, ptr, count, MSG_NOSIGNAL);
 
@@ -615,11 +634,14 @@ static int request_write(struct selector_key * key) {
     return stm_next_status;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// RESPONSE
-////////////////////////////////////////////////////////////////////////////////
-
+/*
+ *      ESTADO: RESPONSE
+ *
+ *      Se leen las respuestas que llegan desde el servidor origen y
+ *      se las escribe en el cliente. Si las transformaciones estan
+ *      activadas y recibimos un mail, se procede a ejecutarlas
+ *
+ */
 void response_init(struct selector_key * key) {
     struct response_st * d  = &ATTACHMENT(key)->orig.response;
 
@@ -650,26 +672,34 @@ static int response_read(struct selector_key * key) {
     buffer *                buffer          = response_st->read_buffer;
     enum pop3_state         stm_next_status = RESPONSE;
 
+    // lee la respuesta del origin server
     ptr = buffer_write_ptr(buffer, &count);
     n   = recv(key->fd, ptr, count, 0);
 
     if (n > 0 || buffer_can_read(buffer)) {
         buffer_write_adv(buffer, n);
-        enum response_state st = response_consume(buffer, response_st->write_buffer, &response_st->response_parser, &error);
+
+        // consumo la primera linea
+        enum response_state st = response_consume(buffer, response_st->write_buffer,
+                &response_st->response_parser, &error);
+
         if(st == response_error) {
+            // no se leyo un +OK o -ERR o el parser devolvio un error en la respuesta
             char *error_msg = "-ERR Response error. Disconecting ...\r\n";
             send(ATTACHMENT(key)->client_fd, error_msg, strlen(error_msg), 0);
-            log_response(false, (char *) response_st->request->cmd->name, (char *) response_st->request->response->name, "RESPONSE error");
             fprintf(stderr, "Origin server send and inexistent command\n");
             selector_set_interest_key(key, OP_NOOP);
             stm_next_status = ERROR;
+
         } else {
+            // sino sigo leyendo la respuesta
             if (response_st->response_parser.first_line_consumed) {
                 response_st->response_parser.first_line_consumed = false;
 
                 if (st == response_get_mail && response_st->request->response->status == response_status_ok
                     && (response_st->request->cmd->id == retr || response_st->request->cmd->id == top)) {
                     if (parameters->filter_command->switch_program && parameters->filter_command != NULL) {
+                        // tenemos que ejecutar las transformaciones externas
                         selector_status ss = SELECTOR_SUCCESS;
                         ss |= selector_set_interest_key(key, OP_NOOP);
                         ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_NOOP);
@@ -682,6 +712,7 @@ static int response_read(struct selector_key * key) {
                     }
                 }
 
+            // sigo consumiendo la respuesta
             st = response_consume(buffer, response_st->write_buffer, &response_st->response_parser, &error);
         }
 
@@ -692,7 +723,8 @@ static int response_read(struct selector_key * key) {
         stm_next_status = ss == SELECTOR_SUCCESS ? RESPONSE : ERROR;
 
         if (stm_next_status == RESPONSE && response_is_done(st, 0)) {
-            log_response(true, (char *) response_st->request->cmd->name, (char *) response_st->request->response->name, "RESPONSE received");
+            log_response(true, (char *) response_st->request->cmd->name,
+                         (char *) response_st->request->response->name, "RESPONSE received");
             if (response_st->request->cmd->id == capa) {
                 struct pop3 * pop3 = ATTACHMENT(key);
                 pop3->session.pipelining = is_pipelining_available(response_st->response_parser.capa_response);
@@ -701,7 +733,8 @@ static int response_read(struct selector_key * key) {
         }}
 
     } else if (n == -1){
-        log_response(false, (char *) response_st->request->cmd->name, (char *) response_st->request->response->name, "RESPONSE error");
+        log_response(false, (char *) response_st->request->cmd->name,
+                     (char *) response_st->request->response->name, "RESPONSE error");
         stm_next_status = ERROR;
     }
 
@@ -717,6 +750,7 @@ static int response_write(struct selector_key * key) {
     enum pop3_state         stm_next_status = RESPONSE;
     buffer *                buffer          = response_st->write_buffer;
 
+    // escribe la respuesta en el cliente
     ptr = buffer_read_ptr(buffer, &count);
     n   = send(key->fd, ptr, count, MSG_NOSIGNAL);
 
@@ -727,14 +761,18 @@ static int response_write(struct selector_key * key) {
         metric_add_transfered_bytes(n);
 
         if (!buffer_can_read(buffer)) {
+            // si no hay nada mas para leer entonces ya escribi todo
             if (response_st->response_parser.state != response_done) {
                 selector_status ss = SELECTOR_SUCCESS;
                 ss |= selector_set_interest_key(key, OP_NOOP);
                 ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
 
                 stm_next_status = ss == SELECTOR_SUCCESS ? RESPONSE : ERROR;
+
             } else {
-                stm_next_status= process_response(key, response_st);
+                // sino sigo procesando la respuesta para volver al estado
+                // y enviarla
+                stm_next_status = process_response(key, response_st);
             }
         }
     }
@@ -753,43 +791,51 @@ void response_close(struct selector_key * key) {
 
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// EXTERNAL TRANSFORMATION
-////////////////////////////////////////////////////////////////////////////////
 
-static void external_transformation_init(struct selector_key *key) {
-    struct external_transformation *et = &ATTACHMENT(key)->et;
+/*
+ *      ESTADO: EXTERNAL TRANSFORMATION
+ *
+ *      Se inicia la estructura para ejecutar la transformacion
+ *      sobre un mail
+ *
+ */
+void init_structure(struct external_transformation * et){
+    et->origin_fd    = &ATTACHMENT(key)->origin_fd;
+    et->client_fd    = &ATTACHMENT(key)->client_fd;
+    et->ext_read_fd  = &ATTACHMENT(key)->extern_read_fd;
+    et->ext_write_fd = &ATTACHMENT(key)->extern_write_fd;
 
     et->read_buffer  = &ATTACHMENT(key)->write_buffer;
     et->write_buffer = &ATTACHMENT(key)->extern_read_buffer;
     et->ext_rb       = &ATTACHMENT(key)->extern_read_buffer;
     et->ext_wb       = &ATTACHMENT(key)->write_buffer;
 
-    et->origin_fd    = &ATTACHMENT(key)->origin_fd;
-    et->client_fd    = &ATTACHMENT(key)->client_fd;
-    et->ext_read_fd  = &ATTACHMENT(key)->extern_read_fd;
-    et->ext_write_fd = &ATTACHMENT(key)->extern_write_fd;
-
-    et->finish_rd    = false;
-    et->finish_wr    = false;
-    et->error_wr     = false;
-    et->error_rd     = false;
-
+    et->finish_read  = false;
+    et->finish_write = false;
+    et->error_write  = false;
+    et->error_read   = false;
     et->did_write    = false;
     et->write_error  = false;
 
     et->send_bytes_write    = 0;
     et->send_bytes_read     = 0;
+}
+
+static void external_transformation_init(struct selector_key * key) {
+    struct external_transformation * et = &ATTACHMENT(key)->et;
+
+    init_structure(et);
 
     if (et->parser_read == NULL) {
         et->parser_read = parser_init(parser_no_classes(), pop3_multi_parser());
     }
 
+    parser_reset(et->parser_read);
+
     if (et->parser_write == NULL){
         et->parser_write = parser_init(parser_no_classes(), pop3_multi_parser());
     }
 
-    parser_reset(et->parser_read);
     parser_reset(et->parser_write);
 
     et->status = start_external_transformation(key, &ATTACHMENT(key)->session);
@@ -811,8 +857,8 @@ static void external_transformation_init(struct selector_key *key) {
     buffer = et->read_buffer;
 
     log_external_transformation(true, "EXTERNAL TRANSFORMATION starting");
-    if (parse_mail(buffer, et->parser_read, &et->send_bytes_read)){
-        et->finish_rd = true;
+    if (parse_mail(buffer, &et->send_bytes_read, et->parser_read)){
+        et->finish_read = true;
     }
 }
 
@@ -821,6 +867,7 @@ static int external_transformation_read(struct selector_key *key) {
     uint8_t * ptr;
     size_t    count;
     ssize_t   n;
+
     struct external_transformation * et     = &ATTACHMENT(key)->et;
     enum pop3_state                  ret    = EXTERNAL_TRANSFORMATION;
     buffer *                         buffer = et->read_buffer;
@@ -830,22 +877,21 @@ static int external_transformation_read(struct selector_key *key) {
 
     if(n > 0) {
         buffer_write_adv(buffer, n);
-        if (parse_mail(buffer, et->parser_read, &et->send_bytes_read) || n == 0) {
-            if(et->error_rd) {
+        if (parse_mail(buffer, &et->send_bytes_read, et->parser_read) || n == 0) {
+
+            if(et->error_read) {
                 buffer_read_adv(buffer, et->send_bytes_read);
             }
-            //log_response(ATTACHMENT(key)->orig.response.request->response);
-            et->finish_rd = true;
+
+            et->finish_read = true;
             if (finished_et(et)){
                 struct msg_queue * queue = ATTACHMENT(key)->session.request_queue;
 
                 if (!is_empty(queue)) {
-                    ;//log_response(ATTACHMENT(key)->orig.response.request->response);
                     selector_set_interest(key->s, *et->client_fd, OP_NOOP);
                     selector_set_interest(key->s, *et->origin_fd, OP_READ);
                     ret = RESPONSE;
                 } else {
-                    ;//log_response(ATTACHMENT(key)->orig.response.request->response);
                     selector_set_interest(key->s, *et->origin_fd, OP_NOOP);
                     selector_set_interest(key->s, *et->client_fd, OP_READ);
                     ret = REQUEST;
@@ -855,7 +901,7 @@ static int external_transformation_read(struct selector_key *key) {
                 selector_set_interest(key->s, *et->origin_fd, OP_NOOP);
             }
         } else {
-            if (!et->error_rd) {
+            if (!et->error_read) {
                 selector_set_interest(key->s, *et->ext_write_fd, OP_WRITE);
                 selector_set_interest(key->s, *et->origin_fd, OP_NOOP);
             } else {
@@ -870,23 +916,25 @@ static int external_transformation_read(struct selector_key *key) {
 }
 
 static int external_transformation_write(struct selector_key * key) {
-    struct external_transformation * et     = &ATTACHMENT(key)->et;
-    enum pop3_state                  ret    = EXTERNAL_TRANSFORMATION;
-    buffer  *                        buffer = et->write_buffer;
     uint8_t * ptr;
     size_t   count;
     ssize_t  n;
 
-    if (et->error_wr && !et->did_write){
+    struct external_transformation * et     = &ATTACHMENT(key)->et;
+    enum pop3_state                  ret    = EXTERNAL_TRANSFORMATION;
+    buffer  *                        buffer = et->write_buffer;
+
+
+    if (et->error_write && !et->did_write){
+        char * err_msg  = "-ERR Could not open transformation.\r\n";
         et->write_error = true;
         buffer_reset(buffer);
-        ptr             = buffer_write_ptr(buffer, &count);
-        char * err_msg  = "-ERR Could not open transformation.\r\n";
+        ptr = buffer_write_ptr(buffer, &count);
         sprintf((char *) ptr, "%s", err_msg);
         buffer_write_adv(buffer, strlen(err_msg));
     }
 
-    if (et->error_wr && et->did_write && !et->write_error){
+    if (et->error_write && et->did_write && !et->write_error) {
         et->write_error = true;
         ptr             = buffer_write_ptr(buffer, &count);
         char * err_msg  = "\r\n.\r\n";
@@ -906,7 +954,7 @@ static int external_transformation_write(struct selector_key * key) {
     if(n > 0) {
         if (et->send_bytes_write != 0){
             et->send_bytes_write -= n;
-            et->finish_wr = true;
+            et->finish_write = true;
         }
 
         et->did_write = true;
@@ -914,17 +962,14 @@ static int external_transformation_write(struct selector_key * key) {
 
         metric_add_transfered_bytes(n);
 
-        if ((et->error_wr || et->finish_wr) && et->send_bytes_write == 0) {
+        if ((et->error_write || et->finish_write) && et->send_bytes_write == 0) {
             if (finished_et(et)) {
                 struct msg_queue *q = ATTACHMENT(key)->session.request_queue;
-                // vamos a response read, todavia hay respuestas por leer
                 if (!is_empty(q)) {
-                    ;//log_response(ATTACHMENT(key)->orig.response.request->response);
                     selector_set_interest(key->s, *et->client_fd, OP_NOOP);
                     selector_set_interest(key->s, *et->origin_fd, OP_READ);
                     ret = RESPONSE;
                 } else {
-                    ;//log_response(ATTACHMENT(key)->orig.response.request->response);
                     selector_set_interest(key->s, *et->origin_fd, OP_NOOP);
                     selector_set_interest(key->s, *et->client_fd, OP_READ);
                     ret = REQUEST;
@@ -935,7 +980,7 @@ static int external_transformation_write(struct selector_key * key) {
                 selector_set_interest(key->s, *et->client_fd, OP_NOOP);
             }
         } else {
-            if(!et->error_wr){
+            if(!et->error_write){
                 selector_set_interest(key->s, *et->ext_read_fd, OP_READ);
                 selector_set_interest(key->s, *et->client_fd, OP_NOOP);
             }

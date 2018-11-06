@@ -12,8 +12,6 @@
 
 options clt_parameters;
 
-/* TODO: VER LA CONEXION Y EL INPUT PARSER QUE ESTA CON -L Y SERIA COMO OS EN EL PROXY */
-
 struct addrinfo * resolution() {
     char                service[5];
     struct addrinfo *   list_result = 0;

@@ -12,39 +12,41 @@ enum et_status {
     et_status_done,
 };
 
+/* Estructura principal de la transformacion externa */
 struct external_transformation {
     enum et_status              status;
-
-    buffer *                    read_buffer;
-    buffer *                    write_buffer;
-    buffer *                    ext_rb;
-    buffer *                    ext_wb;
 
     file_descriptor *           client_fd;
     file_descriptor *           origin_fd;
     file_descriptor *           ext_read_fd;
     file_descriptor *           ext_write_fd;
 
-    struct parser *             parser_read;
-    struct parser *             parser_write;
+    size_t                      send_bytes_write;
+    size_t                      send_bytes_read;
 
-    bool                        finish_wr;
-    bool                        finish_rd;
+    buffer *                    read_buffer;
+    buffer *                    write_buffer;
+    buffer *                    ext_rb;
+    buffer *                    ext_wb;
 
-    bool                        error_wr;
-    bool                        error_rd;
-
+    bool                        finish_write;
+    bool                        finish_read;
+    bool                        error_write;
+    bool                        error_read;
     bool                        did_write;
     bool                        write_error;
 
-    size_t                      send_bytes_write;
-    size_t                      send_bytes_read;
+    struct parser *             parser_read;
+    struct parser *             parser_write;
 };
 
 void ext_write(struct selector_key *);
 void ext_read(struct selector_key *);
 void ext_close(struct selector_key *);
 
+/*
+ * Declaración de los handlers para la transformacion externa
+ */
 static const struct fd_handler ext_handler = {
         .handle_read   = ext_read,
         .handle_write  = ext_write,
@@ -54,7 +56,7 @@ static const struct fd_handler ext_handler = {
 
 enum et_status start_external_transformation(struct selector_key *, struct pop3_session *);
 
-bool parse_mail(buffer *, struct parser *, size_t *);
+bool parse_mail(buffer *, size_t *, struct parser *);
 
 bool finished_et(struct external_transformation *);
 

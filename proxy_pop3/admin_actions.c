@@ -92,14 +92,14 @@ void forbid_mime(struct request_admin * request, enum parse_req_status* status){
 void allow_mime(struct request_admin * request, enum parse_req_status* status){
         char* type = malloc(strlen((const char *) request->data) * sizeof(char));
         char* subtype = malloc(strlen((const char *) request->data) * sizeof(char));
+
         if(check_mime_format((char *) request->data, &type, &subtype) == -1){
             *status = ALLOW_ERROR; //error
             return;
         }
+
         bool is_there = find_mime(parameters->filtered_media_types, type, subtype);
         if(!is_there){
-
-
             if(strcasecmp(subtype, "*") == 0){
                 int allow_status = allow_type(type, subtype, parameters->filtered_media_types);
                 if(allow_status == -1){

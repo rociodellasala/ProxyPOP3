@@ -1,8 +1,8 @@
-
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "include/buffer.h"
 #include "include/pop3_multi.h"
 #include "include/input_parser.h"
@@ -10,31 +10,34 @@
 #include "include/pop3nio.h"
 
 void ext_read(struct selector_key * key) {
-    struct external_transformation *et  = &ATTACHMENT(key)->et;
-    buffer  *b                          = et->ext_rb;
-    uint8_t *ptr;
-    size_t   count;
-    ssize_t  n;
+    puts("aca");
+    uint8_t * ptr;
+    size_t    count;
+    ssize_t   n;
 
-    ptr = buffer_write_ptr(b, &count);
+    struct external_transformation *    et      = &ATTACHMENT(key)->et;
+    buffer *                            buffer  = et->ext_rb;
+
+    ptr = buffer_write_ptr(buffer, &count);
     n   = read(*et->ext_read_fd, ptr, count);
 
-    if (n < 0){
+    if (n < 0) {
         selector_unregister_fd(key->s, key->fd);
-        et->error_wr = true;
+        et->error_write = true;
         selector_set_interest(key->s, *et->client_fd, OP_WRITE);
-    } else if (n >= 0){
-        buffer_write_adv(b, n);
-        if (parse_mail(b, et->parser_write, &et->send_bytes_write)){
-            //log_response(ATTACHMENT(key)->orig.response.request->response);
+    } else if (n >= 0) {
+        buffer_write_adv(buffer, n);
+
+        if (parse_mail(buffer, &et->send_bytes_write, et->parser_write)){
             selector_unregister_fd(key->s, key->fd);
-        }else{
+        } else {
             selector_set_interest(key->s, *et->ext_read_fd, OP_NOOP);
             if (n == 0){
                 selector_unregister_fd(key->s, key->fd);
-                et->error_wr = true;
+                et->error_write = true;
             }
         }
+
         selector_set_interest(key->s, *et->client_fd, OP_WRITE);
     }
 }
@@ -48,30 +51,34 @@ void ext_write(struct selector_key * key) {
 
     ptr = buffer_read_ptr(b, &count);
     size_t bytes_sent = count;
+
     if (et->send_bytes_read != 0){
         bytes_sent = et->send_bytes_read;
     }
+
     n   = write(*et->ext_write_fd, ptr, bytes_sent);
 
     if (n > 0) {
         if (et->send_bytes_read != 0)
             et->send_bytes_read -= n;
         buffer_read_adv(b, n);
-        if (et->finish_rd && et->send_bytes_read == 0){
+        if (et->finish_read && et->send_bytes_read == 0){
             selector_unregister_fd(key->s, key->fd);
         }else{
             selector_set_interest(key->s, *et->ext_write_fd, OP_NOOP);
             selector_set_interest(key->s, *et->origin_fd, OP_READ);
         }
-    }else if(n == -1){
+    } else if (n == -1) {
         et->status = et_status_err;
-        if (et->send_bytes_read == 0)
+        if (et->send_bytes_read == 0) {
             buffer_reset(b);
-        else
+        } else {
             buffer_read_adv(b, et->send_bytes_read);
+        }
+
         selector_unregister_fd(key->s, key->fd);
         selector_set_interest(key->s, *et->origin_fd, OP_READ);
-        et->error_rd = true;
+        et->error_read = true;
     }
 }
 
@@ -80,41 +87,41 @@ void ext_close(struct selector_key * key) {
 }
 
 
+bool parse_mail(buffer * buffer, size_t * send_bytes, struct parser * parser) {
+    size_t      i = 0;
+    size_t      count;
+    uint8_t *   rp = buffer_read_ptr(buffer, &count);
+    uint8_t *   wp = buffer_write_ptr(buffer, &count);
 
-/**
- * Return true if the parser finished reading the mail.
- */
-bool parse_mail(buffer * b, struct parser * p, size_t * send_bytes) {
-    size_t i = 0;
-    size_t count;
-    uint8_t *rp = buffer_read_ptr(b, &count);
-    uint8_t *wp = buffer_write_ptr(b, &count);
-    while (buffer_can_read(b)) {
+    while (buffer_can_read(buffer)) {
         i++;
-        uint8_t c = buffer_read(b);
-        const struct parser_event *e = parser_feed(p, c);
+        uint8_t                     c = buffer_read(buffer);
+        const struct parser_event * e = parser_feed(parser, c);
+
         if (e->type == POP3_MULTI_FIN){
-            *send_bytes = i;
-            b->read  = rp;
-            b->write = wp;
+            *send_bytes     = i;
+            buffer->read    = rp;
+            buffer->write   = wp;
             return true;
         }
     }
-    b->read  = rp;
-    b->write = wp;
+
+    buffer->read  = rp;
+    buffer->write = wp;
+
     *send_bytes = 0;
+    
     return false;
 }
 
-/**
- * When finished, change to request
- */
-bool finished_et(struct external_transformation *et) {
-    if(et->finish_rd && et->finish_wr){
+
+bool finished_et(struct external_transformation * et) {
+    if (et->finish_read && et->finish_write) {
         return true;
-    }else if(et->finish_rd && et->error_wr) {
+    } else if (et->finish_read && et->error_write) {
         return true;
     }
+
     return false;
 }
 
@@ -148,6 +155,7 @@ char * init_enviroment_variables(struct pop3_session * session){
             (char *) parameters->filter_command->program_name);
 
     free(censored_medias_typed);
+
     return enviroment_var;
 }
 
@@ -161,7 +169,7 @@ enum et_status add_to_selector(struct selector_key * key, file_descriptor pipeCh
         close(pipeChildToFather[READ]);
         close(pipeFatherToChild[WRITE]);
         return et_status_err;
-    }// read from.
+    }
 
     if (selector_register(key->s, pipeFatherToChild[WRITE], &ext_handler, OP_WRITE, data) == 0 &&
         selector_fd_set_nio(pipeFatherToChild[WRITE]) == 0) {
@@ -171,7 +179,7 @@ enum et_status add_to_selector(struct selector_key * key, file_descriptor pipeCh
         close(pipeChildToFather[READ]);
         close(pipeFatherToChild[WRITE]);
         return et_status_err;
-    } // write to.
+    }
 
     return et_status_done;
 }

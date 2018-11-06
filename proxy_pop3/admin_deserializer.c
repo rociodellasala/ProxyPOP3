@@ -24,6 +24,7 @@ unsigned char * deserialize_string(unsigned char * buffer, unsigned char * str, 
     return buffer;
 }
 
+/* Deserealiza el request del admin previo a parsearlo */
 unsigned char * deserialize_request(unsigned char * buffer, struct request_admin * request) {
     buffer = deserialize_char(buffer, &request->version);
     buffer = deserialize_char(buffer, &request->cmd);

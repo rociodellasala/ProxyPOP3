@@ -16,7 +16,9 @@ static enum request_state cmd(const uint8_t c, struct request_parser * parser) {
     struct pop3_request * request   = parser->request;
 
     if (c == SPACE || c == CR || c == NEWLINE) {
+        // si es un espacio o nueva linea entonces termino el comando, lo proceso
         request->cmd = (struct pop3_request_cmd *) get_cmd(parser->cmd_buffer);
+
         if (request->cmd->id == error) {
             next = request_error_inexistent_cmd;
         } else {
@@ -33,10 +35,13 @@ static enum request_state cmd(const uint8_t c, struct request_parser * parser) {
                     break;
             }
         }
+
     } else if (parser->i >= MAX_CMD_SIZE) {
+        // si me pase del tamaño entonces el comando es invalido
         request->cmd = (struct pop3_request_cmd *) get_cmd(parser->cmd_buffer);
         next         = request_error_cmd_too_long;
     } else {
+        // sino guardo el el buffer lo ingresado
         parser->cmd_buffer[parser->i++] = c;
     }
 
@@ -68,6 +73,7 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
     enum request_state      ret       = request_parameter;
     struct pop3_request *   request   = parser->request;
 
+    // contemplo los casos en los cuales la request tenga espacios de mas
     if (c == SPACE){
         *is_space = true;
         return ret;
@@ -107,11 +113,9 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
                 assemble_parameters(count, parser, request);
             }
 
-            if (c == CR) {
-                ret = request_newline;
-            } else {
-                ret = request_done;
-            }
+
+            ret = request_done;
+
         }
     } else {
         parser->param_buffer[parser->params][parser->j++] = c;
@@ -145,6 +149,7 @@ extern void request_parser_reset(struct request_parser * parser) {
 extern enum request_state request_parser_feed(struct request_parser * parser, const uint8_t c, int * max_param, bool * is_space) {
     enum request_state next;
 
+    // estados para saber que parte del request estoy parseando
     switch(parser->state) {
         case request_cmd:
             next = cmd(c, parser);
@@ -201,6 +206,7 @@ enum request_state request_consume(buffer * buffer, struct request_parser * pars
     while (buffer_can_read(buffer)) {
         c   = buffer_read(buffer);
         st  = request_parser_feed(parser, c, &max_param, &is_space);
+        // parseo char a char la request
         if (request_is_done(st, errored)) {
             break;
         }

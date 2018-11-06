@@ -13,6 +13,4 @@ int get_int_len(int);
 
 bool compare_strings(const char *, const char *);
 
-char * to_upper(char *);
-
 #endif //PROXYPOP3_UTILS_H

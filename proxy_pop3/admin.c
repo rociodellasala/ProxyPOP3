@@ -40,7 +40,7 @@ struct admin * admin_new(const int admin_fd, struct sockaddr_storage * client_ad
     return new_admin;
 }
 
-
+/* acepta una conexion del administrador */
 void admin_accept_connection(struct selector_key * key) {
     struct sockaddr_storage     client_addr;
     socklen_t                   client_addr_len   = sizeof(client_addr);
@@ -86,7 +86,7 @@ void admin_accept_connection(struct selector_key * key) {
 
 void admin_read(struct selector_key * key) {
     struct admin * admin = ATTACHMENT(key);
-    
+    /* parseo la request que me envian para saber que tengo que hacer */
     parse_admin_request(admin);
     
     if (selector_set_interest(key->s, key->fd, OP_WRITE) != SELECTOR_SUCCESS) {
@@ -95,6 +95,7 @@ void admin_read(struct selector_key * key) {
 }
 
 void reset_admin_status(struct admin * admin) {
+    /* ante cada request reseteo el estado */
     admin->current_request  = NULL;
     admin->resp_length      = 0;
     admin->resp_data        = NULL;
@@ -108,9 +109,11 @@ void admin_write(struct selector_key * key) {
 
     if (admin->quit == 0) {
         while(resp < 0) {
+            // parseo la respuesta del admin para saber si hubo algun error
             resp = parse_admin_response(admin);
         }
     } else {
+        // si el comando es para salir libero recursos
         quit_admin(admin);
 
         if (admin->current_request->length > 0) {

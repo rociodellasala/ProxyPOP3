@@ -36,13 +36,3 @@ bool compare_strings(const char * str1, const char * str2) {
 
     return false;
 }
-
-char * to_upper(char * str) {
-    char * aux = str;
-    while (*aux != 0) {
-        *aux = (char)toupper(*aux);
-        aux++;
-    }
-
-    return str;
-}

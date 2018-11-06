@@ -223,7 +223,6 @@ void communicate_with_proxy() {
             exit(EXIT_FAILURE);
         }
 
-        /* TODO: HACER ESTO BIEN !!!!!!!!! SI HAY MAS OPCIONES NO FUNCA*/
         c           = (cmd) buffer_option[0];
         act         = action_list[a_status];
         cmd_status  = act->function(c, buffer_option, &quit_option_on);

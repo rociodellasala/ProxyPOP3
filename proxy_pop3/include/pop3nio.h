@@ -44,13 +44,16 @@ static const struct fd_handler pop3_handler = {
 
 
 /*
- * Definición de variables para cada estado
+ * Definición de estructuras
  */
+
+/** usado por WELCOME READ y WELCOME WRITE */
 struct welcome_st {
     buffer *                    buffer;
     bool                        msg_not_finished;
 };
 
+/* Usado por REQUEST */
 struct request_st {
     buffer *                    read_buffer;
     buffer *                    write_buffer;
@@ -70,7 +73,6 @@ struct response_st {
     struct response_parser      response_parser;
 };
 
-/* TODO: ver de achicarlo */
 #define BUFFER_SIZE 45
 
 /*
@@ -82,18 +84,21 @@ struct response_st {
  * liberarlo finalmente, y un pool para reusar alocaciones previas.
  */
 struct pop3 {
+    // informacion del cliente
     struct sockaddr_storage         client_addr;
     file_descriptor                 client_fd;
 
+    // informacion del origen
     struct addrinfo *               origin_resolution;
-
     struct sockaddr_storage         origin_addr;
     socklen_t                       origin_addr_len;
     int                             origin_domain;
     file_descriptor                 origin_fd;
 
+    // sesion actual: nombre de usuario, pipelining
     struct pop3_session             session;
 
+    // maquina de estados para saber el estado inicial y el final
     struct state_machine            stm;
 
     union {
@@ -105,20 +110,23 @@ struct pop3 {
         struct response_st          response;
     } orig;
 
-
+    // buffers principales
     uint8_t                         raw_buff_a[BUFFER_SIZE];
     uint8_t                         raw_buff_b[BUFFER_SIZE];
     buffer                          read_buffer;
     buffer                          write_buffer;
 
+    // buffers para la transformacion externa
     uint8_t                         raw_super_buffer[BUFFER_SIZE];
     buffer                          super_buffer;
 
     uint8_t                         raw_extern_read_buffer[BUFFER_SIZE];
     buffer                          extern_read_buffer;
 
-    int                             extern_read_fd;
-    int                             extern_write_fd;
+    file_descriptor                 extern_read_fd;
+    file_descriptor                 extern_write_fd;
+
+    // transformacion externa
     struct external_transformation  et;
 
     unsigned                        references;
