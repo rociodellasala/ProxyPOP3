@@ -13,7 +13,16 @@ enum pop3_state process_response(struct selector_key * key, struct response_st *
             ATTACHMENT(key)->session.state = POP3_UPDATE;
             return DONE;
         case user:
-            ATTACHMENT(key)->session.user_name = response_st->request->args;
+            if(response_st->request->args != NULL) {
+                ATTACHMENT(key)->session.user_name = malloc(strlen(response_st->request->args) * sizeof(char *));
+                strcpy(ATTACHMENT(key)->session.user_name, response_st->request->args);
+            } else {
+                char * error_msg = "-ERR Response error. Disconecting ...\r\n";
+                send(ATTACHMENT(key)->client_fd, error_msg, strlen(error_msg), 0);
+                fprintf(stderr, "Origin server send +OK but user name is null\n");
+                selector_set_interest_key(key, OP_NOOP);
+                return ERROR;
+            }
             break;
         case pass:
             if (response_st->request->response->status == response_status_ok) {
@@ -28,8 +37,17 @@ enum pop3_state process_response(struct selector_key * key, struct response_st *
 
     if (!is_empty(queue)) {
         if (ATTACHMENT(key)->session.pipelining) {
-            struct pop3_request * request = dequeue(queue);
+            if(ATTACHMENT(key)->orig.response.request->cmd->id == capa){
+                free(ATTACHMENT(key)->orig.response.response_parser.capa_response);
+            }
 
+            if(ATTACHMENT(key)->orig.response.request->args != NULL) {
+                free(ATTACHMENT(key)->orig.response.request->args);
+            }
+
+            free(ATTACHMENT(key)->orig.response.request);
+
+            struct pop3_request * request = dequeue(queue);
             if (request == NULL) {
                 fprintf(stderr, "Request is NULL");
                 abort();

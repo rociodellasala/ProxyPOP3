@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "include/pop3_session.h"
 
 void pop3_session_init(struct pop3_session * session, bool pipelining) {
@@ -10,5 +11,6 @@ void pop3_session_init(struct pop3_session * session, bool pipelining) {
 
 void pop3_session_close(struct pop3_session * session) {
     destroy_queue(session->request_queue);
+    free(session->user_name);
     session->state = POP3_DONE;
 }

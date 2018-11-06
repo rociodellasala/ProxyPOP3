@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "include/client_parser_response.h"
 #include "include/pop3_multi.h"
@@ -15,7 +16,7 @@ enum response_state status(const uint8_t c, struct response_parser * parser) {
 
     if (c == ' ' || c == '\r') {
         parser->request->response = get_response(parser->status_buffer);
-
+        parser->status_buffer[parser->i++] = '\0';
         if (parser->request->response->status == response_status_invalid) {
             ret = response_error;
         } else {
@@ -91,7 +92,6 @@ enum response_state mail(const uint8_t c, struct response_parser * parser) {
         default:
             break;
     }
-
     return ret;
 }
 
@@ -127,7 +127,7 @@ enum response_state pcapa(const uint8_t c, struct response_parser * parser) {
         parser->capa_response = tmp;
     }
 
-    parser->capa_response[parser->j++] = c;
+    parser->capa_response[parser->j++] = toupper(c);
 
     switch (e->type) {
         case POP3_MULTI_FIN:
@@ -180,7 +180,6 @@ extern void response_parser_init (struct response_parser * parser) {
     parser_reset(parser->pop3_multi_parser);
 
     if (parser->capa_response != NULL) {
-        free(parser->capa_response);
         parser->capa_response = NULL;
     }
 
@@ -248,7 +247,9 @@ extern enum response_state response_consume(buffer * read_buffer, buffer * write
         if (st == response_error) {
             return st;
         }
+
         buffer_write(write_buffer, c);
+
         if (response_is_done(st, errored) || parser->first_line_consumed) {
             break;
         }

@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include "include/buffer.h"
 #include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 bool is_pipelining_available(const char * capa_response) {
     char * pipelining = "PIPELINING";

@@ -83,30 +83,35 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
         }
     }
 
-    if (c == CR || c == NEWLINE) {
-        char * aux  = parser->param_buffer[parser->params];
-        parser->param_buffer[parser->params][parser->j++] = '\0';
-        parser->params++;
-        int count   = 0;
+    if (c == NEWLINE) {
+        if (parser->j == 0 && parser->params == 0 && parser->request->cmd->max_params == 0) {
+            return request_parameter;
+        } if (parser->j == 0 && parser->params == 0 && parser->request->cmd->max_params == 1) {
+            return request_done;
+        } else {
+            char *aux = parser->param_buffer[parser->params];
+            parser->param_buffer[parser->params][parser->j++] = '\0';
+            parser->params++;
+            int count = 0;
 
-        while (*aux != 0) {
-            if (*aux == ' ' || *aux == '\t') {
-                count++;
+            while (*aux != 0) {
+                if (*aux == ' ' || *aux == '\t') {
+                    count++;
+                }
+
+                aux++;
             }
 
-            aux++;
-        }
+            if (parser->params != 0) {
+                assemble_parameters(count, parser, request);
+            }
 
-        if (parser->params != 0) {
-            assemble_parameters(count, parser, request);
+            if (c == CR) {
+                ret = request_newline;
+            } else {
+                ret = request_done;
+            }
         }
-
-        if (c == CR) {
-            ret = request_newline;
-        } else {
-            ret = request_done;
-        }
-
     } else {
         parser->param_buffer[parser->params][parser->j++] = c;
         if (parser->j >= MAX_PARAM_SIZE - 1) {

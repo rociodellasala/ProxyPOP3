@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "include/client_response.h"
+#include "include/utils.h"
 
 #define RESP_SIZE (response_status_err + 1)
 
@@ -27,9 +28,11 @@ static const struct pop3_response invalid_response = {
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
 
-const struct pop3_response * get_response(const char *response) {
-    for (unsigned i = 0; i < N(responses); i++) {
-        if (strcmp(response, responses[i].name) == 0) {
+const struct pop3_response * get_response(const char * response) {
+    unsigned i;
+
+    for (i = 0; i < N(responses); i++) {
+        if (compare_strings(response, responses[i].name) == true) {
             return &responses[i];
         }
     }

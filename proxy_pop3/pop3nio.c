@@ -334,7 +334,7 @@ int connecting(struct selector_key * key) {
             return ERROR;
         }
     }
-    
+
     pop3_session_init(&ATTACHMENT(key)->session, false);
 
     selector_status ss = SELECTOR_SUCCESS;
@@ -353,7 +353,7 @@ int connecting(struct selector_key * key) {
 static void welcome_init(struct selector_key * key) {
     struct welcome_st * welcome = &ATTACHMENT(key)->orig.welcome;
 
-    welcome->buffer             = &(ATTACHMENT(key)->write_buffer);
+    welcome->buffer             = &ATTACHMENT(key)->write_buffer;
 }
 
 static int welcome_read(struct selector_key * key) {
@@ -366,7 +366,7 @@ static int welcome_read(struct selector_key * key) {
 
     // pop3filter welcome message
     ptr = buffer_write_ptr((buffer *) welcome->buffer, (size_t *) &count);
-    n   = recv(key->fd, ptr, count, 0);
+    n   = recv(key->fd, ptr, (size_t) count, 0);
 
     if (count == n) {
         welcome->msg_not_finished = true;
@@ -462,7 +462,7 @@ static int capa_read(struct selector_key * key) {
     bool                    error           = false;
     buffer *                buffer          = response->read_buffer;
     enum pop3_state         stm_next_status = CAPA;
-    
+
     ptr = buffer_write_ptr(buffer, &count);
     n   = recv(key->fd, ptr, count, 0);
 
@@ -497,6 +497,12 @@ static int capa_read(struct selector_key * key) {
 
     return stm_next_status;
 }
+
+void capa_close(struct selector_key * key) {
+    free(ATTACHMENT(key)->orig.response.request);
+    free(ATTACHMENT(key)->orig.response.response_parser.capa_response);
+}
+
 
 
 /*
@@ -623,8 +629,14 @@ static int response_read(struct selector_key * key) {
     if (n > 0 || buffer_can_read(buffer)) {
         buffer_write_adv(buffer, n);
         enum response_state st = response_consume(buffer, response_st->write_buffer, &response_st->response_parser, &error);
-
-        if (response_st->response_parser.first_line_consumed) {
+        if(st == response_error) {
+            char *error_msg = "-ERR Response error. Disconecting ...\r\n";
+            send(ATTACHMENT(key)->client_fd, error_msg, strlen(error_msg), 0);
+            fprintf(stderr, "Origin server send and inexistent command\n");
+            selector_set_interest_key(key, OP_NOOP);
+            stm_next_status = ERROR;
+        }
+        else {if (response_st->response_parser.first_line_consumed) {
             response_st->response_parser.first_line_consumed = false;
             if (st == response_mail && response_st->request->response->status == response_status_ok
                 && (response_st->request->cmd->id == retr || response_st->request->cmd->id == top)) {
@@ -656,7 +668,7 @@ static int response_read(struct selector_key * key) {
                 pop3->session.pipelining = is_pipelining_available(response_st->response_parser.capa_response);
                 stm_next_status = RESPONSE;
             }
-        }
+        }}
 
     } else if (n == -1){
         stm_next_status= ERROR;
@@ -702,6 +714,16 @@ static int response_write(struct selector_key * key) {
     }
 
     return stm_next_status;
+}
+
+
+void response_close(struct selector_key * key) {
+    if(ATTACHMENT(key)->orig.response.request->cmd->id == capa){
+        free(ATTACHMENT(key)->orig.response.response_parser.capa_response);
+    }
+
+    free(ATTACHMENT(key)->orig.response.request->args);
+    free(ATTACHMENT(key)->orig.response.request);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -926,7 +948,8 @@ static const struct state_definition client_states[] = {
                 .state            = CAPA,
                 .on_arrival       = capa_init,
                 .on_read_ready    = capa_read,
-        }, {
+                .on_departure     = capa_close,
+        },{
                 .state            = REQUEST,
                 .on_arrival       = request_init,
                 .on_read_ready    = request_read,
@@ -936,6 +959,7 @@ static const struct state_definition client_states[] = {
                 .on_arrival       = response_init,
                 .on_read_ready    = response_read,
                 .on_write_ready   = response_write,
+                .on_departure     = response_close,
         },{
                 .state            = EXTERNAL_TRANSFORMATION,
                 .on_arrival       = external_transformation_init,

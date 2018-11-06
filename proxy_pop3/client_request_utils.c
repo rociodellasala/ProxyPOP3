@@ -40,7 +40,7 @@ enum pop3_state process_request(struct selector_key * key, struct request_st * r
     }
 
     struct pop3_request * req = new_request(request->request.cmd, request->request.args);
-
+    printf("cmd:%s. - param:%s\n", request->request.cmd->name, request->request.args);
     enqueue(ATTACHMENT(key)->session.request_queue, req);
     request_parser_reset(&request->request_parser);
 
@@ -95,7 +95,6 @@ int request_marshall(struct pop3_request * request, buffer * buffer) {
 
 
 struct pop3_request * request_to_buffer(buffer * buffer, bool pipelining, struct pop3_request * pop3_request, struct msg_queue * queue) {
-   printf("pipelining: %d\n", pipelining);
     if (pop3_request == NULL) {
         if (pipelining == false) {
             pop3_request = peek_data(queue);
