@@ -121,9 +121,15 @@ void log_response(bool opened, char * cmd, char * status, char * message) {
     time(&now);
     strftime(time_buffer, n, "%FT %TZ", gmtime(&now));
 
-    char * request_info = malloc((strlen(cmd) + strlen(status) + 20) * sizeof(char *));
+    char * request_info;
 
-    sprintf(request_info, "cmd: %s - status:%s\n", cmd, status);
+    if (status != NULL) {
+        request_info = malloc((strlen(cmd) + strlen(status) + 20) * sizeof(char *));
+        sprintf(request_info, "cmd: %s - status:%s\n", cmd, status);
+    } else {
+        request_info = malloc((strlen(cmd) + 20) * sizeof(char *));
+        sprintf(request_info, "cmd: %s - status invalid\n", cmd);
+    }
 
     if(opened){
         fprintf(stdout, ANSI_GREEN "[%s]:" ANSI_RESET " %s - %s", time_buffer, message, request_info);

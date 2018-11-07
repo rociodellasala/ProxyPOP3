@@ -501,34 +501,27 @@ static int capa_read(struct selector_key * key) {
             selector_set_interest_key(key, OP_NOOP);
             stm_next_status = ERROR;
             log_response(false, (char *) response_st->request->cmd->name,
-                         (char *) response_st->request->response->name, "RESPONSE error");
+                         (char *) response_st->request->response->name, "RESPONSE ERROR NOT START WITH +OK or -ERR");
         } else {
             // sigo consumiendo la respuesta
             response_st->response_parser.first_line_consumed = false;
             st = response_consume(buffer, response_st->write_buffer, &response_st->response_parser, &error);
 
-            if (st == response_error) {
-                char * error_msg = "-ERR Response error. Disconecting ...\r\n";
-                send(d->client_fd, error_msg, strlen(error_msg), 0);
-                fprintf(stderr, "Origin server send and inexistent command\n");
-                selector_set_interest_key(key, OP_NOOP);
-                stm_next_status = ERROR;
-            } else {
-                if (response_is_done(st, 0)) {
-                    struct pop3 *pop3 = ATTACHMENT(key);
-                    // proceso la respuesta para ver si tiene pipelining
-                    pop3->session.pipelining = is_pipelining_available(response_st->response_parser.capa_response);
 
-                    while (buffer_can_read(response_st->write_buffer)) {
-                        buffer_read(response_st->write_buffer);
-                    }
+            if (response_is_done(st, 0)) {
+                struct pop3 *pop3 = ATTACHMENT(key);
+                // proceso la respuesta para ver si tiene pipelining
+                pop3->session.pipelining = is_pipelining_available(response_st->response_parser.capa_response);
 
-                    selector_status ss = SELECTOR_SUCCESS;
-                    ss |= selector_set_interest_key(key, OP_NOOP);
-                    ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_READ);
-
-                    stm_next_status = SELECTOR_SUCCESS == ss ? REQUEST : ERROR;
+                while (buffer_can_read(response_st->write_buffer)) {
+                    buffer_read(response_st->write_buffer);
                 }
+
+                selector_status ss = SELECTOR_SUCCESS;
+                ss |= selector_set_interest_key(key, OP_NOOP);
+                ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_READ);
+
+                stm_next_status = SELECTOR_SUCCESS == ss ? REQUEST : ERROR;
             }
         }
     } else {
@@ -685,7 +678,7 @@ static int response_read(struct selector_key * key) {
 
         if(st == response_error) {
             // no se leyo un +OK o -ERR o el parser devolvio un error en la respuesta
-            char *error_msg = "-ERR Response error. Disconecting ...\r\n";
+            char * error_msg = "-ERR Response error. Disconecting ...\r\n";
             send(ATTACHMENT(key)->client_fd, error_msg, strlen(error_msg), 0);
             fprintf(stderr, "Origin server send and inexistent command\n");
             selector_set_interest_key(key, OP_NOOP);
