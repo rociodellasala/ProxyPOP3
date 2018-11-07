@@ -46,6 +46,10 @@ void send_response_with_data(struct admin * admin, unsigned char status) {
     
     send_response(admin, response);
 
+    if(admin->resp_data != NULL) {
+        free(admin->resp_data);
+    }
+
     free(response->data);
     free(response);
 }

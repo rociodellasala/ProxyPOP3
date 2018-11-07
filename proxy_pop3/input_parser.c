@@ -32,7 +32,7 @@ void print_help() {
 }
 
 void print_version() {
-    printf("Version: POP3 Proxy %s\n", parameters->version);
+    printf("Version: POP3 Proxy 1.0");
 }
 
 void free_options(char ** options, int size) {
