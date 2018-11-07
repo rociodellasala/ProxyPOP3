@@ -799,11 +799,8 @@ void response_close(struct selector_key * key) {
  *      sobre un mail
  *
  */
-void init_structure(struct external_transformation * et){
-    et->origin_fd    = &ATTACHMENT(key)->origin_fd;
-    et->client_fd    = &ATTACHMENT(key)->client_fd;
-    et->ext_read_fd  = &ATTACHMENT(key)->extern_read_fd;
-    et->ext_write_fd = &ATTACHMENT(key)->extern_write_fd;
+static void external_transformation_init(struct selector_key *key) {
+    struct external_transformation * et = &ATTACHMENT(key)->et;
 
     et->read_buffer  = &ATTACHMENT(key)->write_buffer;
     et->write_buffer = &ATTACHMENT(key)->extern_read_buffer;
@@ -814,17 +811,17 @@ void init_structure(struct external_transformation * et){
     et->finish_write = false;
     et->error_write  = false;
     et->error_read   = false;
+
+    et->origin_fd    = &ATTACHMENT(key)->origin_fd;
+    et->client_fd    = &ATTACHMENT(key)->client_fd;
+    et->ext_read_fd  = &ATTACHMENT(key)->extern_read_fd;
+    et->ext_write_fd = &ATTACHMENT(key)->extern_write_fd;
+
     et->did_write    = false;
     et->write_error  = false;
 
     et->send_bytes_write    = 0;
     et->send_bytes_read     = 0;
-}
-
-static void external_transformation_init(struct selector_key * key) {
-    struct external_transformation * et = &ATTACHMENT(key)->et;
-
-    init_structure(et);
 
     if (et->parser_read == NULL) {
         et->parser_read = parser_init(parser_no_classes(), pop3_multi_parser());
