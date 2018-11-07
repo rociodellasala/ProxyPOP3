@@ -1,5 +1,0 @@
-/home/rocio/Escritorio/SEGUNDO CUATRIMESTRE 2018/Protocolos de Comunicación/TP PROTOS/CMakeFiles/edit_cache.dir
-/home/rocio/Escritorio/SEGUNDO CUATRIMESTRE 2018/Protocolos de Comunicación/TP PROTOS/CMakeFiles/pop3filter.dir
-/home/rocio/Escritorio/SEGUNDO CUATRIMESTRE 2018/Protocolos de Comunicación/TP PROTOS/CMakeFiles/pop3ctl.dir
-/home/rocio/Escritorio/SEGUNDO CUATRIMESTRE 2018/Protocolos de Comunicación/TP PROTOS/CMakeFiles/rebuild_cache.dir
-/home/rocio/Escritorio/SEGUNDO CUATRIMESTRE 2018/Protocolos de Comunicación/TP PROTOS/CMakeFiles/stripmime.dir
