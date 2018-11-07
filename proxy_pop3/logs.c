@@ -65,8 +65,8 @@ char * print_connection_status(const struct sockaddr * addr) {
 
 
 void log_connection(bool opened, const struct sockaddr * clientaddr, char * message) {
-    char time_buffer[50] = {0};
-    unsigned    n           = N(time_buffer);
+    char        time_buffer[TIME]   = {0};
+    unsigned    n                   = N(time_buffer);
 
     time_t now = 0;
     time(&now);
@@ -78,35 +78,58 @@ void log_connection(bool opened, const struct sockaddr * clientaddr, char * mess
     } else {
         fprintf(stdout, ANSI_RED "[%s]:" ANSI_RESET " %s - %s\n", time_buffer, message, connection_info);
     }
+
+    free(connection_info);
 }
 
 
 void log_request(bool opened, char * cmd, char * args, char * message) {
-    char time_buffer[50] = {0};
-    unsigned    n           = N(time_buffer);
-
+    char        time_buffer[TIME]   = {0};
+    unsigned    n                   = N(time_buffer);
     time_t now = 0;
     time(&now);
     strftime(time_buffer, n, "%FT %TZ", gmtime(&now));
-    char * request_info = malloc(20 * sizeof(char *));
+    char * request_info;
 
-    sprintf(request_info, "cmd %s - args %s\n", cmd, args);
+    if (args != NULL) {
+        if (strcmp(cmd,"pass") == 0){
+            request_info = malloc((strlen(cmd) + strlen(args) + 25) * sizeof(char *));
+            int i = strlen(args);
+            int j = 0;
+            char * encryped_pass = malloc(i * sizeof(char *));
+            while (i > 0) {
+                encryped_pass[j++] = '*';
+                i--;
+            }
+            sprintf(request_info, "cmd %s - args %s\n", cmd, encryped_pass);
+            free(encryped_pass);
+        } else {
+            request_info = malloc((strlen(cmd) + strlen(args) + 25) * sizeof(char *));
+            sprintf(request_info, "cmd %s - args %s\n", cmd, args);
+        }
+    } else {
+        request_info = malloc((strlen(cmd) + 25) * sizeof(char *));
+        sprintf(request_info, "cmd %s - args are null\n", cmd);
+    }
 
     if(opened){
         fprintf(stdout, ANSI_GREEN "[%s]:" ANSI_RESET " %s - %s", time_buffer, message, request_info);
     } else {
         fprintf(stdout, ANSI_RED "[%s]:" ANSI_RESET " %s - %s", time_buffer, message, request_info);
     }
+
+    free(request_info);
 }
 
 void log_response(bool opened, char * cmd, char * status, char * message) {
-    char time_buffer[50] = {0};
-    unsigned    n           = N(time_buffer);
+    char        time_buffer[TIME]   = {0};
+    unsigned    n                   = N(time_buffer);
 
     time_t now = 0;
     time(&now);
     strftime(time_buffer, n, "%FT %TZ", gmtime(&now));
-    char * request_info = malloc(20 * sizeof(char *));
+
+    char * request_info = malloc((strlen(cmd) + strlen(status) + 20) * sizeof(char *));
 
     sprintf(request_info, "cmd: %s - status:%s\n", cmd, status);
 
@@ -115,6 +138,8 @@ void log_response(bool opened, char * cmd, char * status, char * message) {
     } else {
         fprintf(stdout, ANSI_RED "[%s]:" ANSI_RESET " %s - %s", time_buffer, message, request_info);
     }
+
+    free(request_info);
 }
 
 
@@ -126,12 +151,12 @@ void log_external_transformation(bool opened, char * message) {
     time(&now);
     strftime(time_buffer, n, "%FT %TZ", gmtime(&now));
 
-
     if(opened){
         fprintf(stdout, ANSI_GREEN "[%s]:" ANSI_RESET " %s\n", time_buffer, message);
     } else {
         fprintf(stdout, ANSI_RED "[%s]:" ANSI_RESET " %s\n", time_buffer, message);
     }
+
 }
 
 void log_origin_server_resolution(bool opened, char * message) {

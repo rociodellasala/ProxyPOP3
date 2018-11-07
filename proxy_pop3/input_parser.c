@@ -21,7 +21,7 @@ void print_usage() {
            "\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n"
            "\t-p [port]: Specifies TCP port where to listen for incoming POP3 connections. By default is 1110. \n"
            "\t-P [origin port]: Specifies TCP port where the POP3 server is located. By default is 110. \n"
-           "\t-t [filtered command]: Command used for external transformations. By default applies no transofrmations. \n"
+           "\t-t [filtered command]: Command used for external transformations. By default applies no transformations. \n"
            "\t-v : Prints out the proxy_pop3 version and ends. \n"
            "<origin-server>: Address of POP3 origin server.\n");
 }

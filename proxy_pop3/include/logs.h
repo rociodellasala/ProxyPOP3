@@ -8,6 +8,8 @@
 #define ANSI_GREEN    "\x1b[32m"
 #define ANSI_RESET   "\x1b[0m"
 
+#define TIME 20
+
 void log_connection(bool, const struct sockaddr *, char *);
 
 void log_request(bool, char *, char *, char *);

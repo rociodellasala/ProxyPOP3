@@ -272,9 +272,9 @@ void completely_allow_type(struct filter_list * list, struct type_node * type){
 	free(type);
 }
 
-char * get_forbidden_types(struct filter_list * list){
+char * get_forbidden_types(struct filter_list * list) {
     struct type_node *  node    = list->first;
-    char *              str     = malloc(BUFFER*sizeof(char));
+    char *              str     = malloc(BUFFER * sizeof(char *));
 	size_t              size    = BUFFER;
 	size_t              index   = 0;
 
@@ -283,7 +283,7 @@ char * get_forbidden_types(struct filter_list * list){
 		struct subtype_node* n = node->first;
 		size_t type_length = strlen(node->name);
 
-		if(node->wildcard){
+		if (node->wildcard) {
 			size_t subtype_length =	strlen("*");
 
 			if (size <= index + type_length + subtype_length + 2) {
@@ -343,7 +343,7 @@ char * get_forbidden_types(struct filter_list * list){
 	return str;
 }
 
-int check_mime_format(char * str, char ** type, char ** subtype){
+int check_mime_format(char * str, char ** type, char ** subtype) {
     int     i;
     bool    slash  = false;
 

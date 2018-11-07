@@ -63,23 +63,25 @@ void return_metric(struct admin * admin, const char * data) {
 }
 
 
-void forbid_mime(struct request_admin * request, enum parse_req_status* status){
-
-    char* type = malloc(strlen((const char *) request->data) * sizeof(char));
-    char* subtype = malloc(strlen((const char *) request->data) * sizeof(char));
-    if(check_mime_format((char *) request->data, &type, &subtype) == -1){
+void forbid_mime(struct request_admin * request, enum parse_req_status * status) {
+    char * type     = malloc(strlen((const char *) request->data) * sizeof(char));
+    char * subtype  = malloc(strlen((const char *) request->data) * sizeof(char));
+    
+    if (check_mime_format((char *) request->data, &type, &subtype) == -1){
         *status = FORBID_ERROR; //error
         return;
     }
+    
     bool already_there = find_mime(parameters->filtered_media_types, type, subtype);
-    if(already_there){
+    
+    if (already_there) {
         *status = MIME_ALREADY_FORBID; //ya estaba
         return;
     }
-
-
+    
     int forbid_status = forbid_new(type, subtype, parameters->filtered_media_types);
-    if(forbid_status != 0){
+    
+    if (forbid_status != 0) {
         *status = FORBID_ERROR; //error
         return;
     }
@@ -87,23 +89,26 @@ void forbid_mime(struct request_admin * request, enum parse_req_status* status){
     *status = REQ_PARSE_OK;
 }
 
-void allow_mime(struct request_admin * request, enum parse_req_status* status){
-        char* type = malloc(strlen((const char *) request->data) * sizeof(char));
-        char* subtype = malloc(strlen((const char *) request->data) * sizeof(char));
+void allow_mime(struct request_admin * request, enum parse_req_status * status){
+        char * type     = malloc(strlen((const char *) request->data) * sizeof(char));
+        char * subtype  = malloc(strlen((const char *) request->data) * sizeof(char));
 
-        if(check_mime_format((char *) request->data, &type, &subtype) == -1){
+        if (check_mime_format((char *) request->data, &type, &subtype) == -1) {
             *status = ALLOW_ERROR; //error
             return;
         }
 
         bool is_there = find_mime(parameters->filtered_media_types, type, subtype);
-        if(!is_there){
-            if(strcasecmp(subtype, "*") == 0){
+      
+        if (!is_there) {
+            if (strcasecmp(subtype, "*") == 0) {
                 int allow_status = allow_type(type, subtype, parameters->filtered_media_types);
-                if(allow_status == -1){
+                
+                if (allow_status == -1) {
                     *status = ALLOW_ERROR;
                     return;
                 }
+                
                 *status = REQ_PARSE_OK;
                 return;
             }
@@ -113,10 +118,11 @@ void allow_mime(struct request_admin * request, enum parse_req_status* status){
 
 
         int allow_status = allow_type(type, subtype, parameters->filtered_media_types);
-        if(allow_status == -2){
+        
+        if (allow_status == -2) {
             *status = CANNOT_ALLOW_BECAUSE_WILDCARD; //error
             return;
-        }else if(allow_status == -1){
+        } else if(allow_status == -1) {
             *status = ALLOW_ERROR;
             return;
         }

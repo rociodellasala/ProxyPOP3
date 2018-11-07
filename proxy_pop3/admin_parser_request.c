@@ -22,7 +22,7 @@ void parse_action(struct admin * admin) {
             if(strstr((char *)r->data,"stripmime") != NULL){
                 admin->resp_data = "You chose stripmime. Remember to forbid at least one media type, otherwise transformation will fail.";
                 admin->resp_length = strlen((const char *) admin->resp_data);
-                admin->a_status = 1;
+                admin->a_status = (enum admin_status) 1;
             }
             parameters->filter_command->program_name = r->data;
             break;
@@ -101,7 +101,7 @@ void parse_req_commands(struct admin * admin) {
 int parse_admin_request(struct admin * admin) {
     int                     read_bytes;
     unsigned char           buffer[MAX_ADMIN_BUFFER];
-    struct request_admin *  request     = malloc(sizeof(*request));
+    struct request_admin *  request;
 
     read_bytes = sctp_recvmsg(admin->fd, buffer, MAX_ADMIN_BUFFER, NULL, 0, 0, 0);
 
@@ -110,6 +110,7 @@ int parse_admin_request(struct admin * admin) {
         admin->resp_data    = "Server Error while reading. Please try again.";
         admin->resp_length  = strlen((const char *) admin->resp_data);
     } else {
+        request     = malloc(sizeof(*request));
         deserialize_request(buffer, request);
         admin->current_request = request;
         parse_req_commands(admin);
