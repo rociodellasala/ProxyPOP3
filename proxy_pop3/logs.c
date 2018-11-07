@@ -94,15 +94,7 @@ void log_request(bool opened, char * cmd, char * args, char * message) {
     if (args != NULL) {
         if (strcmp(cmd,"pass") == 0){
             request_info = malloc((strlen(cmd) + strlen(args) + 25) * sizeof(char *));
-            int i = strlen(args);
-            int j = 0;
-            char * encryped_pass = malloc(i * sizeof(char *));
-            while (i > 0) {
-                encryped_pass[j++] = '*';
-                i--;
-            }
-            sprintf(request_info, "cmd %s - args %s\n", cmd, encryped_pass);
-            free(encryped_pass);
+            sprintf(request_info, "cmd %s - args %s\n", cmd, "secret");
         } else {
             request_info = malloc((strlen(cmd) + strlen(args) + 25) * sizeof(char *));
             sprintf(request_info, "cmd %s - args %s\n", cmd, args);
