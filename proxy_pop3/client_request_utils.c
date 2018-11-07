@@ -37,8 +37,17 @@ enum pop3_state process_request(struct selector_key * key, struct request_st * r
     if (request->request_parser.state >= request_error_inexistent_cmd) {
         // si hay un error le envio un mensaje y vuelvo a intentar leer una nueva request
         send_error_request(request->request_parser.state, ATTACHMENT(key)->client_fd);
-        request_parser_reset(&request->request_parser);
-        return REQUEST;
+        if (is_empty(ATTACHMENT(key)->session.request_queue)) {
+            request_parser_reset(&request->request_parser);
+        } else {
+            selector_status ss = SELECTOR_SUCCESS;
+            ss |= selector_set_interest_key(key, OP_NOOP);
+            ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_WRITE);
+
+            stm_next_status = SELECTOR_SUCCESS == ss ? stm_next_status : ERROR;
+        }
+
+        return stm_next_status;
     }
 
     // si no hay error entonces armo la request y la encolo

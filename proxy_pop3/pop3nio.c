@@ -580,7 +580,11 @@ static int request_read(struct selector_key * key) {
         }
         
     } else {
-        stm_next_status = ERROR;
+        if(ATTACHMENT(key)->session.pipelining == true && is_empty(ATTACHMENT(key)->session.request_queue)){
+            stm_next_status = DONE;
+        } else {
+            stm_next_status = ERROR;
+        }
     }
 
     return stm_next_status;
