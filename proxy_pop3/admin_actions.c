@@ -60,8 +60,6 @@ void return_metric(struct admin * admin, const char * data) {
     admin->resp_data    = resp;
     admin->resp_length  = (unsigned int) strlen((const char *) admin->resp_data);
 
-    free(value);
-    free(resp);
 }
 
 
