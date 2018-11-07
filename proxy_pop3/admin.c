@@ -106,7 +106,7 @@ void reset_admin_status(struct admin * admin) {
 void admin_write(struct selector_key * key) {
     int             resp    = -1;
     struct admin *  admin   = ATTACHMENT(key);
-    int             current_status = admin->a_status;
+ 
     
     if (admin->quit == 0) {
         while(resp < 0) {
@@ -129,14 +129,6 @@ void admin_write(struct selector_key * key) {
 
     if (selector_set_interest(key->s, key->fd, OP_READ) != SELECTOR_SUCCESS) {
         selector_unregister_fd(key->s, admin->fd);
-    }
-    
-    if (current_status != ST_EHLO) {
-        if (ATTACHMENT(key)->current_request->length > 0) {
-            free(ATTACHMENT(key)->current_request->data);
-        }
-        
-        free(ATTACHMENT(key)->current_request);
     }
     
     reset_admin_status(admin);
