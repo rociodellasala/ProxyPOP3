@@ -32,7 +32,7 @@ void print_help() {
 }
 
 void print_version() {
-    printf("Version: POP3 Proxy 1.0");
+    printf("Version: POP3 Proxy %s\n", parameters->version);
 }
 
 void free_options(char ** options, int size) {
@@ -45,6 +45,24 @@ void free_options(char ** options, int size) {
     free(options);
 }
 
+/* Returns 0 if string contain only digits, else returns -1 */
+int valid_digit(char * ip_str) {
+    while (*ip_str) {
+        if ((*ip_str) >= '0' && (*ip_str) <= '9') {
+            ++ip_str;
+        } else {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int validate_origin_server_argument(char * origin_server) {
+    return 0;
+}
+
+
 int validate_error_file(const char * parameter) {
     if(parameter){
 
@@ -54,6 +72,13 @@ int validate_error_file(const char * parameter) {
         return -1;
     else
         return 0;
+}
+
+int validate_message(const char * parameter) {
+    if(parameter){
+        //
+    }
+    return 0; 
 }
 
 int validate_media_type(const char * parameter) {
@@ -87,6 +112,11 @@ int validate_parameters(char * next_option, char * parameter) {
     if (strcmp(next_option, "-e") == 0) {
         if (validate_error_file(parameter) != 0){
             printf("Invalid error file\n");
+            return -1;
+        }
+    } else if (strcmp(next_option, "-m") == 0) {
+        if (validate_message(parameter) != 0) {
+            printf("Invalid message of replacement\n");
             return -1;
         }
     } else if (strcmp(next_option, "-M") == 0) {
@@ -199,7 +229,7 @@ int parse_input(const int argc, char ** argv) {
         exit(0);
     }
 
-    if (validate_options(argc, argv) < 0) {
+    if (validate_options(argc, argv) < 0 || validate_origin_server_argument(argv[argc-1]) < 0) {
         print_usage();
         return -1;
     }
