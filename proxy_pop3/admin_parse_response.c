@@ -44,7 +44,7 @@ void send_response_with_data(struct admin * admin, unsigned char status) {
     
     strncpy((char *) response->data, (const char *) admin->resp_data, response->length);
     
-    send_response(admin, response)
+    send_response(admin, response);
 
     free(response->data);
     free(response);
