@@ -74,7 +74,7 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
     struct pop3_request *   request   = parser->request;
 
     // contemplo los casos en los cuales la request tenga espacios de mas
-    if (c == SPACE){
+    if (c == SPACE) {
         *is_space = true;
         return ret;
     }
@@ -83,18 +83,27 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
         parser->param_buffer[parser->params][parser->j++] = '\0';
         parser->params++;
         parser->j = 0;
-
         if (parser->params == max_param) {
             ret =  request_error_too_many_params;
             return ret;
         }
+        return ret;
     }
 
-    if (c == NEWLINE || c == CR) {
-        
-            char *aux = parser->param_buffer[parser->params];
+    if (c == CR) {
+        return ret;
+    }
+
+    if (c == NEWLINE) {
+        if (parser->j == 0 && parser->params == 0 && parser->request->cmd->max_params == 0) {
+            return request_done;
+        } if (parser->j == 0 && parser->params == 0 && parser->request->cmd->max_params == 1) {
+            return request_done;
+        } else {
+            char * aux = parser->param_buffer[parser->params];
             parser->param_buffer[parser->params][parser->j++] = '\0';
             parser->params++;
+
             int count = 0;
 
             while (*aux != 0) {
@@ -109,14 +118,13 @@ static enum request_state parameter(const uint8_t c, struct request_parser * par
                 assemble_parameters(count, parser, request);
             }
 
-            if(c == CR){
-                ret = request_newline;
-            }else{
-                ret = request_done;
-            }   
-        
+
+            ret = request_done;
+
+        }
     } else {
         parser->param_buffer[parser->params][parser->j++] = c;
+
         if (parser->j >= MAX_PARAM_SIZE - 1) {
             ret = request_error_param_too_long;
         }
