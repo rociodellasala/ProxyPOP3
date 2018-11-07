@@ -41,6 +41,11 @@ void pop3_read(struct selector_key * key) {
     const enum pop3_state  st   = (enum pop3_state) stm_handler_read(stm, key);
 
     if (ERROR == st || DONE == st) {
+        if(st == ERROR){
+            log_error();
+        } else {
+            log_done();
+        }
         pop3_done(key);
     }
 }
@@ -50,6 +55,11 @@ void pop3_write(struct selector_key * key) {
     const enum pop3_state  st   = (enum pop3_state)stm_handler_write(stm, key);
 
     if (ERROR == st || DONE == st) {
+        if(st == ERROR){
+            log_error();
+        } else {
+            log_done();
+        }
         pop3_done(key);
     }
 
@@ -60,6 +70,11 @@ void pop3_block(struct selector_key * key) {
     const enum pop3_state  st    = (enum pop3_state) stm_handler_block(stm, key);
 
     if (ERROR == st || DONE == st) {
+        if(st == ERROR){
+            log_error();
+        } else {
+            log_done();
+        }
         pop3_done(key);
     }
 }

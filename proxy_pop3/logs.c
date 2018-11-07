@@ -94,7 +94,7 @@ void log_request(bool opened, char * cmd, char * args, char * message) {
     if (args != NULL) {
         if (strcmp(cmd,"pass") == 0){
             request_info = malloc((strlen(cmd) + strlen(args) + 25) * sizeof(char *));
-            sprintf(request_info, "cmd %s - args %s\n", cmd, "secret");
+            sprintf(request_info, "cmd %s - pass is secret\n", cmd);
         } else {
             request_info = malloc((strlen(cmd) + strlen(args) + 25) * sizeof(char *));
             sprintf(request_info, "cmd %s - args %s\n", cmd, args);
@@ -142,7 +142,7 @@ void log_response(bool opened, char * cmd, char * status, char * message) {
 
 
 void log_external_transformation(bool opened, char * message) {
-    char time_buffer[50] = {0};
+    char time_buffer[TIME] = {0};
     unsigned    n           = N(time_buffer);
 
     time_t now = 0;
@@ -158,7 +158,7 @@ void log_external_transformation(bool opened, char * message) {
 }
 
 void log_origin_server_resolution(bool opened, char * message) {
-    char time_buffer[50] = {0};
+    char time_buffer[TIME] = {0};
     unsigned    n           = N(time_buffer);
 
     time_t now = 0;
@@ -170,4 +170,27 @@ void log_origin_server_resolution(bool opened, char * message) {
     } else {
         fprintf(stdout, ANSI_RED "[%s]:" ANSI_RESET " %s\n", time_buffer, message);
     }
+}
+
+
+void log_done() {
+    char time_buffer[TIME] = {0};
+    unsigned    n           = N(time_buffer);
+
+    time_t now = 0;
+    time(&now);
+    strftime(time_buffer, n, "%FT %TZ", gmtime(&now));
+
+    fprintf(stdout, ANSI_GREEN "[%s]:" ANSI_RESET " %s\n", time_buffer, "FINAL STATUS DONE");
+}
+
+void log_error(){
+    char time_buffer[TIME] = {0};
+    unsigned    n           = N(time_buffer);
+
+    time_t now = 0;
+    time(&now);
+    strftime(time_buffer, n, "%FT %TZ", gmtime(&now));
+
+    fprintf(stdout, ANSI_RED "[%s]:" ANSI_RESET " %s\n", time_buffer, "FINAL STATUS ERROR");
 }
