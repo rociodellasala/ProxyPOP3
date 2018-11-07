@@ -6,9 +6,7 @@
 #include "include/input_parser.h"
 
 void print_usage() {
-    printf("USAGE: ./admin_client <server-port> <server-address> \n"
-           "POSIX style options: \n"
-           "\t-o [management port]: Specifies SCTP port where the management server is located. By default is 9090. \n");
+    printf("USAGE: ./admin_client <server-port> <server-address> \n");
 }
 
 int parse_input(const int argc, char **argv) {
