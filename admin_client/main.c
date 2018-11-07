@@ -62,18 +62,16 @@ int main(int argc, char ** argv) {
         return -1;
     }
 
-    set_options_values(argc,argv);
-
     printf("Server address and port values: \n - [ip] : %s \n - [port] : %d \n",
            clt_parameters->server_address, clt_parameters->server_port);
 
     initialize_sctp_socket();
+
     
     sctp_recvmsg(socket_fd, (void *) recv_buffer, MAX_BUFFER, NULL, 0, 0, 0);
     printf("\nMessage from proxy_pop3: %s", recv_buffer);
 
     communicate_with_proxy();
-
     close(socket_fd);
     return 0;
 }
