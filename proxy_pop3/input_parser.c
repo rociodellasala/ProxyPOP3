@@ -46,24 +46,24 @@ void free_options(char ** options, int size) {
 }
 
 int validate_error_file(const char * parameter) {
-    if(parameter){
+    FILE * fb = fopen("parameter","r");
 
-    }
-    FILE *fb = fopen("parameter","r");
-    if(fb==NULL)
+    if (fb == NULL) {
         return -1;
-    else
+    }  else {
         return 0;
+    }
 }
 
 int validate_media_type(const char * parameter) {
-    char* aux = malloc(strlen(parameter)*sizeof(char));
-    char* type = malloc(strlen(parameter)*sizeof(char));
-    char* subtype = malloc(strlen(parameter)*sizeof(char));
+    char* aux       = malloc(strlen(parameter)*sizeof(char));
+    char* type      = malloc(strlen(parameter)*sizeof(char));
+    char* subtype   = malloc(strlen(parameter)*sizeof(char));
     strcpy(aux, parameter);                    
-    if(check_mime_format(aux, &type, &subtype) != 1){
+
+    if (check_mime_format(aux, &type, &subtype) != 1) {
         return -1; 
-    }else{
+    } else {
         return 0;
     }
 }
@@ -71,6 +71,7 @@ int validate_media_type(const char * parameter) {
 
 int validate_port(char * parameter) {
     int i;
+
     if (strlen(parameter) == 4) {
         for (i = 0 ; i < 4 ; i++ ) {
             if (!isdigit(parameter[i])) {
@@ -79,6 +80,7 @@ int validate_port(char * parameter) {
         }
         return 0;
     }
+    
     return -1;
 }
 
