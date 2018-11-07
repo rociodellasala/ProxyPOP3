@@ -46,32 +46,38 @@ void free_options(char ** options, int size) {
 }
 
 int validate_error_file(const char * parameter) {
-    FILE * fb = fopen(parameter,"r");
-    
-    if (fb == NULL) {
-        return -1;
-    }  else {
-        return 0;
+    if(parameter){
+
     }
+    FILE * fb = fopen(parameter,"r");
+    if(fb==NULL)
+        return -1;
+    else
+        return 0;
 }
 
-int validate_media_type(const char * parameter) {
-    char* aux       = malloc(strlen(parameter)*sizeof(char));
-    char* type      = malloc(strlen(parameter)*sizeof(char));
-    char* subtype   = malloc(strlen(parameter)*sizeof(char));
-    strcpy(aux, parameter);                    
-   
-    if (check_mime_format(aux, &type, &subtype) != 1) {
-        return -1; 
-    } else {
-        return 0;
+int validate_media_type(char * parameter) {
+
+    char *pt;
+    pt = strtok (parameter,",");
+    while (pt != NULL) {
+
+        char * aux     = malloc(strlen(pt)*sizeof(char));
+        char * type    = malloc(strlen(pt)*sizeof(char));
+        char * subtype = malloc(strlen(pt)*sizeof(char));
+        strcpy(aux, pt);   
+        if(check_mime_format(aux, &type, &subtype) != 1){
+            return -1; 
+        }
+        pt = strtok(NULL, ",");
     }
+
+   return 0;
 }
 
 
 int validate_port(char * parameter) {
     int i;
-    
     if (strlen(parameter) == 4) {
         for (i = 0 ; i < 4 ; i++ ) {
             if (!isdigit(parameter[i])) {
@@ -80,7 +86,6 @@ int validate_port(char * parameter) {
         }
         return 0;
     }
-    
     return -1;
 }
 
@@ -276,4 +281,3 @@ options set_options_values(const int argc, char ** argv) {
 
     return parameters;
 }
-
