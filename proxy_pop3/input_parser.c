@@ -10,7 +10,7 @@
 #include "include/filter_list.h"
 
 void print_usage() {
-    printf("USAGE: ./proxy_pop3 [ POSIX style options ] <origin-server> \n"
+    printf("USAGE: ./pop3filter [ POSIX style options ] <origin-server> \n"
            "POSIX style options: \n"
            "\t-e [error file]: Specifies the file where to redirect stderr. By default is '\\dev\\null'. \n"
            "\t-h : Prints out help and ends. \n"
@@ -32,7 +32,7 @@ void print_help() {
 }
 
 void print_version() {
-    printf("Version: POP3 Proxy 1.0");
+    printf("Version: POP3 Proxy 1.0\n");
 }
 
 void free_options(char ** options, int size) {
