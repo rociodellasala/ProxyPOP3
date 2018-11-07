@@ -73,7 +73,7 @@ struct response_st {
     struct response_parser      response_parser;
 };
 
-#define BUFFER_SIZE 45
+#define BUFFER_SIZE 30
 
 /*
  * Si bien cada estado tiene su propio struct que le da un alcance
